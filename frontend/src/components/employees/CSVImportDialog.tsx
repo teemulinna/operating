@@ -25,7 +25,7 @@ export function CSVImportDialog({ open, onClose }: CSVImportDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
-  const { importCSV } = useEmployeeCSV();
+  const importCSV = useEmployeeCSV();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();

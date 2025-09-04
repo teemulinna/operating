@@ -1,220 +1,116 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
-import { EmployeeService } from '@/services/api';
-import type { 
-  Employee, 
-  CreateEmployeeRequest, 
-  UpdateEmployeeRequest, 
-  EmployeeFilters, 
-  PaginationParams,
-  ApiError 
-} from '@/types/employee';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { EmployeeService } from '@/services/api'
+import type { Employee, CreateEmployeeRequest, EmployeeFilters, PaginationParams } from '@/types/employee'
 
-// Query keys for React Query
-export const employeeKeys = {
+const EMPLOYEE_KEYS = {
   all: ['employees'] as const,
-  lists: () => [...employeeKeys.all, 'list'] as const,
+  lists: () => [...EMPLOYEE_KEYS.all, 'list'] as const,
   list: (filters: EmployeeFilters, pagination: PaginationParams) => 
-    [...employeeKeys.lists(), filters, pagination] as const,
-  details: () => [...employeeKeys.all, 'detail'] as const,
-  detail: (id: number) => [...employeeKeys.details(), id] as const,
-  departments: () => [...employeeKeys.all, 'departments'] as const,
-  positions: () => [...employeeKeys.all, 'positions'] as const,
-};
+    [...EMPLOYEE_KEYS.lists(), filters, pagination] as const,
+  details: () => [...EMPLOYEE_KEYS.all, 'detail'] as const,
+  detail: (id: number) => [...EMPLOYEE_KEYS.details(), id] as const,
+  departments: () => [...EMPLOYEE_KEYS.all, 'departments'] as const,
+  positions: () => [...EMPLOYEE_KEYS.all, 'positions'] as const,
+}
 
-/**
- * Hook for fetching employees with filtering and pagination
- */
 export function useEmployees(
-  filters: EmployeeFilters = {},
+  filters: EmployeeFilters = {}, 
   pagination: PaginationParams = {}
 ) {
   return useQuery({
-    queryKey: employeeKeys.list(filters, pagination),
+    queryKey: EMPLOYEE_KEYS.list(filters, pagination),
     queryFn: () => EmployeeService.getEmployees(filters, pagination),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
+  })
 }
 
-/**
- * Hook for fetching a single employee
- */
 export function useEmployee(id: number) {
   return useQuery({
-    queryKey: employeeKeys.detail(id),
+    queryKey: EMPLOYEE_KEYS.detail(id),
     queryFn: () => EmployeeService.getEmployee(id),
-    enabled: !!id && id > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
+    enabled: !!id,
+  })
 }
 
-/**
- * Hook for fetching departments
- */
-export function useDepartments() {
-  return useQuery({
-    queryKey: employeeKeys.departments(),
-    queryFn: EmployeeService.getDepartments,
-    staleTime: 15 * 60 * 1000, // 15 minutes - departments change rarely
-    refetchOnWindowFocus: false,
-  });
-}
-
-/**
- * Hook for fetching positions
- */
-export function usePositions() {
-  return useQuery({
-    queryKey: employeeKeys.positions(),
-    queryFn: EmployeeService.getPositions,
-    staleTime: 15 * 60 * 1000, // 15 minutes - positions change rarely
-    refetchOnWindowFocus: false,
-  });
-}
-
-/**
- * Hook for creating employees
- */
 export function useCreateEmployee() {
-  const queryClient = useQueryClient();
-
+  const queryClient = useQueryClient()
+  
   return useMutation({
     mutationFn: (employee: CreateEmployeeRequest) => 
       EmployeeService.createEmployee(employee),
     onSuccess: () => {
-      // Invalidate and refetch employee lists
-      queryClient.invalidateQueries({ queryKey: employeeKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: employeeKeys.departments() });
-      queryClient.invalidateQueries({ queryKey: employeeKeys.positions() });
+      // Invalidate employee lists to refetch data
+      queryClient.invalidateQueries({ queryKey: EMPLOYEE_KEYS.lists() })
     },
-    onError: (error: ApiError) => {
-      console.error('Failed to create employee:', error);
-    },
-  });
+  })
 }
 
-/**
- * Hook for updating employees
- */
 export function useUpdateEmployee() {
-  const queryClient = useQueryClient();
-
+  const queryClient = useQueryClient()
+  
   return useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: Omit<UpdateEmployeeRequest, 'id'> }) =>
+    mutationFn: ({ id, updates }: { id: number; updates: Partial<Employee> }) =>
       EmployeeService.updateEmployee(id, updates),
     onSuccess: (updatedEmployee) => {
       // Update the specific employee in cache
       queryClient.setQueryData(
-        employeeKeys.detail(updatedEmployee.id),
+        EMPLOYEE_KEYS.detail(updatedEmployee.id), 
         updatedEmployee
-      );
-      
-      // Invalidate employee lists to reflect changes
-      queryClient.invalidateQueries({ queryKey: employeeKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: employeeKeys.departments() });
-      queryClient.invalidateQueries({ queryKey: employeeKeys.positions() });
+      )
+      // Invalidate lists to refetch
+      queryClient.invalidateQueries({ queryKey: EMPLOYEE_KEYS.lists() })
     },
-    onError: (error: ApiError) => {
-      console.error('Failed to update employee:', error);
-    },
-  });
+  })
 }
 
-/**
- * Hook for deleting employees
- */
 export function useDeleteEmployee() {
-  const queryClient = useQueryClient();
-
+  const queryClient = useQueryClient()
+  
   return useMutation({
     mutationFn: (id: number) => EmployeeService.deleteEmployee(id),
     onSuccess: (_, deletedId) => {
-      // Remove the employee from cache
-      queryClient.removeQueries({ queryKey: employeeKeys.detail(deletedId) });
-      
-      // Invalidate employee lists
-      queryClient.invalidateQueries({ queryKey: employeeKeys.lists() });
+      // Remove employee from cache
+      queryClient.removeQueries({ queryKey: EMPLOYEE_KEYS.detail(deletedId) })
+      // Invalidate lists to refetch
+      queryClient.invalidateQueries({ queryKey: EMPLOYEE_KEYS.lists() })
     },
-    onError: (error: ApiError) => {
-      console.error('Failed to delete employee:', error);
-    },
-  });
+  })
 }
 
-/**
- * Hook for CSV operations
- */
-export function useEmployeeCSV() {
-  const exportCSV = useCallback(async (filters: EmployeeFilters = {}) => {
-    try {
-      const blob = await EmployeeService.exportCSV(filters);
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `employees-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Failed to export CSV:', error);
-      return { success: false, error: error as ApiError };
-    }
-  }, []);
+export function useDepartments() {
+  return useQuery({
+    queryKey: EMPLOYEE_KEYS.departments(),
+    queryFn: () => EmployeeService.getDepartments(),
+    staleTime: 10 * 60 * 1000, // 10 minutes - departments change infrequently
+  })
+}
 
-  const importCSV = useMutation({
+export function usePositions() {
+  return useQuery({
+    queryKey: EMPLOYEE_KEYS.positions(),
+    queryFn: () => EmployeeService.getPositions(),
+    staleTime: 10 * 60 * 1000, // 10 minutes - positions change infrequently
+  })
+}
+
+export function useCSVImport() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
     mutationFn: (file: File) => EmployeeService.importCSV(file),
-    onError: (error: ApiError) => {
-      console.error('Failed to import CSV:', error);
+    onSuccess: () => {
+      // Invalidate all employee queries after import
+      queryClient.invalidateQueries({ queryKey: EMPLOYEE_KEYS.all })
     },
-  });
-
-  return {
-    exportCSV,
-    importCSV,
-  };
+  })
 }
 
-/**
- * Hook for optimistic updates
- */
-export function useOptimisticEmployee() {
-  const queryClient = useQueryClient();
-
-  const updateEmployeeOptimistic = useCallback(
-    (id: number, updates: Partial<Employee>) => {
-      const previousEmployee = queryClient.getQueryData<Employee>(
-        employeeKeys.detail(id)
-      );
-
-      if (previousEmployee) {
-        // Optimistically update the cache
-        queryClient.setQueryData<Employee>(
-          employeeKeys.detail(id),
-          { ...previousEmployee, ...updates }
-        );
-      }
-
-      return previousEmployee;
-    },
-    [queryClient]
-  );
-
-  const rollbackEmployee = useCallback(
-    (id: number, previousEmployee: Employee) => {
-      queryClient.setQueryData(employeeKeys.detail(id), previousEmployee);
-    },
-    [queryClient]
-  );
-
-  return {
-    updateEmployeeOptimistic,
-    rollbackEmployee,
-  };
+export function useCSVExport() {
+  return useMutation({
+    mutationFn: (filters: EmployeeFilters = {}) => EmployeeService.exportCSV(filters),
+  })
 }
+
+// Export missing items
+export const useEmployeeCSV = useCSVImport;
+export const employeeKeys = EMPLOYEE_KEYS;

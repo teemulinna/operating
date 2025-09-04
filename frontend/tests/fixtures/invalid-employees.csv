@@ -1,0 +1,6 @@
+firstName,lastName,email,phoneNumber,position,department,salary,hireDate,status
+,Empty,invalid-email,invalid-phone,,,invalid-salary,invalid-date,invalid-status
+Duplicate,User,john.doe@example.com,+1-555-0101,Developer,Engineering,75000,2022-01-15,active
+Special,Chars,special@#$%^&*.com,+1-555-ABCD,Position<script>alert('xss')</script>,Department,999999999999999,2050-13-45,unknown
+Missing,Fields,,,,,,,,
+Long,Name,user.with.very.long.email.address.that.exceeds.normal.limits@extremely-long-domain-name-that-should-be-rejected.com,+1-555-0123456789012345678901234567890,Very Long Position Title That Exceeds Normal Limits And Should Be Truncated Or Rejected,Department Name That Is Way Too Long,75000,2022-01-15,active

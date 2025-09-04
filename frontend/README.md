@@ -1,6 +1,6 @@
-# Employee Management Frontend
+# Employee Management API
 
-A modern React application for managing employee data with a clean, responsive interface built using TypeScript, TailwindCSS, and Shadcn/ui components.
+A comprehensive Express.js REST API for managing employees, departments, and skills with TypeScript, MongoDB, JWT authentication, and full CRUD operations.
 
 ## Features
 

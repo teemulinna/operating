@@ -1,0 +1,21 @@
+firstName,lastName,email,phoneNumber,position,department,salary,hireDate,status
+Employee1,Test,employee1.test@example.com,+1-555-1001,Software Engineer,Engineering,75000,2022-01-15,active
+Employee2,Test,employee2.test@example.com,+1-555-1002,Senior Developer,Engineering,85000,2021-03-20,active
+Employee3,Test,employee3.test@example.com,+1-555-1003,Product Manager,Product,90000,2020-06-10,active
+Employee4,Test,employee4.test@example.com,+1-555-1004,Designer,Design,70000,2022-08-01,active
+Employee5,Test,employee5.test@example.com,+1-555-1005,QA Engineer,Engineering,65000,2023-02-14,active
+Employee6,Test,employee6.test@example.com,+1-555-1006,Marketing Manager,Marketing,80000,2021-11-30,active
+Employee7,Test,employee7.test@example.com,+1-555-1007,Sales Representative,Sales,60000,2023-05-22,active
+Employee8,Test,employee8.test@example.com,+1-555-1008,HR Specialist,Human Resources,55000,2022-12-01,active
+Employee9,Test,employee9.test@example.com,+1-555-1009,Finance Analyst,Finance,58000,2023-01-10,active
+Employee10,Test,employee10.test@example.com,+1-555-1010,Operations Manager,Operations,82000,2021-09-15,active
+Employee11,Test,employee11.test@example.com,+1-555-1011,Software Engineer,Engineering,75000,2022-01-15,active
+Employee12,Test,employee12.test@example.com,+1-555-1012,Senior Developer,Engineering,85000,2021-03-20,active
+Employee13,Test,employee13.test@example.com,+1-555-1013,Product Manager,Product,90000,2020-06-10,active
+Employee14,Test,employee14.test@example.com,+1-555-1014,Designer,Design,70000,2022-08-01,active
+Employee15,Test,employee15.test@example.com,+1-555-1015,QA Engineer,Engineering,65000,2023-02-14,active
+Employee16,Test,employee16.test@example.com,+1-555-1016,Marketing Manager,Marketing,80000,2021-11-30,active
+Employee17,Test,employee17.test@example.com,+1-555-1017,Sales Representative,Sales,60000,2023-05-22,active
+Employee18,Test,employee18.test@example.com,+1-555-1018,HR Specialist,Human Resources,55000,2022-12-01,active
+Employee19,Test,employee19.test@example.com,+1-555-1019,Finance Analyst,Finance,58000,2023-01-10,active
+Employee20,Test,employee20.test@example.com,+1-555-1020,Operations Manager,Operations,82000,2021-09-15,active
