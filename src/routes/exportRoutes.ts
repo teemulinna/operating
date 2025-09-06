@@ -244,7 +244,7 @@ router.put(
   '/bulk-update',
   bulkUpdateValidation,
   validateRequest,
-  async (req, res) => {
+  async (req: any, res: any) => {
     try {
       // This route is handled by the availability controller for capacity updates
       // but can be extended for other bulk operations

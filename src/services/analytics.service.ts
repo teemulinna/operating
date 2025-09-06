@@ -330,7 +330,7 @@ export class AnalyticsService {
       availableExperts: parseInt(row.experts) || 0,
       gapPercentage: parseFloat(row.gap_percentage) || 0,
       criticalityLevel: row.criticality_level as 'low' | 'medium' | 'high' | 'critical',
-      affectedDepartments: [] // Would need additional query to populate
+      affectedDepartments: [] as any[] // Would need additional query to populate
     }));
 
     return {

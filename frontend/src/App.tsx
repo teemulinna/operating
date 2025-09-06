@@ -1,17 +1,36 @@
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { ErrorBoundary } from 'react-error-boundary'
 import { EmployeeList } from '@/components/employees/EmployeeList'
 import { EmployeeFormEnhanced } from '@/components/employees/EmployeeFormEnhanced'
 import { Toaster } from '@/components/ui/toaster'
 import { CSVImport } from '@/components/employees/CSVImport'
-import { ResourceAllocationDashboard } from '@/components/dashboard/ResourceAllocationDashboard'
 import { ProjectList } from '@/components/projects/ProjectList'
 import { ProjectStatsWidget } from '@/components/dashboard/ProjectStatsWidget'
+import { EnhancedDashboard } from '@/components/dashboard/EnhancedDashboard'
 import { WebSocketProvider } from '@/contexts/WebSocketContext'
 import { useCSVExport, useEmployees } from '@/hooks/useEmployees'
+import { SkipToMainContent, GlobalErrorBoundary } from '@/components/ui/accessibility-enhancements'
+import { MobileNavigation } from '@/components/ui/mobile-navigation'
+import { EnhancedErrorHandler, useErrorHandler } from '@/components/ui/enhanced-error-handler'
+import { LoadingSkeletons } from '@/components/ui/LoadingSkeletons'
+import { LazyLoadOnVisible } from '@/components/ui/performance-optimizations'
 import type { Employee } from '@/types/employee'
 import './index.css'
+
+// Lazy load heavy components
+const ResourceAllocationDashboard = React.lazy(() => 
+  import('@/components/dashboard/ResourceAllocationDashboard').then(module => ({
+    default: module.ResourceAllocationDashboard
+  }))
+);
+
+const EnhancedResourcePlanner = React.lazy(() =>
+  import('@/components/resource-planning/EnhancedResourcePlanner').then(module => ({
+    default: module.EnhancedResourcePlanner
+  }))
+);
 
 // Create a client instance
 const queryClient = new QueryClient({
@@ -33,11 +52,28 @@ const queryClient = new QueryClient({
 type ViewMode = 'employees' | 'create' | 'edit' | 'import' | 'resources' | 'projects' | 'dashboard'
 
 function AppContent() {
-  const [currentView, setCurrentView] = useState<ViewMode>('employees')
+  const [currentView, setCurrentView] = useState<ViewMode>('dashboard')
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const csvExport = useCSVExport()
   const { data: employeesData } = useEmployees()
   const employees = employeesData?.employees || []
+  const { error, clearError, handleError } = useErrorHandler()
+
+  // Mock dashboard data - in real app, this would come from API
+  const dashboardData = {
+    employees: employees,
+    projects: [],
+    capacityData: [],
+    recentActivity: [],
+    metrics: {
+      totalEmployees: employees.length,
+      activeProjects: 0,
+      avgUtilization: 0.75,
+      criticalIssues: 0,
+      completedTasks: 0,
+      pendingTasks: 0
+    }
+  }
 
   const handleEmployeeSelect = (employee: Employee) => {
     setSelectedEmployee(employee)
@@ -98,169 +134,136 @@ function AppContent() {
     setCurrentView('employees')
   }
 
+  const currentUser = {
+    name: 'Admin User',
+    role: 'System Administrator',
+    avatar: undefined
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Employee Management System
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Manage your organization's workforce efficiently
-              </p>
+    <div className="min-h-screen bg-background" data-testid="app-loaded">
+      <SkipToMainContent />
+      
+      {/* Mobile Navigation */}
+      <MobileNavigation
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        notifications={3}
+        user={currentUser}
+      />
+
+      <div className="lg:pl-0">
+        {/* Desktop Header */}
+        <header className="hidden lg:block sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200 safe-area-top">
+          <div className="container mx-auto px-6 h-16">
+            <div className="flex items-center justify-between h-full">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Resource Planning System
+                </h1>
+              </div>
+              
+              {/* Desktop Navigation */}
+              <nav className="flex space-x-1" data-testid="desktop-navigation">
+                {[
+                  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+                  { id: 'employees', label: 'Employees', icon: '👥' },
+                  { id: 'projects', label: 'Projects', icon: '📋' },
+                  { id: 'resources', label: 'Resources', icon: '🔧' }
+                ].map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setCurrentView(item.id as ViewMode)}
+                    data-testid={`${item.id}-tab`}
+                    className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                      currentView === item.id || (item.id === 'employees' && ['create', 'edit', 'import'].includes(currentView))
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    <span className="mr-2">{item.icon}</span>
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
             </div>
-            
-            {/* Main Navigation Menu */}
-            <nav className="flex space-x-4">
-              <button
-                onClick={() => setCurrentView('dashboard')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  currentView === 'dashboard'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                📊 Dashboard
-              </button>
-              <button
-                onClick={() => setCurrentView('employees')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  ['employees', 'create', 'edit', 'import'].includes(currentView)
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                👥 Employees
-              </button>
-              <button
-                onClick={() => setCurrentView('projects')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  currentView === 'projects'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                📋 Projects
-              </button>
-              <button
-                onClick={() => setCurrentView('resources')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  currentView === 'resources'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                🔧 Resources
-              </button>
-            </nav>
           </div>
         </header>
 
         {/* Main Content */}
-        <main>
+        <main id="main-content" className="pb-20 lg:pb-8">
+          {/* Global Error Display */}
+          {error && (
+            <div className="container mx-auto px-4 py-4">
+              <EnhancedErrorHandler
+                error={error}
+                onClose={clearError}
+                onRetry={clearError}
+              />
+            </div>
+          )}
+
           {/* Dashboard View */}
           {currentView === 'dashboard' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Project Stats Widget */}
-                <ProjectStatsWidget />
-                
-                {/* Quick Actions Card */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => setCurrentView('employees')}
-                      className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-                    >
-                      <span className="text-xl">👥</span>
-                      <div className="text-left">
-                        <div className="font-medium">Manage Employees</div>
-                        <div className="text-sm text-blue-600">View and edit employee information</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => setCurrentView('projects')}
-                      className="w-full flex items-center gap-3 px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
-                    >
-                      <span className="text-xl">📋</span>
-                      <div className="text-left">
-                        <div className="font-medium">Manage Projects</div>
-                        <div className="text-sm text-green-600">Create and track project progress</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => setCurrentView('resources')}
-                      className="w-full flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
-                    >
-                      <span className="text-xl">🔧</span>
-                      <div className="text-left">
-                        <div className="font-medium">Resource Allocation</div>
-                        <div className="text-sm text-purple-600">Optimize team capacity and workload</div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Additional Dashboard Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow">
-                  <h4 className="text-lg font-semibold mb-2">System Status</h4>
-                  <p className="text-blue-100">All systems operational</p>
-                </div>
-                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg shadow">
-                  <h4 className="text-lg font-semibold mb-2">Recent Activity</h4>
-                  <p className="text-green-100">Updates in real-time</p>
-                </div>
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg shadow">
-                  <h4 className="text-lg font-semibold mb-2">Performance</h4>
-                  <p className="text-purple-100">Optimal efficiency</p>
-                </div>
-              </div>
-            </div>
+            <LazyLoadOnVisible
+              fallback={<LoadingSkeletons.Dashboard />}
+              className="container mx-auto"
+            >
+              <EnhancedDashboard 
+                data={dashboardData}
+                onNavigate={setCurrentView}
+              />
+            </LazyLoadOnVisible>
           )}
 
           {/* Employee Views */}
           {currentView === 'employees' && (
-            <EmployeeList
-              onEmployeeSelect={handleEmployeeSelect}
-              onEmployeeCreate={handleEmployeeCreate}
-              onEmployeeEdit={handleEmployeeEdit}
-              onCSVImport={handleCSVImport}
-              onCSVExport={handleCSVExport}
-            />
+            <div className="container mx-auto px-4 py-6">
+              <EmployeeList
+                onEmployeeSelect={handleEmployeeSelect}
+                onEmployeeCreate={handleEmployeeCreate}
+                onEmployeeEdit={handleEmployeeEdit}
+                onCSVImport={handleCSVImport}
+                onCSVExport={handleCSVExport}
+              />
+            </div>
           )}
 
           {/* Projects View */}
           {currentView === 'projects' && (
-            <ProjectList />
+            <div className="container mx-auto px-4 py-6">
+              <ProjectList />
+            </div>
           )}
 
           {/* Resources View */}
           {currentView === 'resources' && (
-            <ResourceAllocationDashboard />
+            <div data-testid="resource-planner">
+              <Suspense fallback={<LoadingSkeletons.Dashboard includeResourceCards />}>
+                <ResourceAllocationDashboard />
+              </Suspense>
+            </div>
           )}
 
           {/* Employee Form Views */}
           {(currentView === 'create' || currentView === 'edit') && (
-            <EmployeeFormEnhanced
-              employee={selectedEmployee ?? undefined}
-              onSuccess={handleFormSuccess}
-              onCancel={handleFormCancel}
-            />
+            <div className="container mx-auto px-4 py-6">
+              <EmployeeFormEnhanced
+                employee={selectedEmployee ?? undefined}
+                onSuccess={handleFormSuccess}
+                onCancel={handleFormCancel}
+              />
+            </div>
           )}
 
           {/* CSV Import View */}
           {currentView === 'import' && (
-            <CSVImport
-              onSuccess={handleImportSuccess}
-              onCancel={handleImportCancel}
-            />
+            <div className="container mx-auto px-4 py-6">
+              <CSVImport
+                onSuccess={handleImportSuccess}
+                onCancel={handleImportCancel}
+              />
+            </div>
           )}
         </main>
       </div>
@@ -270,13 +273,15 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <WebSocketProvider url={import.meta.env.VITE_API_URL || 'http://localhost:3001'}>
-        <AppContent />
-        <Toaster />
-        <ReactQueryDevtools initialIsOpen={false} />
-      </WebSocketProvider>
-    </QueryClientProvider>
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <WebSocketProvider url={import.meta.env.VITE_API_URL || 'http://localhost:3001'}>
+          <AppContent />
+          <Toaster />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </WebSocketProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
   )
 }
 

@@ -289,5 +289,163 @@ export function useCloneProject() {
   });
 }
 
+/**
+ * Hook to fetch project assignments for a specific project
+ */
+export function useProjectAssignments(projectId: string) {
+  return useQuery({
+    queryKey: [...PROJECT_KEYS.detail(projectId), 'assignments'],
+    queryFn: () => ProjectService.getProjectAssignments(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Hook to fetch project roles for a specific project
+ */
+export function useProjectRoles(projectId: string) {
+  return useQuery({
+    queryKey: [...PROJECT_KEYS.detail(projectId), 'roles'],
+    queryFn: () => ProjectService.getProjectRoles(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Hook to create a new project role
+ */
+export function useCreateProjectRole() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (roleData: import('@/types/project').CreateProjectRoleRequest) =>
+      ProjectService.createProjectRole(roleData),
+    onSuccess: (newRole) => {
+      // Invalidate project roles query
+      queryClient.invalidateQueries({ 
+        queryKey: [...PROJECT_KEYS.detail(newRole.projectId), 'roles'] 
+      });
+      // Also invalidate project details to update role counts
+      queryClient.invalidateQueries({ 
+        queryKey: PROJECT_KEYS.detail(newRole.projectId) 
+      });
+    },
+  });
+}
+
+/**
+ * Hook to update an existing project role
+ */
+export function useUpdateProjectRole() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, updates }: { 
+      id: string; 
+      updates: Partial<import('@/types/project').CreateProjectRoleRequest> 
+    }) => ProjectService.updateProjectRole(id, updates),
+    onSuccess: (updatedRole) => {
+      // Update the specific role in cache if possible
+      queryClient.setQueryData(
+        [...PROJECT_KEYS.detail(updatedRole.projectId), 'roles'],
+        (oldRoles: any[]) => {
+          if (!oldRoles) return [updatedRole];
+          return oldRoles.map(role => 
+            role.id === updatedRole.id ? updatedRole : role
+          );
+        }
+      );
+      // Invalidate project roles query to ensure fresh data
+      queryClient.invalidateQueries({ 
+        queryKey: [...PROJECT_KEYS.detail(updatedRole.projectId), 'roles'] 
+      });
+    },
+  });
+}
+
+/**
+ * Hook to delete a project role
+ */
+export function useDeleteProjectRole() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (roleId: string) => ProjectService.deleteProjectRole(roleId),
+    onSuccess: (_, deletedRoleId, context) => {
+      // Remove from all project role queries
+      queryClient.invalidateQueries({ 
+        queryKey: [...PROJECT_KEYS.all, 'roles'] 
+      });
+      // Also invalidate related project queries
+      queryClient.invalidateQueries({ queryKey: PROJECT_KEYS.details() });
+    },
+  });
+}
+
+/**
+ * Hook to create a project role assignment
+ */
+export function useCreateProjectRoleAssignment() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (assignmentData: import('@/types/project').CreateProjectRoleAssignmentRequest) =>
+      ProjectService.createProjectRoleAssignment(assignmentData),
+    onSuccess: (newAssignment) => {
+      // Invalidate assignments for the project
+      queryClient.invalidateQueries({ 
+        queryKey: [...PROJECT_KEYS.detail(newAssignment.projectId), 'assignments'] 
+      });
+      // Invalidate roles to update assignment counts
+      queryClient.invalidateQueries({ 
+        queryKey: [...PROJECT_KEYS.detail(newAssignment.projectId), 'roles'] 
+      });
+    },
+  });
+}
+
+/**
+ * Hook to update a project role assignment
+ */
+export function useUpdateProjectRoleAssignment() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, updates }: { 
+      id: string; 
+      updates: Partial<import('@/types/project').CreateProjectRoleAssignmentRequest> 
+    }) => ProjectService.updateProjectRoleAssignment(id, updates),
+    onSuccess: (updatedAssignment) => {
+      // Invalidate assignments for the project
+      queryClient.invalidateQueries({ 
+        queryKey: [...PROJECT_KEYS.detail(updatedAssignment.projectId), 'assignments'] 
+      });
+    },
+  });
+}
+
+/**
+ * Hook to delete a project role assignment
+ */
+export function useDeleteProjectRoleAssignment() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (assignmentId: string) => ProjectService.deleteProjectRoleAssignment(assignmentId),
+    onSuccess: (deletedAssignment) => {
+      // Invalidate assignments for the project
+      queryClient.invalidateQueries({ 
+        queryKey: [...PROJECT_KEYS.detail(deletedAssignment.projectId), 'assignments'] 
+      });
+      // Invalidate roles to update assignment counts
+      queryClient.invalidateQueries({ 
+        queryKey: [...PROJECT_KEYS.detail(deletedAssignment.projectId), 'roles'] 
+      });
+    },
+  });
+}
+
 // Export query keys for external use
 export const projectKeys = PROJECT_KEYS;

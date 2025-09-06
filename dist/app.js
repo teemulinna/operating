@@ -16,7 +16,10 @@ const capacity_routes_1 = require("./routes/capacity.routes");
 const resource_routes_1 = __importDefault(require("./routes/resource.routes"));
 const project_routes_1 = require("./routes/project.routes");
 const allocation_routes_1 = __importDefault(require("./routes/allocation.routes"));
+const scenario_routes_1 = require("./routes/scenario.routes");
+const pipeline_routes_1 = require("./routes/pipeline.routes");
 const analytics_routes_1 = __importDefault(require("./routes/analytics.routes"));
+const allocation_templates_routes_1 = __importDefault(require("./routes/allocation-templates.routes"));
 const error_handler_1 = require("./middleware/error-handler");
 const auth_middleware_1 = require("./middleware/auth.middleware");
 const request_logger_1 = require("./middleware/request-logger");
@@ -54,7 +57,7 @@ app.get('/api', (_req, res) => {
     res.json({
         name: 'Employee Management API',
         version: '1.0.0',
-        description: 'RESTful API for employee management system with Weekly Capacity Management',
+        description: 'RESTful API for employee management system with Weekly Capacity Management and CRM Pipeline Integration',
         endpoints: {
             employees: '/api/employees',
             departments: '/api/departments',
@@ -63,10 +66,24 @@ app.get('/api', (_req, res) => {
             resources: '/api/resources',
             projects: '/api/projects',
             allocations: '/api/allocations',
-            analytics: '/api/analytics'
+            allocation_templates: '/api/allocation-templates',
+            analytics: '/api/analytics',
+            pipeline: '/api/pipeline',
+            scenarios: '/api/scenarios'
         },
         documentation: '/api/docs',
-        features: ['Employee CRUD', 'Department Management', 'Skill Tracking', 'Weekly Capacity Planning', 'Project Management', 'Resource Allocation', 'Analytics']
+        features: [
+            'Employee CRUD',
+            'Department Management',
+            'Skill Tracking',
+            'Weekly Capacity Planning',
+            'Project Management',
+            'Resource Allocation',
+            'Analytics',
+            'CRM Pipeline Integration',
+            'Scenario Planning',
+            'Resource Demand Forecasting'
+        ]
     });
 });
 app.use('/api/employees', auth_middleware_1.authMiddleware);
@@ -74,8 +91,8 @@ app.use('/api/departments', auth_middleware_1.authMiddleware);
 app.use('/api/skills', auth_middleware_1.authMiddleware);
 app.use('/api/capacity', auth_middleware_1.authMiddleware);
 app.use('/api/resources', auth_middleware_1.authMiddleware);
-app.use('/api/projects', auth_middleware_1.authMiddleware);
 app.use('/api/allocations', auth_middleware_1.authMiddleware);
+app.use('/api/allocation-templates', auth_middleware_1.authMiddleware);
 app.use('/api/analytics', auth_middleware_1.authMiddleware);
 app.use('/api/employees', employee_routes_1.employeeRoutes);
 app.use('/api/departments', department_routes_1.departmentRoutes);
@@ -83,13 +100,16 @@ app.use('/api/skills', skill_routes_1.skillRoutes);
 app.use('/api/capacity', capacity_routes_1.capacityRoutes);
 app.use('/api/resources', resource_routes_1.default);
 app.use('/api/projects', project_routes_1.projectRoutes);
+app.use('/api/pipeline', pipeline_routes_1.pipelineRoutes);
 app.use('/api/allocations', allocation_routes_1.default);
+app.use('/api/allocation-templates', allocation_templates_routes_1.default);
 app.use('/api/analytics', analytics_routes_1.default);
+app.use('/api', scenario_routes_1.scenarioRoutes);
 app.use('*', (req, res) => {
     res.status(404).json({
         error: 'Route not found',
         message: `The requested route ${req.originalUrl} does not exist`,
-        availableRoutes: ['/api/employees', '/api/departments', '/api/skills', '/api/capacity', '/api/resources', '/api/projects', '/api/allocations', '/api/analytics']
+        availableRoutes: ['/api/employees', '/api/departments', '/api/skills', '/api/capacity', '/api/resources', '/api/projects', '/api/pipeline', '/api/allocations', '/api/analytics', '/api/scenarios', '/api/forecasting']
     });
 });
 app.use(error_handler_1.errorHandler);

@@ -1,179 +1,274 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProjectService = void 0;
-const types_1 = require("../types");
-const project_model_1 = require("../models/project.model");
+const database_service_1 = require("../database/database.service");
+const api_error_1 = require("../utils/api-error");
 class ProjectService {
-    async createProject(input) {
-        await this.validateProjectInput(input);
-        const projectData = {
-            ...input,
-            status: input.status || types_1.ProjectStatus.PLANNING
-        };
-        return await project_model_1.ProjectModel.create(projectData);
+    constructor() {
+        this.db = database_service_1.DatabaseService.getInstance();
     }
-    async getProjectById(id) {
-        if (!id || isNaN(Number(id))) {
-            throw new Error('Invalid project ID');
+    async createProject(projectData) {
+        try {
+            if (!projectData.name || !projectData.start_date) {
+                throw new api_error_1.ApiError(400, 'Project name and start date are required');
+            }
+            if (projectData.end_date && projectData.start_date >= projectData.end_date) {
+                throw new api_error_1.ApiError(400, 'End date must be after start date');
+            }
+            const query = `
+        INSERT INTO projects (
+          name, description, client_name, start_date, end_date, 
+          status, priority, budget, estimated_hours
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING *
+      `;
+            const values = [
+                projectData.name,
+                projectData.description,
+                projectData.client_name,
+                projectData.start_date,
+                projectData.end_date,
+                projectData.status || 'planning',
+                projectData.priority || 'medium',
+                projectData.budget,
+                projectData.estimated_hours
+            ];
+            const result = await this.db.query(query, values);
+            if (!result.rows.length) {
+                throw new api_error_1.ApiError(500, 'Failed to create project');
+            }
+            return result.rows[0];
         }
-        return await project_model_1.ProjectModel.findById(id);
+        catch (error) {
+            console.error('Error creating project:', error);
+            if (error instanceof api_error_1.ApiError) {
+                throw error;
+            }
+            throw new api_error_1.ApiError(500, 'Failed to create project');
+        }
     }
-    async updateProject(id, input) {
-        if (!id || isNaN(Number(id))) {
-            throw new Error('Invalid project ID');
+    async getProjects(filters, pagination) {
+        try {
+            let whereConditions = [];
+            let queryParams = [];
+            let paramIndex = 1;
+            if (filters.status) {
+                whereConditions.push(`status = $${paramIndex}`);
+                queryParams.push(filters.status);
+                paramIndex++;
+            }
+            if (filters.priority) {
+                whereConditions.push(`priority = $${paramIndex}`);
+                queryParams.push(filters.priority);
+                paramIndex++;
+            }
+            if (filters.clientName) {
+                whereConditions.push(`client_name ILIKE $${paramIndex}`);
+                queryParams.push(`%${filters.clientName}%`);
+                paramIndex++;
+            }
+            if (filters.search) {
+                whereConditions.push(`(name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
+                queryParams.push(`%${filters.search}%`);
+                paramIndex++;
+            }
+            if (filters.startDate) {
+                whereConditions.push(`start_date >= $${paramIndex}`);
+                queryParams.push(filters.startDate);
+                paramIndex++;
+            }
+            if (filters.endDate) {
+                whereConditions.push(`end_date <= $${paramIndex}`);
+                queryParams.push(filters.endDate);
+                paramIndex++;
+            }
+            const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+            const countQuery = `SELECT COUNT(*) FROM projects ${whereClause}`;
+            const countResult = await this.db.query(countQuery, queryParams);
+            const total = parseInt(countResult.rows[0].count);
+            const offset = (pagination.page - 1) * pagination.limit;
+            const totalPages = Math.ceil(total / pagination.limit);
+            const query = `
+        SELECT 
+          p.*,
+          COALESCE(role_summary.total_roles, 0) as total_roles,
+          COALESCE(role_summary.filled_roles, 0) as filled_roles,
+          COALESCE(assignment_summary.assigned_employees, 0) as assigned_employees,
+          COALESCE(assignment_summary.total_planned_hours, 0) as total_planned_hours
+        FROM projects p
+        LEFT JOIN (
+          SELECT 
+            project_id,
+            COUNT(*) as total_roles,
+            SUM(CASE WHEN current_assignments >= max_assignments THEN 1 ELSE 0 END) as filled_roles
+          FROM project_roles
+          GROUP BY project_id
+        ) role_summary ON p.id = role_summary.project_id
+        LEFT JOIN (
+          SELECT 
+            project_id,
+            COUNT(DISTINCT employee_id) as assigned_employees,
+            SUM(planned_hours_per_week) as total_planned_hours
+          FROM resource_assignments
+          WHERE status IN ('planned', 'active')
+          GROUP BY project_id
+        ) assignment_summary ON p.id = assignment_summary.project_id
+        ${whereClause}
+        ORDER BY ${pagination.sortBy} ${pagination.sortOrder.toUpperCase()}
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+            queryParams.push(pagination.limit, offset);
+            const result = await this.db.query(query, queryParams);
+            return {
+                projects: result.rows,
+                pagination: {
+                    currentPage: pagination.page,
+                    totalPages,
+                    totalItems: total,
+                    limit: pagination.limit,
+                    hasNext: pagination.page < totalPages,
+                    hasPrev: pagination.page > 1
+                },
+                total
+            };
         }
-        const existingProject = await project_model_1.ProjectModel.findById(id);
-        if (!existingProject) {
-            throw new Error('Project not found');
+        catch (error) {
+            console.error('Error fetching projects:', error);
+            throw new api_error_1.ApiError(500, 'Failed to fetch projects');
         }
-        await this.validateProjectUpdate(existingProject, input);
-        return await project_model_1.ProjectModel.update(id, input);
     }
-    async deleteProject(id) {
-        if (!id || isNaN(Number(id))) {
-            throw new Error('Invalid project ID');
+    async getProjectById(projectId) {
+        try {
+            const query = `
+        SELECT * FROM projects WHERE id = $1
+      `;
+            const result = await this.db.query(query, [projectId]);
+            if (!result.rows.length) {
+                return null;
+            }
+            return result.rows[0];
         }
-        const existingProject = await project_model_1.ProjectModel.findById(id);
-        if (!existingProject) {
-            throw new Error('Project not found');
+        catch (error) {
+            console.error('Error fetching project:', error);
+            throw new api_error_1.ApiError(500, 'Failed to fetch project');
         }
-        return await project_model_1.ProjectModel.delete(id);
     }
-    async getProjects(filters = {}, page = 1, limit = 50, sortBy = 'created_at', sortOrder = 'DESC') {
-        if (page < 1)
-            page = 1;
-        if (limit < 1 || limit > 100)
-            limit = 50;
-        return await project_model_1.ProjectModel.findAll(filters, page, limit, sortBy, sortOrder);
+    async updateProject(projectId, updateData) {
+        try {
+            const existingProject = await this.getProjectById(projectId);
+            if (!existingProject) {
+                throw new api_error_1.ApiError(404, 'Project not found');
+            }
+            const updateFields = [];
+            const queryParams = [];
+            let paramIndex = 1;
+            Object.entries(updateData).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    updateFields.push(`${key} = $${paramIndex}`);
+                    queryParams.push(value);
+                    paramIndex++;
+                }
+            });
+            if (updateFields.length === 0) {
+                return existingProject;
+            }
+            updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+            const query = `
+        UPDATE projects 
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `;
+            queryParams.push(projectId);
+            const result = await this.db.query(query, queryParams);
+            return result.rows[0];
+        }
+        catch (error) {
+            console.error('Error updating project:', error);
+            if (error instanceof api_error_1.ApiError) {
+                throw error;
+            }
+            throw new api_error_1.ApiError(500, 'Failed to update project');
+        }
     }
-    async getProjectStatistics() {
-        return await project_model_1.ProjectModel.getProjectStatistics();
-    }
-    async validateProjectInput(input) {
-        const errors = [];
-        if (!input.name?.trim()) {
-            errors.push('Project name is required');
-        }
-        if (!input.startDate) {
-            errors.push('Start date is required');
-        }
-        if (!input.endDate) {
-            errors.push('End date is required');
-        }
-        if (input.startDate && input.endDate) {
-            if (input.endDate <= input.startDate) {
-                errors.push('End date must be after start date');
+    async deleteProject(projectId) {
+        try {
+            const query = `
+        DELETE FROM projects WHERE id = $1
+      `;
+            const result = await this.db.query(query, [projectId]);
+            if (result.rowCount === 0) {
+                throw new api_error_1.ApiError(404, 'Project not found');
             }
         }
-        if (input.budget !== undefined && input.budget < 0) {
-            errors.push('Budget must be positive');
-        }
-        if (input.hourlyRate !== undefined && input.hourlyRate < 0) {
-            errors.push('Hourly rate must be positive');
-        }
-        if (input.name && input.name.length > 255) {
-            errors.push('Project name must be less than 255 characters');
-        }
-        if (input.clientName && input.clientName.length > 255) {
-            errors.push('Client name must be less than 255 characters');
-        }
-        if (input.name) {
-            const existingProject = await project_model_1.ProjectModel.findByName(input.name);
-            if (existingProject) {
-                errors.push(`Project with name '${input.name}' already exists`);
+        catch (error) {
+            console.error('Error deleting project:', error);
+            if (error instanceof api_error_1.ApiError) {
+                throw error;
             }
-        }
-        if (errors.length > 0) {
-            throw new Error(errors.join(', '));
+            throw new api_error_1.ApiError(500, 'Failed to delete project');
         }
     }
-    async validateProjectUpdate(existingProject, input) {
-        const errors = [];
-        const startDate = input.startDate || existingProject.startDate;
-        const endDate = input.endDate || existingProject.endDate;
-        if (endDate <= startDate) {
-            errors.push('End date must be after start date');
+    async addProjectRole(roleData) {
+        try {
+            const query = `
+        INSERT INTO project_roles (
+          project_id, role_name, description, required_skills, 
+          minimum_experience_level, start_date, end_date,
+          planned_allocation_percentage, estimated_hours, hourly_rate, max_assignments
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *
+      `;
+            const values = [
+                roleData.project_id,
+                roleData.role_name,
+                roleData.description,
+                roleData.required_skills || [],
+                roleData.minimum_experience_level,
+                roleData.start_date,
+                roleData.end_date,
+                roleData.planned_allocation_percentage,
+                roleData.estimated_hours,
+                roleData.hourly_rate,
+                roleData.max_assignments || 1
+            ];
+            const result = await this.db.query(query, values);
+            return result.rows[0];
         }
-        if (input.budget !== undefined && input.budget < 0) {
-            errors.push('Budget must be positive');
-        }
-        if (input.hourlyRate !== undefined && input.hourlyRate < 0) {
-            errors.push('Hourly rate must be positive');
-        }
-        if (input.name && input.name.length > 255) {
-            errors.push('Project name must be less than 255 characters');
-        }
-        if (input.clientName && input.clientName.length > 255) {
-            errors.push('Client name must be less than 255 characters');
-        }
-        if (input.status) {
-            this.validateStatusTransition(existingProject.status, input.status);
-        }
-        if (input.name && input.name !== existingProject.name) {
-            const existingProjectWithName = await project_model_1.ProjectModel.findByName(input.name);
-            if (existingProjectWithName) {
-                errors.push(`Project with name '${input.name}' already exists`);
-            }
-        }
-        if (errors.length > 0) {
-            throw new Error(errors.join(', '));
-        }
-    }
-    validateStatusTransition(currentStatus, newStatus) {
-        const validTransitions = {
-            [types_1.ProjectStatus.PLANNING]: [types_1.ProjectStatus.ACTIVE, types_1.ProjectStatus.ON_HOLD],
-            [types_1.ProjectStatus.ACTIVE]: [types_1.ProjectStatus.ON_HOLD, types_1.ProjectStatus.COMPLETED],
-            [types_1.ProjectStatus.ON_HOLD]: [types_1.ProjectStatus.ACTIVE, types_1.ProjectStatus.PLANNING],
-            [types_1.ProjectStatus.COMPLETED]: [],
-            [types_1.ProjectStatus.CANCELLED]: []
-        };
-        const allowedStatuses = validTransitions[currentStatus] || [];
-        if (!allowedStatuses.includes(newStatus)) {
-            if (currentStatus === types_1.ProjectStatus.COMPLETED) {
-                throw new Error('Cannot change status from completed');
-            }
-            throw new Error(`Invalid status transition from ${currentStatus} to ${newStatus}`);
+        catch (error) {
+            console.error('Error adding project role:', error);
+            throw new api_error_1.ApiError(500, 'Failed to add project role');
         }
     }
-    async calculateBudgetUtilization(projectId) {
-        const project = await this.getProjectById(projectId);
-        if (!project || !project.budget || !project.hourlyRate) {
-            return 0;
+    async getProjectRoles(projectId) {
+        try {
+            const query = `
+        SELECT 
+          pr.*,
+          CASE 
+            WHEN pr.current_assignments >= pr.max_assignments THEN true 
+            ELSE false 
+          END as is_filled,
+          (
+            SELECT json_agg(
+              json_build_object('id', s.id, 'name', s.name, 'category', s.category)
+            )
+            FROM skills s
+            WHERE s.id = ANY(pr.required_skills)
+          ) as skills_details
+        FROM project_roles pr
+        WHERE pr.project_id = $1
+        ORDER BY pr.created_at
+      `;
+            const result = await this.db.query(query, [projectId]);
+            return result.rows;
         }
-        const budgetedHours = project.budget / project.hourlyRate;
-        const actualHours = project.actualHours || 0;
-        return actualHours > 0 ? (actualHours / budgetedHours) * 100 : 0;
-    }
-    async getProjectsByStatus(status) {
-        const result = await this.getProjects({ status });
-        return result.data;
-    }
-    async getProjectsByClient(clientName) {
-        const result = await this.getProjects({ clientName });
-        return result.data;
-    }
-    async getActiveProjects() {
-        const planningProjects = await this.getProjectsByStatus(types_1.ProjectStatus.PLANNING);
-        const activeProjects = await this.getProjectsByStatus(types_1.ProjectStatus.ACTIVE);
-        return [...planningProjects, ...activeProjects];
-    }
-    calculateProjectDuration(startDate, endDate) {
-        const timeDiff = endDate.getTime() - startDate.getTime();
-        return Math.ceil(timeDiff / (1000 * 3600 * 24));
-    }
-    isProjectOverdue(project) {
-        if (project.status === types_1.ProjectStatus.COMPLETED) {
-            return false;
+        catch (error) {
+            console.error('Error fetching project roles:', error);
+            throw new api_error_1.ApiError(500, 'Failed to fetch project roles');
         }
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const endDate = new Date(project.endDate);
-        endDate.setHours(0, 0, 0, 0);
-        return today > endDate;
-    }
-    async getOverdueProjects() {
-        const activeProjects = await this.getActiveProjects();
-        return activeProjects.filter(project => this.isProjectOverdue(project));
     }
 }
 exports.ProjectService = ProjectService;

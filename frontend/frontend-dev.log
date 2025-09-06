@@ -1,0 +1,16 @@
+
+> employee-management-frontend@0.0.0 dev
+> vite --mode development
+
+
+  VITE v7.1.4  ready in 110 ms
+
+  ➜  Local:   http://localhost:3002/
+1:14:17 AM [vite] (client) hmr update /src/index.css
+1:14:43 AM [vite] (client) hmr update /src/index.css, /src/components/ui/button.tsx
+1:15:24 AM [vite] (client) hmr update /src/index.css, /src/components/ui/button.tsx
+1:17:06 AM [vite] (client) hmr update /src/index.css, /src/components/ui/card.tsx
+1:29:44 AM [vite] (client) hmr update /src/App.tsx, /src/index.css
+1:30:00 AM [vite] (client) hmr update /src/App.tsx, /src/index.css
+1:30:56 AM [vite] (client) hmr update /src/App.tsx, /src/index.css
+1:31:08 AM [vite] (client) hmr update /src/App.tsx, /src/index.css

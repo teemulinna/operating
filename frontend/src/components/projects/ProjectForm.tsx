@@ -7,16 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useClients } from '@/hooks/useProjects';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useCreateProject, useUpdateProject } from '@/hooks/useProjects';
 import { useToast } from '@/components/ui/use-toast';
 import type { Project, CreateProjectRequest } from '@/types/project';
 
 interface ProjectFormProps {
   project?: Project;
-  onSubmit: (data: CreateProjectRequest) => void;
+  onSuccess: (project: Project) => void;
   onCancel: () => void;
-  mode: 'create' | 'edit';
-  isSubmitting?: boolean;
 }
 
 interface FormData {
@@ -46,13 +45,15 @@ interface FormErrors {
 
 export function ProjectForm({
   project,
-  onSubmit,
+  onSuccess,
   onCancel,
-  mode,
-  isSubmitting = false
 }: ProjectFormProps) {
-  const { data: clients = [], isLoading: clientsLoading } = useClients();
+  const createProject = useCreateProject();
+  const updateProject = useUpdateProject();
   const { toast } = useToast();
+  
+  const mode = project ? 'edit' : 'create';
+  const isSubmitting = createProject.isPending || updateProject.isPending;
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -70,7 +71,7 @@ export function ProjectForm({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-  const [showClientSuggestions, setShowClientSuggestions] = useState(false);
+  const [submitError, setSubmitError] = useState<string>('');
 
   // Initialize form with project data in edit mode
   useEffect(() => {
@@ -91,14 +92,6 @@ export function ProjectForm({
       });
     }
   }, [mode, project]);
-
-  // Filter client suggestions based on input
-  const filteredClients = useMemo(() => {
-    if (!formData.clientName) return clients;
-    return clients.filter(client =>
-      client.toLowerCase().includes(formData.clientName.toLowerCase())
-    );
-  }, [clients, formData.clientName]);
 
   // Calculate estimated budget based on hours and rate
   const estimatedBudget = useMemo(() => {
@@ -125,6 +118,10 @@ export function ProjectForm({
     // Required fields
     if (!formData.name.trim()) {
       newErrors.name = 'Project name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Project name must be at least 2 characters';
+    } else if (formData.name.trim().length > 255) {
+      newErrors.name = 'Project name must be less than 255 characters';
     }
 
     if (!formData.clientName.trim()) {
@@ -145,15 +142,15 @@ export function ProjectForm({
     }
 
     // Number validations
-    if (formData.budget && parseFloat(formData.budget) <= 0) {
+    if (formData.budget && (isNaN(parseFloat(formData.budget)) || parseFloat(formData.budget) < 0)) {
       newErrors.budget = 'Budget must be a positive number';
     }
 
-    if (formData.hourlyRate && parseFloat(formData.hourlyRate) <= 0) {
-      newErrors.hourlyRate = 'Hourly rate must be a positive number';
+    if (formData.hourlyRate && (isNaN(parseFloat(formData.hourlyRate)) || parseFloat(formData.hourlyRate) <= 0)) {
+      newErrors.hourlyRate = 'Hourly rate must be greater than 0';
     }
 
-    if (formData.totalHours && parseFloat(formData.totalHours) <= 0) {
+    if (formData.totalHours && (isNaN(parseFloat(formData.totalHours)) || parseFloat(formData.totalHours) < 0)) {
       newErrors.totalHours = 'Total hours must be a positive number';
     }
 
@@ -161,7 +158,7 @@ export function ProjectForm({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -184,22 +181,24 @@ export function ProjectForm({
       teamMembers: project?.teamMembers || [],
     };
 
-    onSubmit(submitData);
+    try {
+      setSubmitError('');
+      
+      if (mode === 'create') {
+        const result = await createProject.mutateAsync(submitData);
+        onSuccess(result);
+      } else if (project) {
+        const result = await updateProject.mutateAsync({
+          id: project.id,
+          updates: submitData,
+        });
+        onSuccess(result);
+      }
+    } catch (error: any) {
+      setSubmitError(error.message || 'An error occurred while saving the project');
+    }
   };
 
-  const handleClientInputFocus = () => {
-    setShowClientSuggestions(true);
-  };
-
-  const handleClientInputBlur = () => {
-    // Delay hiding to allow clicking on suggestions
-    setTimeout(() => setShowClientSuggestions(false), 200);
-  };
-
-  const handleClientSuggestionClick = (client: string) => {
-    handleInputChange('clientName', client);
-    setShowClientSuggestions(false);
-  };
 
   const isFormValid = formData.name.trim() && formData.clientName.trim() && formData.startDate;
 
@@ -218,6 +217,11 @@ export function ProjectForm({
       </CardHeader>
 
       <CardContent>
+        {submitError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800 text-sm">{submitError}</p>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -231,40 +235,19 @@ export function ProjectForm({
                 className={errors.name ? 'border-red-500' : ''}
               />
               {errors.name && (
-                <p className="text-sm text-red-600">{errors.name}</p>
+                <p className="text-sm text-red-600" role="alert">{errors.name}</p>
               )}
             </div>
 
-            <div className="space-y-2 relative">
+            <div className="space-y-2">
               <Label htmlFor="clientName">Client Name *</Label>
-              <div className="relative">
-                <Input
-                  id="clientName"
-                  value={formData.clientName}
-                  onChange={(e) => handleInputChange('clientName', e.target.value)}
-                  onFocus={handleClientInputFocus}
-                  onBlur={handleClientInputBlur}
-                  placeholder="Enter client name"
-                  className={errors.clientName ? 'border-red-500' : ''}
-                />
-                <User className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-              
-              {/* Client suggestions dropdown */}
-              {showClientSuggestions && filteredClients.length > 0 && (
-                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
-                  {filteredClients.slice(0, 5).map((client) => (
-                    <div
-                      key={client}
-                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                      onClick={() => handleClientSuggestionClick(client)}
-                    >
-                      {client}
-                    </div>
-                  ))}
-                </div>
-              )}
-              
+              <Input
+                id="clientName"
+                value={formData.clientName}
+                onChange={(e) => handleInputChange('clientName', e.target.value)}
+                placeholder="Enter client name"
+                className={errors.clientName ? 'border-red-500' : ''}
+              />
               {errors.clientName && (
                 <p className="text-sm text-red-600">{errors.clientName}</p>
               )}
@@ -441,6 +424,18 @@ export function ProjectForm({
             />
           </div>
 
+          {/* Active Project Checkbox */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isActive"
+              checked={formData.isActive}
+              onCheckedChange={(checked) => handleInputChange('isActive', checked)}
+            />
+            <Label htmlFor="isActive" className="cursor-pointer">
+              Active Project
+            </Label>
+          </div>
+
           {/* Form Actions */}
           <div className="flex items-center justify-end space-x-4 pt-6 border-t">
             <Button
@@ -457,8 +452,8 @@ export function ProjectForm({
               disabled={!isFormValid || isSubmitting}
             >
               {isSubmitting 
-                ? (mode === 'create' ? 'Creating...' : 'Saving...') 
-                : (mode === 'create' ? 'Create Project' : 'Save Changes')
+                ? (mode === 'create' ? 'Creating...' : 'Updating...') 
+                : (mode === 'create' ? 'Create Project' : 'Update Project')
               }
             </LoadingButton>
           </div>

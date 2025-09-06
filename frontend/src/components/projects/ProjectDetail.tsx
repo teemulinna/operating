@@ -3,8 +3,8 @@ import { ArrowLeft, Edit, Trash2, Calendar, DollarSign, Users, Clock, AlertTrian
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useProject, useProjectTimeline } from '@/hooks/useProjects';
-import type { Project, ProjectTimelineEvent } from '@/types/project';
+import { useProject, useProjectTimeline, useProjectAssignments } from '@/hooks/useProjects';
+import type { Project, ProjectTimelineEvent, ProjectAssignment } from '@/types/project';
 import { PROJECT_STATUS_COLORS } from '@/types/project';
 
 interface ProjectDetailProps {
@@ -20,8 +20,9 @@ export function ProjectDetail({
   onDelete,
   onBack
 }: ProjectDetailProps) {
-  const { data: project, isLoading, error } = useProject(projectId);
+  const { data: project, isLoading, error, refetch } = useProject(projectId);
   const { data: timeline, isLoading: timelineLoading } = useProjectTimeline(projectId);
+  const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError } = useProjectAssignments(projectId);
 
   const formatCurrency = (amount?: number) => {
     if (!amount) return 'N/A';
@@ -112,15 +113,22 @@ export function ProjectDetail({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Failed to Load Project
+                Error Loading Project
               </h3>
               <p className="text-gray-600 mb-4">
                 {error?.message || 'Project not found or could not be loaded.'}
               </p>
-              <Button onClick={onBack} variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Go Back
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => refetch()} variant="outline">
+                  Try Again
+                </Button>
+                {onBack && (
+                  <Button onClick={onBack} variant="outline">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Go Back
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -400,6 +408,75 @@ export function ProjectDetail({
           </CardContent>
         </Card>
       </div>
+
+      {/* Team Assignments Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Team Assignments</CardTitle>
+            <Button size="sm">
+              Add Team Member
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {assignmentsLoading ? (
+            <p className="text-gray-500">Loading assignments...</p>
+          ) : assignmentsError ? (
+            <p className="text-red-600">Failed to load team assignments</p>
+          ) : !assignments || assignments.length === 0 ? (
+            <p className="text-gray-500">No team members assigned yet</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {assignments.map((assignment) => (
+                <div 
+                  key={assignment.id} 
+                  data-testid="assignment-card"
+                  className={`p-4 border rounded-lg ${
+                    assignment.isActive ? 'border-gray-200' : 'border-gray-200 opacity-60'
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h4 className="font-medium">
+                        {assignment.employee?.firstName} {assignment.employee?.lastName}
+                      </h4>
+                      <p className="text-sm text-gray-600">{assignment.employee?.position}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" aria-label="Edit assignment">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" aria-label="Remove from project">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        assignment.role === 'manager' ? 'bg-purple-100 text-purple-800' :
+                        assignment.role === 'developer' ? 'bg-blue-100 text-blue-800' :
+                        assignment.role === 'designer' ? 'bg-pink-100 text-pink-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {assignment.role}
+                      </span>
+                      <span className="text-sm font-medium">{assignment.utilizationPercentage}%</span>
+                    </div>
+                    
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>{assignment.actualHours || 0} / {assignment.estimatedHours || 0} hrs</span>
+                      <span>${assignment.hourlyRate}/hr</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -47,7 +47,7 @@ class WebSocketService {
     async handleJoinResourceRoom(socket, data) {
         try {
             const { userId } = data;
-            const user = await this.databaseService.executeQuery('SELECT name, email FROM employees WHERE id = $1', [userId]);
+            const user = await this.databaseService.query('SELECT name, email FROM employees WHERE id = $1', [userId]);
             if (!user.rows.length) {
                 socket.emit('error', { message: 'User not found' });
                 return;
@@ -177,13 +177,13 @@ class WebSocketService {
             if (!presence)
                 return;
             const { employeeId, utilizationRate, reason } = data;
-            const employee = await this.databaseService.executeQuery('SELECT name FROM employees WHERE id = $1', [employeeId]);
+            const employee = await this.databaseService.query('SELECT name FROM employees WHERE id = $1', [employeeId]);
             if (!employee.rows.length) {
                 socket.emit('error', { message: 'Employee not found' });
                 return;
             }
             const employeeName = employee.rows[0].name;
-            await this.databaseService.executeQuery(`
+            await this.databaseService.query(`
         INSERT INTO capacity (employee_id, utilization_rate, week_start_date, updated_at, updated_by)
         VALUES ($1, $2, date_trunc('week', CURRENT_DATE), NOW(), $3)
         ON CONFLICT (employee_id, week_start_date)

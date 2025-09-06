@@ -10,6 +10,11 @@ import type {
   ProjectsResponse,
   ProjectStats,
   ProjectTimelineEvent,
+  ProjectAssignment,
+  ProjectRole,
+  CreateProjectRoleRequest,
+  ProjectRoleAssignment,
+  CreateProjectRoleAssignmentRequest,
   ApiError
 } from '@/types/project';
 import { transformApiProject, transformToApiRequest } from '@/types/project';
@@ -277,6 +282,155 @@ export class ProjectService {
       newName ? { name: newName } : {}
     );
     return transformApiProject(response.data.data);
+  }
+
+  /**
+   * Get project assignments (team members)
+   */
+  static async getProjectAssignments(projectId: string): Promise<ProjectAssignment[]> {
+    try {
+      const response = await apiClient.get<{ data: ProjectAssignment[] }>(`/projects/${projectId}/assignments`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Failed to fetch project assignments:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Create a project assignment
+   */
+  static async createProjectAssignment(assignment: {
+    projectId: string;
+    employeeId: string;
+    role: string;
+    utilizationPercentage: number;
+    startDate: string;
+    endDate?: string;
+  }): Promise<ProjectAssignment> {
+    const response = await apiClient.post<{ data: ProjectAssignment }>('/project-assignments', assignment);
+    return response.data.data;
+  }
+
+  /**
+   * Update a project assignment
+   */
+  static async updateProjectAssignment(
+    id: string,
+    updates: {
+      role?: string;
+      utilizationPercentage?: number;
+      startDate?: string;
+      endDate?: string;
+    }
+  ): Promise<ProjectAssignment> {
+    const response = await apiClient.put<{ data: ProjectAssignment }>(`/project-assignments/${id}`, updates);
+    return response.data.data;
+  }
+
+  /**
+   * Delete a project assignment
+   */
+  static async deleteProjectAssignment(id: string): Promise<ProjectAssignment> {
+    const response = await apiClient.delete<{ data: ProjectAssignment }>(`/project-assignments/${id}`);
+    return response.data.data;
+  }
+
+  /**
+   * Get project roles for a specific project
+   */
+  static async getProjectRoles(projectId: string): Promise<ProjectRole[]> {
+    try {
+      const response = await apiClient.get<{ data: ProjectRole[] }>(`/projects/${projectId}/roles`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Failed to fetch project roles:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Create a project role
+   */
+  static async createProjectRole(roleData: CreateProjectRoleRequest): Promise<ProjectRole> {
+    const response = await apiClient.post<{ data: ProjectRole }>(`/projects/${roleData.projectId}/roles`, roleData);
+    return response.data.data;
+  }
+
+  /**
+   * Update a project role
+   */
+  static async updateProjectRole(
+    id: string,
+    updates: Partial<CreateProjectRoleRequest>
+  ): Promise<ProjectRole> {
+    const response = await apiClient.put<{ data: ProjectRole }>(`/project-roles/${id}`, updates);
+    return response.data.data;
+  }
+
+  /**
+   * Delete a project role
+   */
+  static async deleteProjectRole(id: string): Promise<void> {
+    await apiClient.delete(`/project-roles/${id}`);
+  }
+
+  /**
+   * Create a project role assignment
+   */
+  static async createProjectRoleAssignment(
+    assignmentData: CreateProjectRoleAssignmentRequest
+  ): Promise<ProjectRoleAssignment> {
+    const response = await apiClient.post<{ data: ProjectRoleAssignment }>(
+      `/projects/${assignmentData.projectId}/role-assignments`,
+      assignmentData
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Update a project role assignment
+   */
+  static async updateProjectRoleAssignment(
+    id: string,
+    updates: Partial<CreateProjectRoleAssignmentRequest>
+  ): Promise<ProjectRoleAssignment> {
+    const response = await apiClient.put<{ data: ProjectRoleAssignment }>(`/project-role-assignments/${id}`, updates);
+    return response.data.data;
+  }
+
+  /**
+   * Delete a project role assignment
+   */
+  static async deleteProjectRoleAssignment(id: string): Promise<ProjectRoleAssignment> {
+    const response = await apiClient.delete<{ data: ProjectRoleAssignment }>(`/project-role-assignments/${id}`);
+    return response.data.data;
+  }
+
+  /**
+   * Get role assignments for a specific project role
+   */
+  static async getProjectRoleAssignments(roleId: string): Promise<ProjectRoleAssignment[]> {
+    try {
+      const response = await apiClient.get<{ data: ProjectRoleAssignment[] }>(`/project-roles/${roleId}/assignments`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Failed to fetch role assignments:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get available employees for role assignment (excludes already assigned)
+   */
+  static async getAvailableEmployeesForRole(roleId: string): Promise<any[]> {
+    try {
+      const response = await apiClient.get<{ data: any[] }>(`/project-roles/${roleId}/available-employees`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Failed to fetch available employees:', error);
+      return [];
+    }
   }
 }
 

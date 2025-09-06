@@ -1,0 +1,1090 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LoadingSkeletons > Visual Regression Tests > maintains consistent skeleton structure 1`] = `
+<div
+  aria-label="Loading resource card"
+  class="p-6 border rounded-lg animate-pulse"
+  data-testid="resource-card-skeleton"
+  role="status"
+>
+  <div
+    class="flex items-start justify-between mb-4"
+  >
+    <div
+      class="flex items-start space-x-3"
+    >
+      <div
+        class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-12 h-12 rounded-full"
+        data-testid="skeleton-avatar"
+      >
+        <style>
+          
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+        </style>
+      </div>
+      <div
+        class="space-y-2"
+      >
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer rounded h-4 w-32"
+          data-testid="skeleton-name"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer rounded h-3 w-24"
+          data-testid="skeleton-position"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer rounded h-3 w-36"
+          data-testid="skeleton-email"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer h-5 w-16 rounded-full"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+      </div>
+    </div>
+    <div
+      class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-16 h-16 rounded-full"
+      data-testid="skeleton-progress-ring"
+    >
+      <style>
+        
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+      </style>
+    </div>
+  </div>
+  <div
+    class="mb-4"
+  >
+    <div
+      class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer rounded h-4 w-12 mb-2"
+    >
+      <style>
+        
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+      </style>
+    </div>
+    <div
+      class="flex flex-wrap gap-1"
+    >
+      <div
+        class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer h-6 w-16 rounded-full"
+        data-testid="skeleton-skill-badge"
+      >
+        <style>
+          
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+        </style>
+      </div>
+      <div
+        class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer h-6 w-16 rounded-full"
+        data-testid="skeleton-skill-badge"
+      >
+        <style>
+          
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+        </style>
+      </div>
+      <div
+        class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer h-6 w-16 rounded-full"
+        data-testid="skeleton-skill-badge"
+      >
+        <style>
+          
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+        </style>
+      </div>
+    </div>
+  </div>
+  <div
+    class="mb-4"
+  >
+    <div
+      class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer rounded h-4 w-32 mb-2"
+    >
+      <style>
+        
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+      </style>
+    </div>
+    <div
+      class="space-y-2"
+      data-testid="skeleton-calendar"
+    >
+      <div
+        class="flex justify-between items-center"
+      >
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer rounded w-4 h-4"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer rounded h-4 w-24"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer rounded w-4 h-4"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+      </div>
+      <div
+        class="grid grid-cols-7 gap-1"
+      >
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+        <div
+          class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer w-6 h-6 rounded"
+          data-testid="skeleton-calendar-cell"
+        >
+          <style>
+            
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+          </style>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="pt-2 border-t"
+  >
+    <div
+      class="grid grid-cols-3 gap-2"
+    >
+      <div
+        class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer h-8 w-20 rounded"
+        data-testid="skeleton-action-button"
+      >
+        <style>
+          
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+        </style>
+      </div>
+      <div
+        class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer h-8 w-20 rounded"
+        data-testid="skeleton-action-button"
+      >
+        <style>
+          
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+        </style>
+      </div>
+      <div
+        class="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-animate-shimmer animate-shimmer h-8 w-20 rounded"
+        data-testid="skeleton-action-button"
+      >
+        <style>
+          
+    .animate-shimmer {
+      animation: shimmer 2s infinite linear;
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+    }
+    
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  
+        </style>
+      </div>
+    </div>
+  </div>
+</div>
+`;

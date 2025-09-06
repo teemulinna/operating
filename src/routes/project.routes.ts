@@ -1,458 +1,152 @@
-import { Router, Request, Response } from 'express';
-import { ProjectService } from '../services/project.service';
-import { CreateProjectInput, UpdateProjectInput, ProjectFilters, ProjectStatus } from '../types';
-import { validationResult, body, param, query } from 'express-validator';
+import { Router } from 'express';
+import { body, param, query } from 'express-validator';
+import { ProjectController } from '../controllers/project.controller';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { handleValidationErrors } from '../middleware/validate.middleware';
 
 const router = Router();
-const projectService = new ProjectService();
-
-// Validation middleware
-const handleValidationErrors = (req: Request, res: Response, next: any): Response | void => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      error: 'Validation failed',
-      details: errors.array()
-    });
-  }
-  next();
-};
+const projectController = new ProjectController();
 
 // Project validation rules
 const createProjectValidation = [
-  body('name').isString().isLength({ min: 1, max: 255 }).withMessage('Project name is required and must be less than 255 characters'),
-  body('description').optional().isString().isLength({ max: 1000 }).withMessage('Description must be less than 1000 characters'),
-  body('clientName').optional().isString().isLength({ max: 255 }).withMessage('Client name must be less than 255 characters'),
-  body('status').optional().isIn(['planning', 'active', 'completed', 'on-hold']).withMessage('Invalid status'),
-  body('startDate').isISO8601().withMessage('Start date must be a valid date'),
-  body('endDate').isISO8601().withMessage('End date must be a valid date'),
-  body('budget').optional().isFloat({ min: 0 }).withMessage('Budget must be a positive number'),
-  body('hourlyRate').optional().isFloat({ min: 0 }).withMessage('Hourly rate must be a positive number'),
-  body('createdBy').optional().isInt().withMessage('Created by must be a valid user ID')
+  body('name')
+    .isString()
+    .isLength({ min: 1, max: 200 })
+    .withMessage('Project name must be 1-200 characters'),
+  body('description')
+    .optional()
+    .isString()
+    .isLength({ max: 1000 })
+    .withMessage('Description must be less than 1000 characters'),
+  body('clientName')
+    .optional()
+    .isString()
+    .isLength({ max: 200 })
+    .withMessage('Client name must be less than 200 characters'),
+  body('startDate')
+    .isISO8601()
+    .withMessage('Start date must be a valid date'),
+  body('endDate')
+    .optional()
+    .isISO8601()
+    .withMessage('End date must be a valid date'),
+  body('status')
+    .optional()
+    .isIn(['planning', 'active', 'on-hold', 'completed', 'cancelled'])
+    .withMessage('Invalid project status'),
+  body('priority')
+    .optional()
+    .isIn(['low', 'medium', 'high', 'critical'])
+    .withMessage('Invalid project priority'),
+  body('budget')
+    .optional()
+    .isNumeric()
+    .withMessage('Budget must be a number'),
+  body('estimatedHours')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Estimated hours must be a positive integer')
 ];
 
 const updateProjectValidation = [
-  param('id').isInt().withMessage('Project ID must be a valid integer'),
-  body('name').optional().isString().isLength({ min: 1, max: 255 }).withMessage('Project name must be less than 255 characters'),
-  body('description').optional().isString().isLength({ max: 1000 }).withMessage('Description must be less than 1000 characters'),
-  body('clientName').optional().isString().isLength({ max: 255 }).withMessage('Client name must be less than 255 characters'),
-  body('status').optional().isIn(['planning', 'active', 'completed', 'on-hold']).withMessage('Invalid status'),
-  body('startDate').optional().isISO8601().withMessage('Start date must be a valid date'),
-  body('endDate').optional().isISO8601().withMessage('End date must be a valid date'),
-  body('budget').optional().isFloat({ min: 0 }).withMessage('Budget must be a positive number'),
-  body('hourlyRate').optional().isFloat({ min: 0 }).withMessage('Hourly rate must be a positive number')
+  ...createProjectValidation.map(rule => rule.optional())
 ];
 
-const projectIdValidation = [
-  param('id').isInt().withMessage('Project ID must be a valid integer')
+const projectRoleValidation = [
+  body('roleName')
+    .isString()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Role name must be 1-100 characters'),
+  body('requiredSkills')
+    .optional()
+    .isArray()
+    .withMessage('Required skills must be an array'),
+  body('minimumExperienceLevel')
+    .optional()
+    .isIn(['junior', 'intermediate', 'senior', 'expert'])
+    .withMessage('Invalid experience level'),
+  body('plannedAllocationPercentage')
+    .isNumeric()
+    .custom((value) => {
+      if (value <= 0 || value > 100) {
+        throw new Error('Allocation percentage must be between 1 and 100');
+      }
+      return true;
+    })
 ];
 
-/**
- * @route   GET /api/projects
- * @desc    Get all projects with filtering, pagination, and sorting
- * @access  Public (should be protected in production)
- */
-router.get('/', async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const {
-      page = 1,
-      limit = 50,
-      sortBy = 'created_at',
-      sortOrder = 'DESC',
-      status,
-      clientName,
-      startDateFrom,
-      startDateTo,
-      endDateFrom,
-      endDateTo
-    } = req.query;
-
-    // Build filters
-    const filters: ProjectFilters = {};
-    if (status) filters.status = status as ProjectStatus;
-    if (clientName) filters.clientName = clientName as string;
-    if (startDateFrom) filters.startDateFrom = new Date(startDateFrom as string);
-    if (startDateTo) filters.startDateTo = new Date(startDateTo as string);
-    if (endDateFrom) filters.endDateFrom = new Date(endDateFrom as string);
-    if (endDateTo) filters.endDateTo = new Date(endDateTo as string);
-
-    const result = await projectService.getProjects(
-      filters,
-      parseInt(page as string),
-      parseInt(limit as string),
-      sortBy as string,
-      sortOrder as 'ASC' | 'DESC'
-    );
-
-    res.json({
-      success: true,
-      data: result.data,
-      pagination: {
-        page: result.page,
-        limit: result.limit,
-        total: result.total,
-        totalPages: result.totalPages
+const resourceAssignmentValidation = [
+  body('employeeId')
+    .isUUID()
+    .withMessage('Employee ID must be a valid UUID'),
+  body('assignmentType')
+    .optional()
+    .isIn(['employee', 'contractor', 'consultant', 'intern'])
+    .withMessage('Invalid assignment type'),
+  body('startDate')
+    .isISO8601()
+    .withMessage('Start date must be a valid date'),
+  body('endDate')
+    .optional()
+    .isISO8601()
+    .withMessage('End date must be a valid date'),
+  body('plannedAllocationPercentage')
+    .isNumeric()
+    .custom((value) => {
+      if (value <= 0 || value > 100) {
+        throw new Error('Allocation percentage must be between 1 and 100');
       }
-    });
-  } catch (error: any) {
-    console.error('Error fetching projects:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch projects',
-      message: error.message
-    });
-  }
-});
+      return true;
+    }),
+  body('confidenceLevel')
+    .optional()
+    .isIn(['tentative', 'probable', 'confirmed'])
+    .withMessage('Invalid confidence level')
+];
 
-/**
- * @route   GET /api/projects/stats
- * @desc    Get project statistics for dashboard
- * @access  Public (should be protected in production)
- */
-router.get('/stats', async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const stats = await projectService.getProjectStatistics();
-    
-    res.json({
-      success: true,
-      data: stats
-    });
-  } catch (error: any) {
-    console.error('Error fetching project statistics:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch project statistics',
-      message: error.message
-    });
-  }
-});
+// Apply authentication middleware to all routes
+// router.use(authMiddleware); // Temporarily disabled for development
 
-/**
- * @route   GET /api/projects/overdue
- * @desc    Get overdue projects
- * @access  Public (should be protected in production)
- */
-router.get('/overdue', async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const overdueProjects = await projectService.getOverdueProjects();
-    
-    res.json({
-      success: true,
-      data: overdueProjects,
-      count: overdueProjects.length
-    });
-  } catch (error: any) {
-    console.error('Error fetching overdue projects:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch overdue projects',
-      message: error.message
-    });
-  }
-});
+// Project CRUD routes
+router.post('/', createProjectValidation, handleValidationErrors, projectController.createProject);
+router.get('/', projectController.getProjects);
+router.get('/:id', 
+  param('id').isNumeric().withMessage('Project ID must be a number'),
+  projectController.getProjectById
+);
+router.put('/:id', 
+  param('id').isNumeric().withMessage('Project ID must be a number'),
+  updateProjectValidation,
+  handleValidationErrors,
+  projectController.updateProject
+);
+router.delete('/:id',
+  param('id').isNumeric().withMessage('Project ID must be a number'),
+  projectController.deleteProject
+);
 
-/**
- * @route   GET /api/projects/search
- * @desc    Search projects by name
- * @access  Public (should be protected in production)
- */
-router.get('/search', async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const { q: searchTerm, limit = 10 } = req.query;
+// Project roles routes
+router.post('/:id/roles',
+  param('id').isNumeric().withMessage('Project ID must be a number'),
+  projectRoleValidation,
+  handleValidationErrors,
+  projectController.addProjectRole
+);
+router.get('/:id/roles',
+  param('id').isNumeric().withMessage('Project ID must be a number'),
+  projectController.getProjectRoles
+);
 
-    if (!searchTerm) {
-      return res.status(400).json({
-        success: false,
-        error: 'Search term is required'
-      });
-    }
-
-    const projects = await projectService.getProjects(
-      { /* Could implement name search filter */ },
-      1,
-      parseInt(limit as string)
-    );
-
-    // Basic name filtering (in production, this would be done in the database)
-    const filteredProjects = projects.data.filter(project =>
-      project.name.toLowerCase().includes((searchTerm as string).toLowerCase())
-    );
-
-    res.json({
-      success: true,
-      data: filteredProjects
-    });
-  } catch (error: any) {
-    console.error('Error searching projects:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to search projects',
-      message: error.message
-    });
-  }
-});
-
-/**
- * @route   GET /api/projects/:id
- * @desc    Get project by ID
- * @access  Public (should be protected in production)
- */
-router.get('/:id', projectIdValidation, handleValidationErrors, async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const project = await projectService.getProjectById(req.params.id);
-
-    if (!project) {
-      return res.status(404).json({
-        success: false,
-        error: 'Project not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: project
-    });
-  } catch (error: any) {
-    console.error('Error fetching project:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch project',
-      message: error.message
-    });
-  }
-});
-
-/**
- * @route   POST /api/projects
- * @desc    Create a new project
- * @access  Public (should be protected in production)
- */
-router.post('/', createProjectValidation, handleValidationErrors, async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const projectData: CreateProjectInput = {
-      name: req.body.name,
-      description: req.body.description,
-      clientName: req.body.clientName,
-      status: req.body.status || ProjectStatus.PLANNING,
-      startDate: new Date(req.body.startDate),
-      endDate: new Date(req.body.endDate),
-      budget: req.body.budget,
-      hourlyRate: req.body.hourlyRate,
-      createdBy: req.body.createdBy
-    };
-
-    const project = await projectService.createProject(projectData);
-
-    res.status(201).json({
-      success: true,
-      data: project,
-      message: 'Project created successfully'
-    });
-  } catch (error: any) {
-    console.error('Error creating project:', error);
-    
-    // Handle specific business rule violations
-    if (error.message.includes('already exists')) {
-      return res.status(409).json({
-        success: false,
-        error: 'Conflict',
-        message: error.message
-      });
-    }
-
-    if (error.message.includes('End date must be after start date')) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid date range',
-        message: error.message
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create project',
-      message: error.message
-    });
-  }
-});
-
-/**
- * @route   PUT /api/projects/:id
- * @desc    Update project
- * @access  Public (should be protected in production)
- */
-router.put('/:id', updateProjectValidation, handleValidationErrors, async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const updateData: UpdateProjectInput = {
-      ...(req.body.name && { name: req.body.name }),
-      ...(req.body.description !== undefined && { description: req.body.description }),
-      ...(req.body.clientName !== undefined && { clientName: req.body.clientName }),
-      ...(req.body.status && { status: req.body.status }),
-      ...(req.body.startDate && { startDate: new Date(req.body.startDate) }),
-      ...(req.body.endDate && { endDate: new Date(req.body.endDate) }),
-      ...(req.body.budget !== undefined && { budget: req.body.budget }),
-      ...(req.body.hourlyRate !== undefined && { hourlyRate: req.body.hourlyRate })
-    };
-
-    const project = await projectService.updateProject(req.params.id, updateData);
-
-    res.json({
-      success: true,
-      data: project,
-      message: 'Project updated successfully'
-    });
-  } catch (error: any) {
-    console.error('Error updating project:', error);
-    
-    if (error.message === 'Project not found') {
-      return res.status(404).json({
-        success: false,
-        error: 'Project not found'
-      });
-    }
-
-    if (error.message.includes('already exists')) {
-      return res.status(409).json({
-        success: false,
-        error: 'Conflict',
-        message: error.message
-      });
-    }
-
-    if (error.message.includes('Invalid status transition')) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid status transition',
-        message: error.message
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update project',
-      message: error.message
-    });
-  }
-});
-
-/**
- * @route   DELETE /api/projects/:id
- * @desc    Delete project
- * @access  Public (should be protected in production)
- */
-router.delete('/:id', projectIdValidation, handleValidationErrors, async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const project = await projectService.deleteProject(req.params.id);
-
-    res.json({
-      success: true,
-      data: project,
-      message: 'Project deleted successfully'
-    });
-  } catch (error: any) {
-    console.error('Error deleting project:', error);
-    
-    if (error.message === 'Project not found') {
-      return res.status(404).json({
-        success: false,
-        error: 'Project not found'
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete project',
-      message: error.message
-    });
-  }
-});
-
-/**
- * @route   GET /api/projects/:id/budget-utilization
- * @desc    Get budget utilization for a project
- * @access  Public (should be protected in production)
- */
-router.get('/:id/budget-utilization', projectIdValidation, handleValidationErrors, async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const utilization = await projectService.calculateBudgetUtilization(req.params.id);
-
-    res.json({
-      success: true,
-      data: {
-        projectId: req.params.id,
-        budgetUtilization: utilization
-      }
-    });
-  } catch (error: any) {
-    console.error('Error calculating budget utilization:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to calculate budget utilization',
-      message: error.message
-    });
-  }
-});
-
-/**
- * @route   GET /api/projects/client/:clientName
- * @desc    Get projects for a specific client
- * @access  Public (should be protected in production)
- */
-router.get('/client/:clientName', async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const clientName = decodeURIComponent(req.params.clientName);
-    const projects = await projectService.getProjectsByClient(clientName);
-
-    res.json({
-      success: true,
-      data: projects,
-      count: projects.length,
-      client: clientName
-    });
-  } catch (error: any) {
-    console.error('Error fetching projects by client:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch projects by client',
-      message: error.message
-    });
-  }
-});
-
-/**
- * @route   GET /api/projects/status/:status
- * @desc    Get projects by status
- * @access  Public (should be protected in production)
- */
-router.get('/status/:status', async (req: Request, res: Response): Promise<Response> => {
-  try {
-    const status = req.params.status as ProjectStatus;
-    
-    // Validate status
-    if (!['planning', 'active', 'completed', 'on-hold'].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid status'
-      });
-    }
-
-    const projects = await projectService.getProjectsByStatus(status);
-
-    res.json({
-      success: true,
-      data: projects,
-      count: projects.length,
-      status: status
-    });
-  } catch (error: any) {
-    console.error('Error fetching projects by status:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch projects by status',
-      message: error.message
-    });
-  }
-});
+// Resource assignment routes
+router.post('/:id/assignments',
+  param('id').isNumeric().withMessage('Project ID must be a number'),
+  resourceAssignmentValidation,
+  handleValidationErrors,
+  projectController.assignEmployeeToProject
+);
+router.get('/:id/assignments',
+  param('id').isNumeric().withMessage('Project ID must be a number'),
+  projectController.getProjectAssignments
+);
 
 export { router as projectRoutes };
-export default router;

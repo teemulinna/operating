@@ -148,7 +148,7 @@ router.get('/',
 
     const result = await AllocationService.getAllAllocations(filters, page, limit);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Allocations retrieved successfully',
       data: result.data,
@@ -186,7 +186,7 @@ router.get('/employee/:employeeId',
 
     const result = await AllocationService.getEmployeeAllocations(employeeId, filters, page, limit);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Employee allocations retrieved successfully',
       data: result.data,
@@ -220,7 +220,7 @@ router.get('/project/:projectId',
 
     const result = await AllocationService.getProjectAllocations(projectId, filters, page, limit);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Project allocations retrieved successfully',
       data: result.data,

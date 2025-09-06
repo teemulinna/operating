@@ -129,6 +129,14 @@ export interface ProjectStats {
   averageProjectDuration: number; // in days
   onTimeCompletionRate: number; // percentage
   budgetUtilizationRate: number; // percentage
+  averageBudget?: number;
+  averageHourlyRate?: number;
+  projectsByStatus?: {
+    active: number;
+    completed: number;
+    'on-hold': number;
+    planning: number;
+  };
 }
 
 // Project timeline event
@@ -141,6 +149,83 @@ export interface ProjectTimelineEvent {
   date: string; // ISO date string
   userId?: string; // Who made the change
   metadata?: Record<string, unknown>;
+}
+
+// Project assignment for team members
+export interface ProjectAssignment {
+  id: string;
+  projectId: string;
+  employeeId: string;
+  employee?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    position: string;
+    avatar?: string;
+  };
+  role: 'manager' | 'lead' | 'developer' | 'designer' | 'qa' | 'analyst' | 'consultant';
+  utilizationPercentage: number;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+  estimatedHours?: number;
+  actualHours?: number;
+  hourlyRate?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Project Role Types (NEW)
+export type ExperienceLevel = 'junior' | 'intermediate' | 'senior' | 'expert';
+export type ProjectRoleStatus = 'active' | 'completed' | 'on-hold' | 'cancelled';
+
+export interface ProjectRole {
+  id: string;
+  projectId: string;
+  roleName: string;
+  description?: string;
+  requiredSkills: string[];
+  minimumExperienceLevel: ExperienceLevel;
+  plannedAllocationPercentage: number;
+  estimatedHours?: number;
+  actualHours?: number;
+  status: ProjectRoleStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProjectRoleRequest {
+  projectId: string;
+  roleName: string;
+  description?: string;
+  requiredSkills: string[];
+  minimumExperienceLevel: ExperienceLevel;
+  plannedAllocationPercentage: number;
+  estimatedHours?: number;
+}
+
+export interface UpdateProjectRoleRequest extends Partial<Omit<CreateProjectRoleRequest, 'projectId'>> {
+  id: string;
+}
+
+// Enhanced Assignment with Role Reference
+export interface ProjectRoleAssignment extends Omit<ProjectAssignment, 'role'> {
+  roleId: string;
+  projectRole?: ProjectRole;
+  confidenceLevel: 'tentative' | 'probable' | 'confirmed';
+  assignmentType: 'employee' | 'contractor' | 'consultant' | 'intern';
+}
+
+export interface CreateProjectRoleAssignmentRequest {
+  projectId: string;
+  roleId: string;
+  employeeId: string;
+  assignmentType: 'employee' | 'contractor' | 'consultant' | 'intern';
+  startDate: string;
+  endDate?: string;
+  plannedAllocationPercentage: number;
+  confidenceLevel: 'tentative' | 'probable' | 'confirmed';
 }
 
 export interface ApiError {
@@ -220,6 +305,22 @@ export const PROJECT_STATUS_COLORS = {
   completed: 'bg-gray-100 text-gray-800',
   'on-hold': 'bg-yellow-100 text-yellow-800',
   cancelled: 'bg-red-100 text-red-800',
+} as const;
+
+// Role Status Colors
+export const ROLE_STATUS_COLORS = {
+  active: 'bg-green-100 text-green-800',
+  completed: 'bg-gray-100 text-gray-800',
+  'on-hold': 'bg-yellow-100 text-yellow-800',
+  cancelled: 'bg-red-100 text-red-800',
+} as const;
+
+// Experience Level Colors
+export const EXPERIENCE_LEVEL_COLORS = {
+  junior: 'bg-blue-100 text-blue-800',
+  intermediate: 'bg-purple-100 text-purple-800',
+  senior: 'bg-orange-100 text-orange-800',
+  expert: 'bg-red-100 text-red-800',
 } as const;
 
 // Priority levels for projects (can be extended later)

@@ -14,10 +14,8 @@ describe('End-to-End Availability Dashboard Integration Tests', () => {
     await db.connect();
     pool = db.getPool();
     // Clean up any existing test data
-    await pool.query('DELETE FROM employee_availability WHERE employee_id IN (SELECT id FROM employees WHERE email LIKE \'%@e2etest.com
-ostí');
-    await pool.query('DELETE FROM employees WHERE email LIKE \'%@e2etest.com
-ostí');
+    await pool.query('DELETE FROM employee_availability WHERE employee_id IN (SELECT id FROM employees WHERE email LIKE \'%@e2etest.com\')');
+    await pool.query('DELETE FROM employees WHERE email LIKE \'%@e2etest.com\'');
     
     // Create test departments
     const deptResult = await pool.query(`

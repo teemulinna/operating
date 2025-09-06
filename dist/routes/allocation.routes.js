@@ -112,7 +112,7 @@ const checkValidationErrors = (req, res) => {
 router.get('/', (0, express_validator_1.query)('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'), (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'), (0, express_validator_1.query)('employeeId').optional().isString(), (0, express_validator_1.query)('projectId').optional().isString(), (0, express_validator_1.query)('startDateFrom').optional().isISO8601().toDate(), (0, express_validator_1.query)('startDateTo').optional().isISO8601().toDate(), (0, express_validator_1.query)('endDateFrom').optional().isISO8601().toDate(), (0, express_validator_1.query)('endDateTo').optional().isISO8601().toDate(), (0, express_validator_1.query)('isActive').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
     const filters = {
@@ -125,7 +125,7 @@ router.get('/', (0, express_validator_1.query)('page').optional().isInt({ min: 1
         isActive: req.query.isActive ? req.query.isActive === 'true' : undefined
     };
     const result = await allocation_service_1.AllocationService.getAllAllocations(filters, page, limit);
-    res.json({
+    return res.json({
         success: true,
         message: 'Allocations retrieved successfully',
         data: result.data,
@@ -140,7 +140,7 @@ router.get('/', (0, express_validator_1.query)('page').optional().isInt({ min: 1
 router.get('/employee/:employeeId', validateEmployeeId, (0, express_validator_1.query)('page').optional().isInt({ min: 1 }), (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }), (0, express_validator_1.query)('startDateFrom').optional().isISO8601().toDate(), (0, express_validator_1.query)('startDateTo').optional().isISO8601().toDate(), (0, express_validator_1.query)('isActive').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { employeeId } = req.params;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
@@ -150,7 +150,7 @@ router.get('/employee/:employeeId', validateEmployeeId, (0, express_validator_1.
         isActive: req.query.isActive ? req.query.isActive === 'true' : undefined
     };
     const result = await allocation_service_1.AllocationService.getEmployeeAllocations(employeeId, filters, page, limit);
-    res.json({
+    return res.json({
         success: true,
         message: 'Employee allocations retrieved successfully',
         data: result.data,
@@ -165,7 +165,7 @@ router.get('/employee/:employeeId', validateEmployeeId, (0, express_validator_1.
 router.get('/project/:projectId', validateProjectId, (0, express_validator_1.query)('page').optional().isInt({ min: 1 }), (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }), (0, express_validator_1.query)('isActive').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { projectId } = req.params;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
@@ -173,7 +173,7 @@ router.get('/project/:projectId', validateProjectId, (0, express_validator_1.que
         isActive: req.query.isActive ? req.query.isActive === 'true' : undefined
     };
     const result = await allocation_service_1.AllocationService.getProjectAllocations(projectId, filters, page, limit);
-    res.json({
+    return res.json({
         success: true,
         message: 'Project allocations retrieved successfully',
         data: result.data,
@@ -188,7 +188,7 @@ router.get('/project/:projectId', validateProjectId, (0, express_validator_1.que
 router.get('/conflicts', (0, express_validator_1.query)('employeeId').notEmpty().withMessage('Employee ID is required'), (0, express_validator_1.query)('startDate').isISO8601().withMessage('Start date must be valid ISO 8601').toDate(), (0, express_validator_1.query)('endDate').isISO8601().withMessage('End date must be valid ISO 8601').toDate(), (0, express_validator_1.query)('excludeAllocationId').optional().isString(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { employeeId, excludeAllocationId } = req.query;
     const startDate = new Date(req.query.startDate);
     const endDate = new Date(req.query.endDate);
@@ -202,7 +202,7 @@ router.get('/conflicts', (0, express_validator_1.query)('employeeId').notEmpty()
 router.get('/utilization', (0, express_validator_1.query)('employeeId').optional().isString(), (0, express_validator_1.query)('startDate').optional().isISO8601().toDate(), (0, express_validator_1.query)('endDate').optional().isISO8601().toDate(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { employeeId } = req.query;
     const startDate = req.query.startDate ? new Date(req.query.startDate) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate) : undefined;
@@ -226,7 +226,7 @@ router.get('/utilization', (0, express_validator_1.query)('employeeId').optional
 router.get('/:id', validateId, (0, express_validator_1.query)('includeDetails').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { id } = req.params;
     const includeDetails = req.query.includeDetails === 'true';
     let allocation;
@@ -251,7 +251,7 @@ router.get('/:id', validateId, (0, express_validator_1.query)('includeDetails').
 router.post('/', validateAllocationCreation, (0, express_validator_1.body)('force').optional().isBoolean().withMessage('Force must be a boolean'), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const input = {
         employeeId: req.body.employeeId,
         projectId: req.body.projectId,
@@ -286,7 +286,7 @@ router.post('/', validateAllocationCreation, (0, express_validator_1.body)('forc
 router.put('/:id', validateId, validateAllocationUpdate, (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { id } = req.params;
     const updates = {};
     if (req.body.allocatedHours !== undefined)
@@ -327,7 +327,7 @@ router.put('/:id', validateId, validateAllocationUpdate, (0, async_handler_1.asy
 router.delete('/:id', validateId, (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { id } = req.params;
     const allocation = await allocation_service_1.AllocationService.deleteAllocation(id);
     res.json({
@@ -339,7 +339,7 @@ router.delete('/:id', validateId, (0, async_handler_1.asyncHandler)(async (req, 
 router.post('/:id/confirm', validateId, (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { id } = req.params;
     const allocation = await allocation_service_1.AllocationService.confirmAllocation(id);
     res.json({
@@ -351,7 +351,7 @@ router.post('/:id/confirm', validateId, (0, async_handler_1.asyncHandler)(async 
 router.post('/:id/complete', validateId, (0, express_validator_1.body)('actualHours').optional().isFloat({ min: 0 }).withMessage('Actual hours must be non-negative'), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { id } = req.params;
     const actualHours = req.body.actualHours ? parseFloat(req.body.actualHours) : undefined;
     const allocation = await allocation_service_1.AllocationService.completeAllocation(id, actualHours);
@@ -364,7 +364,7 @@ router.post('/:id/complete', validateId, (0, express_validator_1.body)('actualHo
 router.post('/:id/cancel', validateId, (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { id } = req.params;
     const allocation = await allocation_service_1.AllocationService.cancelAllocation(id);
     res.json({
@@ -376,7 +376,7 @@ router.post('/:id/cancel', validateId, (0, async_handler_1.asyncHandler)(async (
 router.post('/validate-capacity', (0, express_validator_1.body)('employeeId').notEmpty().isString(), (0, express_validator_1.body)('allocatedHours').isFloat({ min: 0.1 }), (0, express_validator_1.body)('startDate').isISO8601().toDate(), (0, express_validator_1.body)('endDate').isISO8601().toDate(), (0, express_validator_1.body)('excludeAllocationId').optional().isString(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
-        return;
+        return validationError;
     const { employeeId, allocatedHours, startDate, endDate, excludeAllocationId } = req.body;
     const validation = await allocation_service_1.AllocationService.validateCapacity(employeeId, parseFloat(allocatedHours), startDate, endDate, excludeAllocationId);
     res.json({

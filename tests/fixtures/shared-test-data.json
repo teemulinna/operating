@@ -1,0 +1,228 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Test Admin",
+      "email": "admin@test.com",
+      "role": "admin",
+      "password": "hashed_password_admin",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Test Manager", 
+      "email": "manager@test.com",
+      "role": "manager",
+      "password": "hashed_password_manager",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Test User",
+      "email": "user@test.com", 
+      "role": "user",
+      "password": "hashed_password_user",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "name": "Inactive User",
+      "email": "inactive@test.com",
+      "role": "user",
+      "password": "hashed_password_inactive",
+      "active": false,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "name": "Alpha Development",
+      "description": "Primary development project for testing integration",
+      "status": "active",
+      "ownerId": 1,
+      "budget": 50000,
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Beta Research",
+      "description": "Research project for new technologies",
+      "status": "planning",
+      "ownerId": 2,
+      "budget": 25000,
+      "startDate": "2024-06-01",
+      "endDate": "2024-11-30",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Gamma Maintenance",
+      "description": "Legacy system maintenance",
+      "status": "completed",
+      "ownerId": 1,
+      "budget": 10000,
+      "startDate": "2023-01-01",
+      "endDate": "2023-12-31",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "updatedAt": "2023-12-31T23:59:59Z"
+    },
+    {
+      "id": 4,
+      "name": "Delta Innovation",
+      "description": "Experimental innovation project",
+      "status": "cancelled",
+      "ownerId": 2,
+      "budget": 0,
+      "startDate": "2024-03-01",
+      "endDate": null,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-03-15T00:00:00Z"
+    }
+  ],
+  "resources": [
+    {
+      "id": 1,
+      "name": "Development Workstation #1",
+      "type": "equipment",
+      "availability": "available", 
+      "projectId": 1,
+      "cost": 2500,
+      "specifications": {
+        "cpu": "Intel i7",
+        "memory": "32GB",
+        "storage": "1TB SSD"
+      },
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Database Server",
+      "type": "equipment",
+      "availability": "in-use",
+      "projectId": 1,
+      "cost": 5000,
+      "specifications": {
+        "cpu": "Intel Xeon",
+        "memory": "64GB", 
+        "storage": "2TB SSD RAID"
+      },
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Development License - IntelliJ",
+      "type": "software",
+      "availability": "available",
+      "projectId": 2,
+      "cost": 200,
+      "specifications": {
+        "version": "2024.1",
+        "seats": 5,
+        "expiryDate": "2024-12-31"
+      },
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "name": "Testing Environment",
+      "type": "infrastructure",
+      "availability": "maintenance",
+      "projectId": 1,
+      "cost": 1000,
+      "specifications": {
+        "provider": "AWS",
+        "instances": "3x t3.medium",
+        "region": "us-east-1"
+      },
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-15T00:00:00Z"
+    },
+    {
+      "id": 5,
+      "name": "Meeting Room A",
+      "type": "facility",
+      "availability": "available",
+      "projectId": null,
+      "cost": 0,
+      "specifications": {
+        "capacity": 8,
+        "equipment": ["projector", "whiteboard", "video conference"]
+      },
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "projectResources": [
+    { "projectId": 1, "resourceId": 1, "assignedAt": "2024-01-01T00:00:00Z" },
+    { "projectId": 1, "resourceId": 2, "assignedAt": "2024-01-01T00:00:00Z" },
+    { "projectId": 1, "resourceId": 4, "assignedAt": "2024-01-01T00:00:00Z" },
+    { "projectId": 2, "resourceId": 3, "assignedAt": "2024-01-01T00:00:00Z" }
+  ],
+  "errorTestCases": {
+    "invalidUsers": [
+      { "name": "", "email": "invalid", "role": "unknown" },
+      { "name": null, "email": "", "role": "" },
+      { "name": "Test", "email": "duplicate@test.com", "role": "admin" }
+    ],
+    "invalidProjects": [
+      { "name": "", "description": "", "ownerId": -1 },
+      { "name": null, "description": null, "ownerId": 999 },
+      { "name": "Test", "description": "Test", "ownerId": 4, "budget": -1000 }
+    ],
+    "invalidResources": [
+      { "name": "", "type": "invalid", "availability": "unknown", "projectId": -1 },
+      { "name": null, "type": "", "availability": "", "projectId": 999 },
+      { "name": "Test", "type": "equipment", "availability": "available", "projectId": null, "cost": -100 }
+    ]
+  },
+  "authTokens": {
+    "admin": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIn0.test_admin_token",
+    "manager": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6Im1hbmFnZXIifQ.test_manager_token",
+    "user": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6InVzZXIifQ.test_user_token",
+    "invalid": "invalid_token",
+    "expired": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiZXhwIjoxfQ.expired_token"
+  },
+  "performanceBenchmarks": {
+    "database": {
+      "connectionTime": 50,
+      "simpleQuery": 10,
+      "complexQuery": 45,
+      "bulkInsert": 800
+    },
+    "api": {
+      "authEndpoint": 150,
+      "listEndpoints": 100,
+      "createEndpoints": 200,
+      "updateEndpoints": 180
+    },
+    "frontend": {
+      "componentRender": 12,
+      "pageLoad": 1200,
+      "bundleSize": 450000
+    }
+  },
+  "testScenarios": {
+    "happyPath": {
+      "userRegistration": ["register", "verify", "login", "access"],
+      "projectCreation": ["authenticate", "create", "assign_resources", "verify"],
+      "resourceUpdate": ["authenticate", "update_status", "notify", "refresh_ui"]
+    },
+    "errorPath": {
+      "invalidAuth": ["invalid_credentials", "expired_token", "missing_permissions"],
+      "dataValidation": ["empty_fields", "invalid_format", "constraint_violation"],
+      "systemErrors": ["database_down", "service_timeout", "network_error"]
+    }
+  }
+}

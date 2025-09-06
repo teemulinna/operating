@@ -17,6 +17,9 @@ vi.mock('@/components/ui/use-toast', () => ({
 const mockUseProject = useProject as any;
 const mockUseProjectTimeline = useProjectTimeline as any;
 
+// Mock useProjectAssignments as well
+const mockUseProjectAssignments = vi.fn();
+
 // Mock project data
 const mockProject: Project = {
   id: '1',
@@ -110,6 +113,17 @@ describe('ProjectDetail', () => {
       isLoading: false,
       error: null,
     });
+
+    // Mock useProjectAssignments
+    vi.doMock('@/hooks/useProjects', () => ({
+      useProject: mockUseProject,
+      useProjectTimeline: mockUseProjectTimeline,
+      useProjectAssignments: () => ({
+        data: [],
+        isLoading: false,
+        error: null,
+      }),
+    }));
   });
 
   it('renders project information correctly', () => {

@@ -108,7 +108,7 @@ export class WebSocketService {
       const { userId } = data;
       
       // Get user information from database
-      const user = await this.databaseService.executeQuery(
+      const user = await this.databaseService.query(
         'SELECT name, email FROM employees WHERE id = $1',
         [userId]
       );
@@ -281,7 +281,7 @@ export class WebSocketService {
       const { employeeId, utilizationRate, reason } = data;
 
       // Get employee information
-      const employee = await this.databaseService.executeQuery(
+      const employee = await this.databaseService.query(
         'SELECT name FROM employees WHERE id = $1',
         [employeeId]
       );
@@ -294,7 +294,7 @@ export class WebSocketService {
       const employeeName = employee.rows[0].name;
 
       // Update capacity in database
-      await this.databaseService.executeQuery(`
+      await this.databaseService.query(`
         INSERT INTO capacity (employee_id, utilization_rate, week_start_date, updated_at, updated_by)
         VALUES ($1, $2, date_trunc('week', CURRENT_DATE), NOW(), $3)
         ON CONFLICT (employee_id, week_start_date)
