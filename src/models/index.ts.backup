@@ -1,0 +1,19 @@
+import { Pool } from 'pg';
+import { DepartmentModel } from './Department';
+import { SkillModel } from './Skill';
+import { EmployeeModel } from './Employee';
+import { EmployeeSkillModel } from './EmployeeSkill';
+import { CapacityHistoryModel } from './CapacityHistory';
+
+export { DepartmentModel, SkillModel, EmployeeModel, EmployeeSkillModel, CapacityHistoryModel };
+
+export function initializeModels(pool: Pool): void {
+  DepartmentModel.initialize(pool);
+  SkillModel.initialize(pool);
+  EmployeeModel.initialize(pool);
+  EmployeeSkillModel.initialize(pool);
+  CapacityHistoryModel.initialize(pool);
+}
+
+// Re-export types for convenience
+export * from '../types';

@@ -1,0 +1,3 @@
+# Resource Planning Dashboard - Lite Summary
+
+Transform the existing Employee Management System into a comprehensive resource planning dashboard that enables project managers to efficiently allocate team members based on capacity, skills, and availability across multiple projects. This enhancement adds critical missing resource management UI features including weekly capacity views, skills-based filtering, real-time availability tracking, and team utilization analytics to convert the basic employee system into a proper resource allocation tool for project managers.

@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  frontend-test:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      target: development
+    environment:
+      - NODE_ENV=test
+      - VITE_API_URL=http://backend-test:5000/api
+      - VITE_PORT=3000
+      - VITE_HOST=0.0.0.0
+      - VITE_ENABLE_QUERY_DEVTOOLS=false
+      - VITE_TEST_TIMEOUT=30000
+      - CI=true
+    volumes:
+      - ./src:/app/src:ro
+      - ./public:/app/public:ro
+      - ./tests:/app/tests:ro
+    command: npm run test:ci
+    depends_on:
+      backend-test:
+        condition: service_healthy
+    networks:
+      - test-network
+
+  backend-test:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+      target: development
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://test_user:test_password@database-test:5432/employee_management_test
+      - JWT_SECRET=test-secret-key
+      - REDIS_URL=redis://redis-test:6379
+    volumes:
+      - ./backend:/app:ro
+      - /app/node_modules
+    command: npm run test:ci
+    depends_on:
+      database-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - test-network
+
+  database-test:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=employee_management_test
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d employee_management_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - test-network
+
+  redis-test:
+    image: redis:7-alpine
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - test-network
+
+  e2e-tests:
+    build:
+      context: .
+      dockerfile: docker/e2e/Dockerfile
+    environment:
+      - BASE_URL=http://frontend-test:3000
+      - API_URL=http://backend-test:5000/api
+    volumes:
+      - ./e2e:/app/e2e:ro
+      - ./cypress:/app/cypress:ro
+    depends_on:
+      - frontend-test
+      - backend-test
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

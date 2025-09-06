@@ -8,6 +8,7 @@ import {
   getEmployeesByDepartment,
   getEmployeeStats
 } from '../controllers/employeeController';
+import { getEmployeeCapacity, updateEmployeeCapacity } from '../controllers/capacityController';
 import { authenticate, authorize } from '../middleware/auth';
 import { 
   validateEmployee, 
@@ -202,5 +203,93 @@ router.put('/:id', authorize('admin', 'hr'), validateId, validateEmployeeUpdate,
  *         description: Employee not found
  */
 router.delete('/:id', authorize('admin', 'hr'), validateId, deleteEmployee);
+
+/**
+ * @swagger
+ * /employees/{id}/capacity:
+ *   get:
+ *     summary: Get capacity data for employee
+ *     tags: [Employees, Capacity]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Employee ID
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter from this date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter until this date
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 30
+ *         description: Maximum records to return
+ *     responses:
+ *       200:
+ *         description: Employee capacity data
+ *       404:
+ *         description: Employee not found
+ */
+router.get('/:id/capacity', validateId, getEmployeeCapacity);
+
+/**
+ * @swagger
+ * /employees/{id}/capacity:
+ *   put:
+ *     summary: Update employee capacity
+ *     tags: [Employees, Capacity]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Employee ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - date
+ *               - availableHours
+ *               - allocatedHours
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               availableHours:
+ *                 type: number
+ *                 minimum: 0
+ *               allocatedHours:
+ *                 type: number
+ *                 minimum: 0
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Capacity updated successfully
+ *       400:
+ *         description: Invalid input data
+ *       404:
+ *         description: Employee not found
+ */
+router.put('/:id/capacity', authorize('admin', 'hr', 'manager'), validateId, updateEmployeeCapacity);
 
 export default router;

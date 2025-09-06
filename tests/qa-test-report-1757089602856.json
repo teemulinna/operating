@@ -1,0 +1,305 @@
+{
+  "summary": {
+    "totalTests": 29,
+    "passedTests": 0,
+    "failedTests": 29,
+    "successRate": "0.00%",
+    "duration": "3125ms",
+    "timestamp": "2025-09-05T16:26:42.856Z"
+  },
+  "testResults": {
+    "apiTests": [
+      {
+        "category": "apiTests",
+        "testName": "Health Endpoint",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:39.742Z"
+      },
+      {
+        "category": "apiTests",
+        "testName": "GET /employees",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:39.744Z"
+      },
+      {
+        "category": "apiTests",
+        "testName": "POST /employees (Create)",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:39.744Z"
+      },
+      {
+        "category": "apiTests",
+        "testName": "GET /departments",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:39.745Z"
+      },
+      {
+        "category": "apiTests",
+        "testName": "Employee Search",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:39.746Z"
+      },
+      {
+        "category": "apiTests",
+        "testName": "Pagination",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:39.746Z"
+      },
+      {
+        "category": "apiTests",
+        "testName": "404 Error Handling",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:39.747Z"
+      },
+      {
+        "category": "apiTests",
+        "testName": "Validation Error Handling",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:39.748Z"
+      },
+      {
+        "category": "apiTests",
+        "testName": "Concurrent Requests",
+        "status": "PARTIAL",
+        "details": {
+          "totalRequests": 10,
+          "successfulRequests": 0,
+          "failedRequests": 10,
+          "totalTime": 3,
+          "averageResponseTime": 0.3
+        },
+        "timestamp": "2025-09-05T16:26:39.751Z"
+      }
+    ],
+    "frontendTests": [
+      {
+        "category": "frontendTests",
+        "testName": "Frontend Availability",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:42.853Z"
+      },
+      {
+        "category": "frontendTests",
+        "testName": "CORS Configuration",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:42.855Z"
+      }
+    ],
+    "performanceTests": [
+      {
+        "category": "performanceTests",
+        "testName": "Response Time - /health",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:40.755Z"
+      },
+      {
+        "category": "performanceTests",
+        "testName": "Response Time - /employees",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:40.756Z"
+      },
+      {
+        "category": "performanceTests",
+        "testName": "Response Time - /departments",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:40.758Z"
+      },
+      {
+        "category": "performanceTests",
+        "testName": "Load Test",
+        "status": "PARTIAL",
+        "details": {
+          "totalRequests": 100,
+          "successCount": 0,
+          "errorCount": 100,
+          "errorRate": "100.00%",
+          "avgResponseTime": "0.00ms",
+          "throughput": "2272.73 req/sec",
+          "totalTime": "44ms"
+        },
+        "timestamp": "2025-09-05T16:26:40.802Z"
+      },
+      {
+        "category": "performanceTests",
+        "testName": "Memory Usage (Client)",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:40.804Z"
+      }
+    ],
+    "securityTests": [
+      {
+        "category": "securityTests",
+        "testName": "SQL Injection Test - '; DROP TABLE employ...",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.808Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "SQL Injection Test - ' OR '1'='1...",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.809Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "SQL Injection Test - ' UNION SELECT * FRO...",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.810Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "SQL Injection Test - admin'--...",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.812Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "XSS Protection Test - <script>alert('XSS')...",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.814Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "XSS Protection Test - javascript:alert('XS...",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.816Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "XSS Protection Test - <img src=x onerror=a...",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.817Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "XSS Protection Test - '><script>alert('XSS...",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.818Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "Rate Limiting",
+        "status": "PARTIAL",
+        "details": {
+          "totalRequests": 50,
+          "rateLimitedRequests": 0,
+          "hasRateLimiting": false
+        },
+        "timestamp": "2025-09-05T16:26:41.845Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "Input Validation - email",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.846Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "Input Validation - salary",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.846Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "Input Validation - firstName",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.847Z"
+      },
+      {
+        "category": "securityTests",
+        "testName": "Input Validation - hireDate",
+        "status": "FAIL",
+        "details": {
+          "error": ""
+        },
+        "timestamp": "2025-09-05T16:26:41.848Z"
+      }
+    ],
+    "accessibilityTests": [],
+    "totalTests": 29,
+    "passedTests": 0,
+    "failedTests": 29,
+    "startTime": "2025-09-05T16:26:39.731Z",
+    "endTime": "2025-09-05T16:26:42.856Z"
+  },
+  "qualityGates": {
+    "allCrudOperations": false,
+    "responseTimeUnder100ms": false,
+    "noSecurityVulnerabilities": false,
+    "frontendAccessible": false
+  }
+}

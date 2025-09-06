@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src:ro
+      - ./public:/app/public:ro
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://backend:5000/api
+      - VITE_PORT=3000
+      - VITE_HOST=0.0.0.0
+      - VITE_ENABLE_QUERY_DEVTOOLS=true
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+      target: development
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app:ro
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://app_user:app_password@database:5432/employee_management
+      - JWT_SECRET=dev-secret-key
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - app-network
+
+  database:
+    build:
+      context: .
+      dockerfile: docker/database/Dockerfile
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=employee_management
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=app_password
+      - POSTGRES_INITDB_ARGS=--auth-host=md5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/database/init-scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d employee_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

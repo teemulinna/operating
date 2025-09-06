@@ -1,0 +1,203 @@
+# Production Docker Compose Configuration
+# =======================================
+# Deploys complete Resource Planning Platform with monitoring and security
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-employee_management}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - app-network
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secure_password}
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Main Application
+  app:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-your_secure_password}@postgres:5432/${POSTGRES_DB:-employee_management}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    networks:
+      - app-network
+    ports:
+      - "3001:3001"
+    volumes:
+      - app_logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx Reverse Proxy with SSL termination
+  nginx:
+    image: nginx:1.24-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - app-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning:ro
+    networks:
+      - app-network
+
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - app-network
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+
+  # Cadvisor for container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - app-network
+    privileged: true
+
+  # Load balancer for high availability (optional)
+  haproxy:
+    image: haproxy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+      - "8404:8404"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8404/stats || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16

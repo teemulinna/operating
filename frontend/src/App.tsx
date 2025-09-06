@@ -1,10 +1,15 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { EmployeeList } from '@/components/employees/EmployeeList'
-import { EmployeeForm } from '@/components/employees/EmployeeForm'
+import { EmployeeFormEnhanced } from '@/components/employees/EmployeeFormEnhanced'
+import { Toaster } from '@/components/ui/toaster'
 import { CSVImport } from '@/components/employees/CSVImport'
-import { useCSVExport } from '@/hooks/useEmployees'
+import { ResourceAllocationDashboard } from '@/components/dashboard/ResourceAllocationDashboard'
+import { ProjectList } from '@/components/projects/ProjectList'
+import { ProjectStatsWidget } from '@/components/dashboard/ProjectStatsWidget'
+import { WebSocketProvider } from '@/contexts/WebSocketContext'
+import { useCSVExport, useEmployees } from '@/hooks/useEmployees'
 import type { Employee } from '@/types/employee'
 import './index.css'
 
@@ -24,12 +29,15 @@ const queryClient = new QueryClient({
   },
 })
 
-type ViewMode = 'list' | 'create' | 'edit' | 'import'
+// Extended view modes to include all sections
+type ViewMode = 'employees' | 'create' | 'edit' | 'import' | 'resources' | 'projects' | 'dashboard'
 
 function AppContent() {
-  const [currentView, setCurrentView] = useState<ViewMode>('list')
+  const [currentView, setCurrentView] = useState<ViewMode>('employees')
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const csvExport = useCSVExport()
+  const { data: employeesData } = useEmployees()
+  const employees = employeesData?.employees || []
 
   const handleEmployeeSelect = (employee: Employee) => {
     setSelectedEmployee(employee)
@@ -69,12 +77,12 @@ function AppContent() {
 
   const handleFormSuccess = (employee: Employee) => {
     console.log('Employee saved:', employee)
-    setCurrentView('list')
+    setCurrentView('employees')
     setSelectedEmployee(null)
   }
 
   const handleFormCancel = () => {
-    setCurrentView('list')
+    setCurrentView('employees')
     setSelectedEmployee(null)
   }
 
@@ -82,12 +90,12 @@ function AppContent() {
     console.log('Import completed:', result)
     // Could show toast notification
     setTimeout(() => {
-      setCurrentView('list')
+      setCurrentView('employees')
     }, 2000)
   }
 
   const handleImportCancel = () => {
-    setCurrentView('list')
+    setCurrentView('employees')
   }
 
   return (
@@ -104,20 +112,121 @@ function AppContent() {
                 Manage your organization's workforce efficiently
               </p>
             </div>
-            {currentView !== 'list' && (
+            
+            {/* Main Navigation Menu */}
+            <nav className="flex space-x-4">
               <button
-                onClick={() => setCurrentView('list')}
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                onClick={() => setCurrentView('dashboard')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentView === 'dashboard'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
               >
-                ← Back to Employee List
+                📊 Dashboard
               </button>
-            )}
+              <button
+                onClick={() => setCurrentView('employees')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  ['employees', 'create', 'edit', 'import'].includes(currentView)
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                👥 Employees
+              </button>
+              <button
+                onClick={() => setCurrentView('projects')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentView === 'projects'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📋 Projects
+              </button>
+              <button
+                onClick={() => setCurrentView('resources')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentView === 'resources'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                🔧 Resources
+              </button>
+            </nav>
           </div>
         </header>
 
         {/* Main Content */}
         <main>
-          {currentView === 'list' && (
+          {/* Dashboard View */}
+          {currentView === 'dashboard' && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Project Stats Widget */}
+                <ProjectStatsWidget />
+                
+                {/* Quick Actions Card */}
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => setCurrentView('employees')}
+                      className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      <span className="text-xl">👥</span>
+                      <div className="text-left">
+                        <div className="font-medium">Manage Employees</div>
+                        <div className="text-sm text-blue-600">View and edit employee information</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('projects')}
+                      className="w-full flex items-center gap-3 px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+                    >
+                      <span className="text-xl">📋</span>
+                      <div className="text-left">
+                        <div className="font-medium">Manage Projects</div>
+                        <div className="text-sm text-green-600">Create and track project progress</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('resources')}
+                      className="w-full flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                    >
+                      <span className="text-xl">🔧</span>
+                      <div className="text-left">
+                        <div className="font-medium">Resource Allocation</div>
+                        <div className="text-sm text-purple-600">Optimize team capacity and workload</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Additional Dashboard Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow">
+                  <h4 className="text-lg font-semibold mb-2">System Status</h4>
+                  <p className="text-blue-100">All systems operational</p>
+                </div>
+                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg shadow">
+                  <h4 className="text-lg font-semibold mb-2">Recent Activity</h4>
+                  <p className="text-green-100">Updates in real-time</p>
+                </div>
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg shadow">
+                  <h4 className="text-lg font-semibold mb-2">Performance</h4>
+                  <p className="text-purple-100">Optimal efficiency</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Employee Views */}
+          {currentView === 'employees' && (
             <EmployeeList
               onEmployeeSelect={handleEmployeeSelect}
               onEmployeeCreate={handleEmployeeCreate}
@@ -127,14 +236,26 @@ function AppContent() {
             />
           )}
 
+          {/* Projects View */}
+          {currentView === 'projects' && (
+            <ProjectList />
+          )}
+
+          {/* Resources View */}
+          {currentView === 'resources' && (
+            <ResourceAllocationDashboard />
+          )}
+
+          {/* Employee Form Views */}
           {(currentView === 'create' || currentView === 'edit') && (
-            <EmployeeForm
+            <EmployeeFormEnhanced
               employee={selectedEmployee ?? undefined}
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
             />
           )}
 
+          {/* CSV Import View */}
           {currentView === 'import' && (
             <CSVImport
               onSuccess={handleImportSuccess}
@@ -150,8 +271,11 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <WebSocketProvider url={import.meta.env.VITE_API_URL || 'http://localhost:3001'}>
+        <AppContent />
+        <Toaster />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </WebSocketProvider>
     </QueryClientProvider>
   )
 }

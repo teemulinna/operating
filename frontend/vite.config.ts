@@ -19,14 +19,52 @@ export default defineConfig(({ command, mode }) => {
       host: env.VITE_HOST || 'localhost',
       hmr: {
         port: parseInt(env.VITE_HMR_PORT) || 24678,
+        host: 'localhost',
       },
+      cors: true,
     },
     preview: {
       port: parseInt(env.VITE_PORT) || 3000,
       host: env.VITE_HOST || 'localhost',
     },
     define: {
-      __APP_ENV__: env.NODE_ENV,
+      __APP_ENV__: JSON.stringify(env.NODE_ENV || 'development'),
+    },
+    build: {
+      // Performance optimizations
+      target: 'es2015',
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: mode === 'production',
+          drop_debugger: mode === 'production',
+        },
+      },
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Vendor splitting for better caching
+            vendor: ['react', 'react-dom'],
+            ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+            query: ['@tanstack/react-query'],
+            charts: ['chart.js', 'react-chartjs-2'],
+            utils: ['axios', 'clsx', 'tailwind-merge'],
+          },
+        },
+      },
+      // Chunk size optimization
+      chunkSizeWarningLimit: 1000,
+    },
+    optimizeDeps: {
+      // Pre-bundle common dependencies
+      include: [
+        'react',
+        'react-dom',
+        '@tanstack/react-query',
+        'axios',
+        'clsx',
+        'tailwind-merge'
+      ],
     },
   }
 })

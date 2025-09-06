@@ -1,0 +1,76 @@
+# Node.js
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Testing
+coverage
+.nyc_output
+cypress/videos
+cypress/screenshots
+test-results
+
+# Build artifacts
+build
+dist
+*.tgz
+
+# Documentation
+docs
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+
+# CI/CD
+.github
+deployment/scripts
+docker-compose*.yml
+
+# Logs
+logs
+*.log
+
+# Temporary files
+tmp
+temp
+.tmp
+.temp
+
+# Development files
+.prettierrc
+.eslintrc*
+jest.config.js
+cypress.config.js
+
+# Backup files
+*.bak
+*.backup

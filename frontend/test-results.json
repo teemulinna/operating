@@ -1,0 +1,231 @@
+{
+  "config": {
+    "configFile": "/Users/teemulinna/code/operating/frontend/playwright.config.ts",
+    "rootDir": "/Users/teemulinna/code/operating/frontend/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputDir": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/teemulinna/code/operating/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/teemulinna/code/operating/frontend/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --port 3002",
+      "port": 3002,
+      "reuseExistingServer": true,
+      "timeout": 30000
+    }
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "Error: Cannot find module '/Users/teemulinna/code/operating/frontend/src/components/analytics/TeamUtilizationChart' imported from /Users/teemulinna/code/operating/frontend/tests/components/analytics/TeamUtilizationChart.test.tsx",
+      "stack": "Error: Cannot find module '/Users/teemulinna/code/operating/frontend/src/components/analytics/TeamUtilizationChart' imported from /Users/teemulinna/code/operating/frontend/tests/components/analytics/TeamUtilizationChart.test.tsx"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "ReferenceError: __dirname is not defined in ES module scope",
+      "stack": "ReferenceError: __dirname is not defined in ES module scope\n    at /Users/teemulinna/code/operating/frontend/tests/e2e/csv-import-export.spec.ts:6:35\n    at /Users/teemulinna/code/operating/frontend/tests/e2e/csv-import-export.spec.ts:5:6",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/e2e/csv-import-export.spec.ts",
+        "column": 35,
+        "line": 6
+      },
+      "snippet": "\u001b[90m   at \u001b[39me2e/csv-import-export.spec.ts:6\n\n  4 |\n  5 | test.describe('CSV Import/Export E2E Tests', () => {\n> 6 |   const testFilesPath = path.join(__dirname, '../fixtures');\n    |                                   ^\n  7 |   \n  8 |   test.beforeEach(async ({ page }) => {\n  9 |     await page.goto('/');"
+    },
+    {
+      "message": "SyntaxError: /Users/teemulinna/code/operating/frontend/tests/hooks/useEmployees.test.ts: Unexpected token, expected \",\" (58:25)\n\n  56 |\n  57 |   return (\n> 58 |     <QueryClientProvider client={queryClient}>\n     |                          ^\n  59 |       {children}\n  60 |     </QueryClientProvider>\n  61 |   );",
+      "stack": "SyntaxError: /Users/teemulinna/code/operating/frontend/tests/hooks/useEmployees.test.ts: Unexpected token, expected \",\" (58:25)\n\n  56 |\n  57 |   return (\n> 58 |     <QueryClientProvider client={queryClient}>\n     |                          ^\n  59 |       {children}\n  60 |     </QueryClientProvider>\n  61 |   );",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/hooks/useEmployees.test.ts",
+        "line": 58,
+        "column": 25
+      },
+      "snippet": "\u001b[90m   at \u001b[39mhooks/useEmployees.test.ts:58\n\n  56 |\n  57 |   return (\n> 58 |     <QueryClientProvider client={queryClient}>\n     |                         ^\n  59 |       {children}\n  60 |     </QueryClientProvider>\n  61 |   );"
+    },
+    {
+      "message": "ReferenceError: __dirname is not defined in ES module scope",
+      "stack": "ReferenceError: __dirname is not defined in ES module scope\n    at /Users/teemulinna/code/operating/frontend/tests/integration/07-csv-import-export.spec.ts:9:34\n    at /Users/teemulinna/code/operating/frontend/tests/integration/07-csv-import-export.spec.ts:7:6",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/integration/07-csv-import-export.spec.ts",
+        "column": 34,
+        "line": 9
+      },
+      "snippet": "\u001b[90m   at \u001b[39mintegration/07-csv-import-export.spec.ts:9\n\n   7 | test.describe('CSV Import/Export End-to-End', () => {\n   8 |   let pool: Pool;\n>  9 |   const testFilesDir = path.join(__dirname, '../fixtures/csv-files');\n     |                                  ^\n  10 |\n  11 |   test.beforeAll(async () => {\n  12 |     pool = new Pool({"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "ReferenceError: describe is not defined",
+      "stack": "ReferenceError: describe is not defined\n    at /Users/teemulinna/code/operating/frontend/tests/integration/api.test.ts:4:1",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/integration/api.test.ts",
+        "column": 1,
+        "line": 4
+      },
+      "snippet": "\u001b[90m   at \u001b[39mintegration/api.test.ts:4\n\n  2 | import app from '../../src/app';\n  3 |\n> 4 | describe('API General Tests', () => {\n    | ^\n  5 |   describe('Health Check', () => {\n  6 |     it('should return health status', async () => {\n  7 |       const response = await request(app)"
+    },
+    {
+      "message": "ReferenceError: describe is not defined",
+      "stack": "ReferenceError: describe is not defined\n    at /Users/teemulinna/code/operating/frontend/tests/integration/auth.test.ts:4:1",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/integration/auth.test.ts",
+        "column": 1,
+        "line": 4
+      },
+      "snippet": "\u001b[90m   at \u001b[39mintegration/auth.test.ts:4\n\n  2 | import app from '../../src/app';\n  3 |\n> 4 | describe('Authentication Endpoints', () => {\n    | ^\n  5 |   describe('POST /api/auth/register', () => {\n  6 |     it('should register a new user successfully', async () => {\n  7 |       const userData = {"
+    },
+    {
+      "message": "ReferenceError: describe is not defined",
+      "stack": "ReferenceError: describe is not defined\n    at /Users/teemulinna/code/operating/frontend/tests/integration/bulk.test.ts:6:1",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/integration/bulk.test.ts",
+        "column": 1,
+        "line": 6
+      },
+      "snippet": "\u001b[90m   at \u001b[39mintegration/bulk.test.ts:6\n\n  4 | import fs from 'fs';\n  5 |\n> 6 | describe('Bulk Operations Endpoints', () => {\n    | ^\n  7 |   let authToken: string;\n  8 |\n  9 |   beforeAll(async () => {"
+    },
+    {
+      "message": "ReferenceError: describe is not defined",
+      "stack": "ReferenceError: describe is not defined\n    at /Users/teemulinna/code/operating/frontend/tests/integration/departments.test.ts:4:1",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/integration/departments.test.ts",
+        "column": 1,
+        "line": 4
+      },
+      "snippet": "\u001b[90m   at \u001b[39mintegration/departments.test.ts:4\n\n  2 | import app from '../../src/app';\n  3 |\n> 4 | describe('Department Endpoints', () => {\n    | ^\n  5 |   let authToken: string;\n  6 |\n  7 |   beforeAll(async () => {"
+    },
+    {
+      "message": "ReferenceError: describe is not defined",
+      "stack": "ReferenceError: describe is not defined\n    at /Users/teemulinna/code/operating/frontend/tests/integration/employees.test.ts:4:1",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/integration/employees.test.ts",
+        "column": 1,
+        "line": 4
+      },
+      "snippet": "\u001b[90m   at \u001b[39mintegration/employees.test.ts:4\n\n  2 | import app from '../../src/app';\n  3 |\n> 4 | describe('Employee Endpoints', () => {\n    | ^\n  5 |   let authToken: string;\n  6 |\n  7 |   beforeAll(async () => {"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "ReferenceError: describe is not defined",
+      "stack": "ReferenceError: describe is not defined\n    at /Users/teemulinna/code/operating/frontend/tests/integration/search.test.ts:4:1",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/integration/search.test.ts",
+        "column": 1,
+        "line": 4
+      },
+      "snippet": "\u001b[90m   at \u001b[39mintegration/search.test.ts:4\n\n  2 | import app from '../../src/app';\n  3 |\n> 4 | describe('Search Endpoints', () => {\n    | ^\n  5 |   let authToken: string;\n  6 |\n  7 |   beforeAll(async () => {"
+    },
+    {
+      "message": "ReferenceError: describe is not defined",
+      "stack": "ReferenceError: describe is not defined\n    at /Users/teemulinna/code/operating/frontend/tests/integration/skills.test.ts:4:1",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/integration/skills.test.ts",
+        "column": 1,
+        "line": 4
+      },
+      "snippet": "\u001b[90m   at \u001b[39mintegration/skills.test.ts:4\n\n  2 | import app from '../../src/app';\n  3 |\n> 4 | describe('Skill Endpoints', () => {\n    | ^\n  5 |   let authToken: string;\n  6 |\n  7 |   beforeAll(async () => {"
+    },
+    {
+      "message": "ReferenceError: require is not defined in ES module scope, you can use import instead\nThis file is being treated as an ES module because it has a '.js' file extension and '/Users/teemulinna/code/operating/frontend/package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.",
+      "stack": "ReferenceError: require is not defined in ES module scope, you can use import instead\nThis file is being treated as an ES module because it has a '.js' file extension and '/Users/teemulinna/code/operating/frontend/package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.\n    at /Users/teemulinna/code/operating/frontend/tests/security/security.test.js:1:17",
+      "location": {
+        "file": "/Users/teemulinna/code/operating/frontend/tests/security/security.test.js",
+        "column": 17,
+        "line": 1
+      },
+      "snippet": "\u001b[90m   at \u001b[39msecurity/security.test.js:1\n\n> 1 | const request = require('supertest');\n    |                 ^\n  2 | const app = require('../../src/app');\n  3 | const jwt = require('jsonwebtoken');\n  4 | const bcrypt = require('bcrypt');"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    },
+    {
+      "message": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)",
+      "stack": "TypeError: Cannot redefine property: Symbol($$jest-matchers-object)\n    at /Users/teemulinna/code/operating/frontend/node_modules/@vitest/expect/dist/index.js:667:9"
+    }
+  ],
+  "stats": {
+    "startTime": "2025-09-05T18:58:25.225Z",
+    "duration": 1405.211,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

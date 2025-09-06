@@ -1,0 +1,399 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unit-tests
+          name: unit-test-coverage
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: employee_management_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+      
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: employee_management_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: password
+      
+      - name: Run performance benchmarks
+        run: npm run test:performance
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: employee_management_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: password
+
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: employee_management_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npm run playwright:install
+      
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+      
+      - name: Run E2E tests
+        run: npm run test:e2e --reporter=junit
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: employee_management_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: password
+      
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+
+  accessibility-tests:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: employee_management_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npm run playwright:install
+      
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+      
+      - name: Run accessibility tests
+        run: npm run test:accessibility
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: employee_management_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: password
+      
+      - name: Upload accessibility report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-report
+          path: playwright-report/
+          retention-days: 30
+
+  cross-browser-tests:
+    name: Cross-Browser Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: employee_management_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npm run playwright:install
+      
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+      
+      - name: Run tests on ${{ matrix.browser }}
+        run: npm run test:e2e -- --project=${{ matrix.browser }}
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: employee_management_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: password
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: test-results/
+          retention-days: 30
+
+  mobile-tests:
+    name: Mobile Device Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: employee_management_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npm run playwright:install
+      
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+      
+      - name: Run mobile tests
+        run: npm run test:mobile
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: employee_management_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: password
+      
+      - name: Upload mobile test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-test-results
+          path: test-results/
+          retention-days: 30
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, e2e-tests, accessibility-tests, cross-browser-tests, mobile-tests]
+    if: always()
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+      
+      - name: Generate test summary
+        run: |
+          echo "# Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.unit-tests.result }}" == "success" ]; then
+            echo "✅ Unit Tests: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Unit Tests: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.integration-tests.result }}" == "success" ]; then
+            echo "✅ Integration Tests: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Integration Tests: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.e2e-tests.result }}" == "success" ]; then
+            echo "✅ E2E Tests: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ E2E Tests: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.accessibility-tests.result }}" == "success" ]; then
+            echo "✅ Accessibility Tests: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Accessibility Tests: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.cross-browser-tests.result }}" == "success" ]; then
+            echo "✅ Cross-Browser Tests: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Cross-Browser Tests: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.mobile-tests.result }}" == "success" ]; then
+            echo "✅ Mobile Tests: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Mobile Tests: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Test Artifacts:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Playwright Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- Accessibility Reports" >> $GITHUB_STEP_SUMMARY

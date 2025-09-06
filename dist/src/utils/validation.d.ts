@@ -1,0 +1,26 @@
+import Joi from 'joi';
+import { CreateEmployeeInput, UpdateEmployeeInput, CreateDepartmentInput, UpdateDepartmentInput, CreateSkillInput, UpdateSkillInput, CreateEmployeeSkillInput, UpdateEmployeeSkillInput, CreateCapacityHistoryInput, UpdateCapacityHistoryInput, SkillCategory, ProficiencyLevel } from '../types';
+export declare const createDepartmentSchema: Joi.ObjectSchema<CreateDepartmentInput>;
+export declare const updateDepartmentSchema: Joi.ObjectSchema<UpdateDepartmentInput>;
+export declare const createSkillSchema: Joi.ObjectSchema<CreateSkillInput>;
+export declare const updateSkillSchema: Joi.ObjectSchema<UpdateSkillInput>;
+export declare const createEmployeeSchema: Joi.ObjectSchema<CreateEmployeeInput>;
+export declare const updateEmployeeSchema: Joi.ObjectSchema<UpdateEmployeeInput>;
+export declare const createEmployeeSkillSchema: Joi.ObjectSchema<CreateEmployeeSkillInput>;
+export declare const updateEmployeeSkillSchema: Joi.ObjectSchema<UpdateEmployeeSkillInput>;
+export declare const createCapacityHistorySchema: Joi.ObjectSchema<CreateCapacityHistoryInput>;
+export declare const updateCapacityHistorySchema: Joi.ObjectSchema<UpdateCapacityHistoryInput>;
+export declare const employeeFiltersSchema: Joi.ObjectSchema<any>;
+export declare const skillFiltersSchema: Joi.ObjectSchema<any>;
+export declare const capacityFiltersSchema: Joi.ObjectSchema<any>;
+export declare const paginationSchema: Joi.ObjectSchema<any>;
+export declare function validateInput<T>(schema: Joi.ObjectSchema<T>, data: unknown): T;
+export declare function validateQuery<T>(schema: Joi.ObjectSchema<T>, query: unknown): T;
+export declare function validateProficiencyProgression(currentLevel: ProficiencyLevel, newLevel: ProficiencyLevel, yearsOfExperience: number): void;
+export declare function validateCapacityConstraints(availableHours: number, allocatedHours: number, date: Date): void;
+export declare function validateDepartmentHierarchy(managerId: string | undefined, departmentId: string): void;
+export declare function validateSkillRelevance(skillCategory: SkillCategory, position: string): void;
+export declare function isValidEmail(email: string): boolean;
+export declare function isValidDateRange(startDate: Date, endDate: Date): boolean;
+export declare function isValidHireDate(hireDate: Date): boolean;
+//# sourceMappingURL=validation.d.ts.map

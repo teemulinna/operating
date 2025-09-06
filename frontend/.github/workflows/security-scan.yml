@@ -1,0 +1,122 @@
+name: Security Scanning
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dependency-check:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate
+          cd backend && npm audit --audit-level=moderate
+
+      - name: Run Snyk vulnerability scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --all-projects --severity-threshold=high
+
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        dockerfile: [docker/frontend/Dockerfile, docker/backend/Dockerfile]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -f ${{ matrix.dockerfile }} -t scan-image:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'scan-image:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results-${{ strategy.job-index }}.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ strategy.job-index }}.sarif'
+
+  code-scan:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install license checker
+        run: npm install -g license-checker
+
+      - name: Check frontend licenses
+        run: |
+          npm ci
+          license-checker --production --excludePrivatePackages --summary > frontend-licenses.txt
+
+      - name: Check backend licenses
+        run: |
+          cd backend
+          npm ci
+          license-checker --production --excludePrivatePackages --summary > ../backend-licenses.txt
+
+      - name: Upload license reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-reports
+          path: |
+            frontend-licenses.txt
+            backend-licenses.txt

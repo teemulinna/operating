@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      target: production
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=https://api.yourdomain.com/api
+      - VITE_PORT=3000
+      - VITE_HOST=0.0.0.0
+      - VITE_ENABLE_QUERY_DEVTOOLS=false
+      - VITE_ENABLE_HTTPS=true
+    volumes:
+      - ./docker/frontend/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`yourdomain.com`)"
+      - "traefik.http.routers.frontend.tls=true"
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+      target: production
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://app_user:${DB_PASSWORD}@database:5432/employee_management
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=https://yourdomain.com
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.yourdomain.com`)"
+      - "traefik.http.routers.backend.tls=true"
+
+  database:
+    build:
+      context: .
+      dockerfile: docker/database/Dockerfile
+    environment:
+      - POSTGRES_DB=employee_management
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./deployment/backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d employee_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data_prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=admin@yourdomain.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  postgres_data_prod:
+  redis_data_prod:
+  letsencrypt:
+
+networks:
+  app-network:
+    driver: bridge

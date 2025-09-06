@@ -1,24 +1,46 @@
 # Product Roadmap
 
-> Last Updated: 2025-09-03
+> Last Updated: 2025-09-04
 > Version: 1.0.0
-> Status: Planning
+> Status: In Progress
 
-## Phase 1: MVP - Core Visibility & Allocation (3-4 months)
+## Phase 1: MVP - Core Visibility & Allocation (3-4 months) ✅ COMPLETED
 
 **Goal:** Deliver the fundamental resource planning solution that replaces spreadsheet chaos with visual clarity
 **Success Criteria:** Professional services teams can allocate resources, prevent over-allocation, and export data within 10 minutes of setup
 
 ### Must-Have Features
 
-- [ ] Employee Management - Basic employee profiles with default capacity tracking `M`
-- [ ] Project Management - Simple project creation with date boundaries `S`
-- [ ] Resource Allocation Engine - Direct employee-to-project assignment with hours tracking `L`
+- [x] Employee Management - Basic employee profiles with default capacity tracking `M`
+- [x] Project Management - Simple project creation with date boundaries `S`
+- [x] Resource Allocation Engine - Direct employee-to-project assignment with hours tracking `L`
 - [ ] Visual Schedule Management - Weekly grid view with drag-and-drop allocation `XL`
 - [ ] Over-allocation Protection - Real-time warnings and visual indicators `L`
 - [ ] Data Export & Sharing - CSV export functionality for stakeholder reporting `M`
 - [ ] Basic Authentication - JWT-based user authentication and session management `M`
 - [ ] Responsive Design - Mobile-first interface optimized for professional workflows `L`
+
+## Phase 1.5: PROJECT-RESOURCE INTEGRATION (4-5 months) 🚀 NEW
+
+**Goal:** Transform isolated employee management into comprehensive project-centric resource planning
+**Success Criteria:** Project managers can define resource needs, assign employees across multiple projects, track utilization, and report planned vs actual usage
+
+### Core Features
+
+- [ ] **Project-Role Definition** - Projects define required roles with skills and experience requirements `L`
+- [ ] **Multi-Project Assignment** - Employees assigned to multiple projects with time allocation percentages `XL`  
+- [ ] **Capacity-Aware Planning** - Real-time validation preventing over-allocation across all projects `L`
+- [ ] **Skills-Based Matching** - Automatic employee-to-role matching based on skills and availability `L`
+- [ ] **Resource Conflict Detection** - Automated detection and resolution of resource conflicts `M`
+- [ ] **Planned vs Actual Tracking** - Time entry system with variance reporting `L`
+- [ ] **Visual Resource Planning** - Drag-and-drop interface for cross-project resource allocation `XL`
+- [ ] **Resource Utilization Analytics** - Comprehensive reporting on resource efficiency and optimization `M`
+
+### Dependencies
+- Phase 1 employee management foundation (✅ completed)
+- Enhanced database schema with project tables
+- Advanced React Query patterns for complex resource relationships
+- WebSocket integration for real-time resource updates
 
 ### Dependencies
 

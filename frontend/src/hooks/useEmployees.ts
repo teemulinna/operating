@@ -8,7 +8,7 @@ const EMPLOYEE_KEYS = {
   list: (filters: EmployeeFilters, pagination: PaginationParams) => 
     [...EMPLOYEE_KEYS.lists(), filters, pagination] as const,
   details: () => [...EMPLOYEE_KEYS.all, 'detail'] as const,
-  detail: (id: number) => [...EMPLOYEE_KEYS.details(), id] as const,
+  detail: (id: string) => [...EMPLOYEE_KEYS.details(), id] as const,
   departments: () => [...EMPLOYEE_KEYS.all, 'departments'] as const,
   positions: () => [...EMPLOYEE_KEYS.all, 'positions'] as const,
 }
@@ -24,7 +24,7 @@ export function useEmployees(
   })
 }
 
-export function useEmployee(id: number) {
+export function useEmployee(id: string) {
   return useQuery({
     queryKey: EMPLOYEE_KEYS.detail(id),
     queryFn: () => EmployeeService.getEmployee(id),
@@ -49,7 +49,7 @@ export function useUpdateEmployee() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: Partial<Employee> }) =>
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Employee> }) =>
       EmployeeService.updateEmployee(id, updates),
     onSuccess: (updatedEmployee) => {
       // Update the specific employee in cache
@@ -67,7 +67,7 @@ export function useDeleteEmployee() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (id: number) => EmployeeService.deleteEmployee(id),
+    mutationFn: (id: string) => EmployeeService.deleteEmployee(id),
     onSuccess: (_, deletedId) => {
       // Remove employee from cache
       queryClient.removeQueries({ queryKey: EMPLOYEE_KEYS.detail(deletedId) })
