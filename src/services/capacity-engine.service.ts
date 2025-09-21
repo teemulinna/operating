@@ -2,7 +2,7 @@ import { ResourceAssignmentService } from './resource-assignment.service';
 import { ProjectService } from './project.service';
 
 export interface EmployeeAvailability {
-  employeeId: number;
+  employeeId: string;
   totalHours: number;
   allocatedHours: number;
   availableHours: number;
@@ -36,7 +36,7 @@ export interface OptimizationResult {
 }
 
 export interface ResourceRecommendation {
-  employeeId: number;
+  employeeId: string;
   projectId: number;
   role: string;
   allocatedHours: number;
@@ -61,15 +61,11 @@ export class CapacityEngineService {
   ) {}
 
   async calculateEmployeeAvailability(
-    employeeId: number,
+    employeeId: string,
     startDate: Date,
     endDate: Date
   ): Promise<EmployeeAvailability> {
-    const assignments = await this.resourceAssignmentService.getAssignmentsByEmployee(
-      employeeId,
-      startDate,
-      endDate
-    );
+    const assignments = await this.resourceAssignmentService.getAssignmentsByEmployee(String(employeeId));
 
     // Calculate total working hours in the period (assuming 8 hours/day, 5 days/week)
     const workingDays = this.calculateWorkingDays(startDate, endDate);
@@ -125,10 +121,7 @@ export class CapacityEngineService {
   }
 
   async optimizeResourceAllocation(requirements: ProjectRequirements): Promise<OptimizationResult> {
-    const availableEmployees = await this.resourceAssignmentService.getAvailableEmployees(
-      requirements.startDate || new Date(),
-      requirements.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-    );
+    const availableEmployees = await this.resourceAssignmentService.getAllEmployees();
 
     // Find skill matches
     const skillMatches = await this.findSkillMatches(requirements.requiredSkills, availableEmployees);

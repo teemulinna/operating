@@ -8,9 +8,11 @@ import {
   PaginatedResponse,
   DatabaseError
 } from '../types';
+import { DatabaseService } from '../database/database.service';
 
 export class EmployeeModel {
   private static pool: Pool;
+  private static db = DatabaseService.getInstance();
 
   static initialize(pool: Pool): void {
     this.pool = pool;
@@ -19,8 +21,8 @@ export class EmployeeModel {
   static async create(input: CreateEmployeeInput): Promise<Employee> {
     try {
       const query = `
-        INSERT INTO employees (first_name, last_name, email, department_id, position, hire_date, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO employees (first_name, last_name, email, department_id, position, hire_date, is_active, max_capacity_hours)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `;
 
@@ -31,7 +33,8 @@ export class EmployeeModel {
         input.departmentId,
         input.position,
         input.hireDate,
-        true
+        true,
+        input.defaultHours || 40
       ];
 
       const result = await this.pool.query(query, values);
@@ -48,12 +51,17 @@ export class EmployeeModel {
   }
 
   static async findById(id: string): Promise<Employee | null> {
+    // Ensure database is connected and use fallback
+    if (!this.db.isConnected()) {
+      await this.db.connect();
+    }
+
     const query = `
       SELECT * FROM employees 
       WHERE id = $1 AND is_active = true
     `;
 
-    const result = await this.pool.query(query, [id]);
+    const result = await this.db.query(query, [id]);
     return result.rows.length > 0 ? this.mapRow(result.rows[0]) : null;
   }
 
@@ -235,6 +243,16 @@ export class EmployeeModel {
       updateFields.push(`is_active = $${values.length}`);
     }
 
+    if (updates.defaultHours !== undefined) {
+      values.push(updates.defaultHours);
+      updateFields.push(`max_capacity_hours = $${values.length}`);
+    }
+
+    if (updates.maxCapacityHours !== undefined) {
+      values.push(updates.maxCapacityHours);
+      updateFields.push(`max_capacity_hours = $${values.length}`);
+    }
+
     if (updateFields.length === 0) {
       throw new Error('No fields to update');
     }
@@ -411,6 +429,7 @@ export class EmployeeModel {
       position: row.position,
       hireDate: row.hire_date,
       isActive: row.is_active,
+      defaultHours: row.max_capacity_hours || 40,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };

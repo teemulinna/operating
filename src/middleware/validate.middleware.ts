@@ -2,6 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import { ApiError } from '../utils/api-error';
 
+// UUID validation helper
+const isValidUUID = (value: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(value);
+};
+
 // Validation helper
 export const handleValidationErrors = (req: Request, _res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -13,6 +19,9 @@ export const handleValidationErrors = (req: Request, _res: Response, next: NextF
 
 // Export validateRequest for backward compatibility
 export const validateRequest = handleValidationErrors;
+
+// Export validate for compatibility with other modules
+export const validate = handleValidationErrors;
 
 export const actualHandleValidationErrors = (req: Request, _res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -51,13 +60,25 @@ export const validateCreateEmployee = [
     .withMessage('Position must be between 2 and 100 characters'),
   
   body('departmentId')
-    .isInt({ min: 1 })
-    .withMessage('Department ID must be a positive integer'),
+    .isString()
+    .trim()
+    .custom((value) => {
+      if (!isValidUUID(value)) {
+        throw new Error('Department ID must be a valid UUID');
+      }
+      return true;
+    })
+    .withMessage('Department ID must be a valid UUID'),
   
   body('salary')
     .isFloat({ min: 0, max: 10000000 })
     .withMessage('Salary must be a positive number less than 10,000,000'),
   
+  body('defaultHoursPerWeek')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Default hours per week must be between 1 and 100'),
+
   body('skills')
     .optional()
     .isArray()
@@ -102,8 +123,15 @@ export const validateUpdateEmployee = [
   
   body('departmentId')
     .optional()
-    .isInt({ min: 1 })
-    .withMessage('Department ID must be a positive integer'),
+    .isString()
+    .trim()
+    .custom((value) => {
+      if (value && !isValidUUID(value)) {
+        throw new Error('Department ID must be a valid UUID');
+      }
+      return true;
+    })
+    .withMessage('Department ID must be a valid UUID'),
   
   body('salary')
     .optional()
@@ -147,8 +175,15 @@ export const validateCreateDepartment = [
   
   body('managerId')
     .optional()
-    .isInt({ min: 1 })
-    .withMessage('Manager ID must be a positive integer'),
+    .isString()
+    .trim()
+    .custom((value) => {
+      if (value && !isValidUUID(value)) {
+        throw new Error('Manager ID must be a valid UUID');
+      }
+      return true;
+    })
+    .withMessage('Manager ID must be a valid UUID'),
   
   handleValidationErrors
 ];
@@ -156,8 +191,15 @@ export const validateCreateDepartment = [
 // Parameter validation
 export const validateIdParam = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('ID must be a positive integer'),
+    .isString()
+    .trim()
+    .custom((value) => {
+      if (!isValidUUID(value)) {
+        throw new Error('ID must be a valid UUID');
+      }
+      return true;
+    })
+    .withMessage('ID must be a valid UUID'),
   
   handleValidationErrors
 ];
@@ -176,8 +218,15 @@ export const validateEmployeeQuery = [
   
   query('departmentId')
     .optional()
-    .isInt({ min: 1 })
-    .withMessage('Department ID must be a positive integer'),
+    .isString()
+    .trim()
+    .custom((value) => {
+      if (value && !isValidUUID(value)) {
+        throw new Error('Department ID must be a valid UUID');
+      }
+      return true;
+    })
+    .withMessage('Department ID must be a valid UUID'),
   
   query('salaryMin')
     .optional()

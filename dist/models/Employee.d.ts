@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { Employee, CreateEmployeeInput, UpdateEmployeeInput, EmployeeWithSkills, EmployeeFilters, PaginatedResponse } from '../types';
 export declare class EmployeeModel {
     private static pool;
+    private static db;
     static initialize(pool: Pool): void;
     static create(input: CreateEmployeeInput): Promise<Employee>;
     static findById(id: string): Promise<Employee | null>;

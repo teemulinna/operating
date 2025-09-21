@@ -7,9 +7,13 @@ const async_handler_1 = require("../middleware/async-handler");
 const employee_service_1 = require("../services/employee.service");
 const CapacityHistory_1 = require("../models/CapacityHistory");
 class ResourceController {
+    // private employeeService: EmployeeService; // TODO: Use if needed
     constructor() {
-        this.employeeService = new employee_service_1.EmployeeService();
+        // this.employeeService = new EmployeeService(); // TODO: Use if needed
     }
+    /**
+     * Calculate resource metrics
+     */
     static calculateResourceMetrics(employees, capacityData) {
         const totalEmployees = employees.length;
         const totalCapacity = capacityData.reduce((sum, cap) => sum + cap.availableHours, 0);
@@ -34,12 +38,15 @@ class ResourceController {
             efficiency: totalAllocated > 0 ? (totalAllocated / totalCapacity) * 100 : 0
         };
     }
+    /**
+     * Get department summary
+     */
     static async getDepartmentSummary(employees, capacityData) {
         const departments = employees.reduce((acc, emp) => {
             if (!acc[emp.departmentId]) {
                 acc[emp.departmentId] = {
                     id: emp.departmentId,
-                    name: `Department ${emp.departmentId}`,
+                    name: `Department ${emp.departmentId}`, // In real app, get from departments table
                     employees: [],
                     capacity: []
                 };
@@ -47,12 +54,14 @@ class ResourceController {
             acc[emp.departmentId].employees.push(emp);
             return acc;
         }, {});
+        // Add capacity data to departments
         capacityData.forEach(cap => {
             const employee = employees.find(emp => emp.id.toString() === cap.employeeId);
             if (employee && departments[employee.departmentId]) {
                 departments[employee.departmentId].capacity.push(cap);
             }
         });
+        // Calculate metrics for each department
         return Object.values(departments).map((dept) => {
             const totalCapacity = dept.capacity.reduce((sum, cap) => sum + cap.availableHours, 0);
             const totalAllocated = dept.capacity.reduce((sum, cap) => sum + cap.allocatedHours, 0);
@@ -71,8 +80,12 @@ class ResourceController {
             };
         });
     }
+    /**
+     * Generate optimization suggestions
+     */
     static generateOptimizationSuggestions(employees, capacityData, mode) {
         const suggestions = [];
+        // Analyze utilization patterns
         const utilizationAnalysis = employees.map(emp => {
             const empCapacity = capacityData.filter(cap => cap.employeeId === emp.id.toString());
             const avgUtilization = empCapacity.length > 0
@@ -82,6 +95,7 @@ class ResourceController {
         });
         const overUtilized = utilizationAnalysis.filter(emp => emp.utilization > 0.9);
         const underUtilized = utilizationAnalysis.filter(emp => emp.utilization < 0.6);
+        // Generate reallocation suggestions
         if (overUtilized.length > 0 && underUtilized.length > 0) {
             overUtilized.forEach(over => {
                 const potentialMatch = underUtilized.find(under => over.employee.skills.some((skill) => under.employee.skills.includes(skill)));
@@ -112,6 +126,7 @@ class ResourceController {
                 }
             });
         }
+        // Generate capacity adjustment suggestions based on mode
         const totalUtilization = utilizationAnalysis.reduce((sum, emp) => sum + emp.utilization, 0) / utilizationAnalysis.length;
         if (mode === 'utilization' && totalUtilization < 0.7) {
             suggestions.push({
@@ -137,8 +152,12 @@ class ResourceController {
         }
         return suggestions;
     }
+    /**
+     * Detect resource conflicts
+     */
     static detectResourceConflicts(capacityData) {
         const conflicts = [];
+        // Group by employee
         const employeeCapacity = capacityData.reduce((acc, cap) => {
             if (!acc[cap.employeeId]) {
                 acc[cap.employeeId] = [];
@@ -146,8 +165,10 @@ class ResourceController {
             acc[cap.employeeId].push(cap);
             return acc;
         }, {});
+        // Check for over-allocation
         Object.entries(employeeCapacity).forEach(([employeeId, capacity]) => {
-            const avgUtilization = capacity.reduce((sum, cap) => sum + cap.utilizationRate, 0) / capacity.length;
+            const capacityArray = capacity;
+            const avgUtilization = capacityArray.reduce((sum, cap) => sum + cap.utilizationRate, 0) / capacityArray.length;
             if (avgUtilization > 1.0) {
                 conflicts.push({
                     id: `conflict-${employeeId}-${Date.now()}`,
@@ -163,7 +184,11 @@ class ResourceController {
         });
         return conflicts;
     }
+    /**
+     * Calculate utilization trends
+     */
     static calculateUtilizationTrends(capacityData) {
+        // Group by date
         const dateGroups = capacityData.reduce((acc, cap) => {
             const date = cap.date.split('T')[0];
             if (!acc[date]) {
@@ -173,14 +198,20 @@ class ResourceController {
             return acc;
         }, {});
         return Object.entries(dateGroups)
-            .map(([date, dayCapacity]) => ({
-            date,
-            utilization: dayCapacity.reduce((sum, cap) => sum + cap.utilizationRate, 0) / dayCapacity.length,
-            capacity: dayCapacity.reduce((sum, cap) => sum + cap.availableHours, 0),
-            allocated: dayCapacity.reduce((sum, cap) => sum + cap.allocatedHours, 0)
-        }))
+            .map(([date, dayCapacity]) => {
+            const dayCapacityArray = dayCapacity;
+            return {
+                date,
+                utilization: dayCapacityArray.reduce((sum, cap) => sum + cap.utilizationRate, 0) / dayCapacityArray.length,
+                capacity: dayCapacityArray.reduce((sum, cap) => sum + cap.availableHours, 0),
+                allocated: dayCapacityArray.reduce((sum, cap) => sum + cap.allocatedHours, 0)
+            };
+        })
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }
+    /**
+     * Analyze skills distribution
+     */
     static analyzeSkillsDistribution(employees) {
         const skillCounts = employees.reduce((acc, emp) => {
             emp.skills.forEach((skill) => {
@@ -192,10 +223,13 @@ class ResourceController {
             .map(([skill, count]) => ({ skill, count }))
             .sort((a, b) => b.count - a.count);
     }
+    /**
+     * Calculate cost analysis
+     */
     static calculateCostAnalysis(employees, capacityData) {
         const totalSalaries = employees.reduce((sum, emp) => sum + (emp.salary || 75000), 0);
         const totalAllocatedHours = capacityData.reduce((sum, cap) => sum + cap.allocatedHours, 0);
-        const avgHourlyRate = 150;
+        const avgHourlyRate = 150; // $150/hour
         const projectedRevenue = totalAllocatedHours * avgHourlyRate;
         return {
             totalSalaries,
@@ -205,6 +239,9 @@ class ResourceController {
             profitMargin: projectedRevenue > 0 ? ((projectedRevenue - totalSalaries) / projectedRevenue) * 100 : 0
         };
     }
+    /**
+     * Calculate projections
+     */
     static calculateProjections(capacityData) {
         const currentUtilization = capacityData.length > 0
             ? capacityData.reduce((sum, cap) => sum + cap.utilizationRate, 0) / capacityData.length
@@ -218,6 +255,9 @@ class ResourceController {
                 : ['Capacity available for growth', 'Consider new initiatives']
         };
     }
+    /**
+     * Get period start date
+     */
     static getPeriodStartDate(period) {
         const now = new Date();
         switch (period) {
@@ -234,19 +274,28 @@ class ResourceController {
 }
 exports.ResourceController = ResourceController;
 _a = ResourceController;
+/**
+ * Get comprehensive resource allocation data
+ */
 ResourceController.getResourceAllocation = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { departmentId, startDate, endDate } = req.query;
+    // Get employees
     const employeeService = new employee_service_1.EmployeeService();
     const employeesResult = await employeeService.getEmployees({
-        departmentId: departmentId ? parseInt(departmentId) : undefined,
+        departmentId: departmentId || undefined,
         limit: 1000,
         page: 1
     });
-    const capacityData = await CapacityHistory_1.CapacityHistoryModel.findAll({
-        employeeId: undefined,
-        dateFrom: startDate ? new Date(startDate) : undefined,
-        dateTo: endDate ? new Date(endDate) : undefined
-    });
+    // Get capacity data
+    const capacityFilters = {};
+    if (startDate) {
+        capacityFilters.dateFrom = new Date(startDate);
+    }
+    if (endDate) {
+        capacityFilters.dateTo = new Date(endDate);
+    }
+    const capacityData = await CapacityHistory_1.CapacityHistoryModel.findAll(capacityFilters);
+    // Calculate resource utilization metrics
     const resourceMetrics = _a.calculateResourceMetrics(employeesResult.data, capacityData);
     res.json({
         success: true,
@@ -259,11 +308,16 @@ ResourceController.getResourceAllocation = (0, async_handler_1.asyncHandler)(asy
         timestamp: new Date().toISOString()
     });
 });
+/**
+ * Get resource optimization suggestions
+ */
 ResourceController.getOptimizationSuggestions = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { mode = 'balanced' } = req.query;
+    // Get current resource state
     const employeeService = new employee_service_1.EmployeeService();
     const employeesResult = await employeeService.getEmployees({ limit: 1000, page: 1 });
     const capacityData = await CapacityHistory_1.CapacityHistoryModel.findAll({});
+    // Generate optimization suggestions based on current data
     const suggestions = _a.generateOptimizationSuggestions(employeesResult.data, capacityData, mode);
     res.json({
         success: true,
@@ -272,20 +326,25 @@ ResourceController.getOptimizationSuggestions = (0, async_handler_1.asyncHandler
         timestamp: new Date().toISOString()
     });
 });
+/**
+ * Create resource allocation
+ */
 ResourceController.createAllocation = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
-    const { employeeId, projectId, allocatedHours, startDate, endDate } = req.body;
+    const { employeeId, projectId, allocatedHours, startDate } = req.body;
     if (!employeeId || !projectId || !allocatedHours) {
         throw new api_error_1.ApiError(400, 'Employee ID, Project ID, and allocated hours are required');
     }
+    // Check if employee exists
     const employeeService = new employee_service_1.EmployeeService();
-    const employee = await employeeService.getEmployeeById(parseInt(employeeId));
+    const employee = await employeeService.getEmployeeById(employeeId);
     if (!employee) {
         throw new api_error_1.ApiError(404, 'Employee not found');
     }
+    // Create capacity entry (this would typically be in a separate allocations table)
     const allocationEntry = await CapacityHistory_1.CapacityHistoryModel.create({
         employeeId,
         date: new Date(startDate || new Date()),
-        availableHours: 40,
+        availableHours: 40, // Default work week
         allocatedHours,
         notes: `Allocated to project ${projectId}`
     });
@@ -296,12 +355,18 @@ ResourceController.createAllocation = (0, async_handler_1.asyncHandler)(async (r
         timestamp: new Date().toISOString()
     });
 });
+/**
+ * Get resource conflicts
+ */
 ResourceController.getConflicts = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { severity, type, employeeId } = req.query;
+    // Get current capacity data for conflict analysis
     const capacityData = await CapacityHistory_1.CapacityHistoryModel.findAll({
         employeeId: employeeId
     });
+    // Analyze for conflicts
     const conflicts = _a.detectResourceConflicts(capacityData);
+    // Filter by severity and type if specified
     let filteredConflicts = conflicts;
     if (severity) {
         filteredConflicts = filteredConflicts.filter(c => c.severity === severity);
@@ -317,12 +382,16 @@ ResourceController.getConflicts = (0, async_handler_1.asyncHandler)(async (req, 
         timestamp: new Date().toISOString()
     });
 });
+/**
+ * Resolve resource conflict
+ */
 ResourceController.resolveConflict = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { id } = req.params;
     const { status, resolution } = req.body;
     if (!['resolved', 'ignored'].includes(status)) {
         throw new api_error_1.ApiError(400, 'Status must be either "resolved" or "ignored"');
     }
+    // In a real implementation, this would update a conflicts table
     res.json({
         success: true,
         data: {
@@ -335,11 +404,14 @@ ResourceController.resolveConflict = (0, async_handler_1.asyncHandler)(async (re
         timestamp: new Date().toISOString()
     });
 });
+/**
+ * Get resource analytics
+ */
 ResourceController.getResourceAnalytics = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { period = '30d', departmentId } = req.query;
     const employeeService = new employee_service_1.EmployeeService();
     const employeesResult = await employeeService.getEmployees({
-        departmentId: departmentId ? parseInt(departmentId) : undefined,
+        departmentId: departmentId || undefined,
         limit: 1000,
         page: 1
     });
@@ -361,4 +433,3 @@ ResourceController.getResourceAnalytics = (0, async_handler_1.asyncHandler)(asyn
         timestamp: new Date().toISOString()
     });
 });
-//# sourceMappingURL=resource.controller.js.map

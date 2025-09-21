@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmployeeModel = void 0;
 const types_1 = require("../types");
+const database_service_1 = require("../database/database.service");
 class EmployeeModel {
     static initialize(pool) {
         this.pool = pool;
@@ -9,8 +10,8 @@ class EmployeeModel {
     static async create(input) {
         try {
             const query = `
-        INSERT INTO employees (first_name, last_name, email, department_id, position, hire_date, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO employees (first_name, last_name, email, department_id, position, hire_date, is_active, max_capacity_hours)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `;
             const values = [
@@ -20,27 +21,32 @@ class EmployeeModel {
                 input.departmentId,
                 input.position,
                 input.hireDate,
-                true
+                true,
+                input.defaultHours || 40
             ];
             const result = await this.pool.query(query, values);
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint violation
                 throw new types_1.DatabaseError(`Employee with email '${input.email}' already exists`);
             }
-            if (error.code === '23503') {
+            if (error.code === '23503') { // Foreign key constraint violation
                 throw new types_1.DatabaseError('Invalid department ID');
             }
             throw error;
         }
     }
     static async findById(id) {
+        // Ensure database is connected and use fallback
+        if (!this.db.isConnected()) {
+            await this.db.connect();
+        }
         const query = `
       SELECT * FROM employees 
       WHERE id = $1 AND is_active = true
     `;
-        const result = await this.pool.query(query, [id]);
+        const result = await this.db.query(query, [id]);
         return result.rows.length > 0 ? this.mapRow(result.rows[0]) : null;
     }
     static async findByIdWithDetails(id) {
@@ -137,6 +143,7 @@ class EmployeeModel {
         }
         const whereClause = whereConditions.join(' AND ');
         const offset = (page - 1) * limit;
+        // Get total count
         const countQuery = `
       SELECT COUNT(DISTINCT e.id) as total
       FROM employees e
@@ -144,6 +151,7 @@ class EmployeeModel {
     `;
         const countResult = await this.pool.query(countQuery, values);
         const total = parseInt(countResult.rows[0].total);
+        // Get paginated results
         values.push(limit, offset);
         const dataQuery = `
       SELECT DISTINCT e.*
@@ -190,6 +198,14 @@ class EmployeeModel {
             values.push(updates.isActive);
             updateFields.push(`is_active = $${values.length}`);
         }
+        if (updates.defaultHours !== undefined) {
+            values.push(updates.defaultHours);
+            updateFields.push(`max_capacity_hours = $${values.length}`);
+        }
+        if (updates.maxCapacityHours !== undefined) {
+            values.push(updates.maxCapacityHours);
+            updateFields.push(`max_capacity_hours = $${values.length}`);
+        }
         if (updateFields.length === 0) {
             throw new Error('No fields to update');
         }
@@ -208,10 +224,10 @@ class EmployeeModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint violation
                 throw new types_1.DatabaseError(`Employee with email '${updates.email}' already exists`);
             }
-            if (error.code === '23503') {
+            if (error.code === '23503') { // Foreign key constraint violation
                 throw new types_1.DatabaseError('Invalid department ID');
             }
             throw error;
@@ -242,12 +258,14 @@ class EmployeeModel {
       )`
         ];
         const values = [`%${searchTerm}%`];
+        // Apply additional filters
         if (filters.departmentId) {
             values.push(filters.departmentId);
             whereConditions.push(`e.department_id = $${values.length}`);
         }
         const whereClause = whereConditions.join(' AND ');
         const offset = (page - 1) * limit;
+        // Get total count
         const countQuery = `
       SELECT COUNT(*) as total
       FROM employees e
@@ -255,6 +273,7 @@ class EmployeeModel {
     `;
         const countResult = await this.pool.query(countQuery, values);
         const total = parseInt(countResult.rows[0].total);
+        // Get paginated results
         values.push(limit, offset);
         const dataQuery = `
       SELECT e.*
@@ -284,6 +303,7 @@ class EmployeeModel {
     `;
         const result = await this.pool.query(query);
         const stats = result.rows[0];
+        // Get employees by department
         const deptQuery = `
       SELECT 
         d.name as department_name,
@@ -299,6 +319,7 @@ class EmployeeModel {
             departmentName: row.department_name,
             count: parseInt(row.count)
         }));
+        // Get newest employee
         const newestQuery = `
       SELECT * FROM employees 
       WHERE is_active = true 
@@ -327,10 +348,11 @@ class EmployeeModel {
             position: row.position,
             hireDate: row.hire_date,
             isActive: row.is_active,
+            defaultHours: row.max_capacity_hours || 40,
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
     }
 }
 exports.EmployeeModel = EmployeeModel;
-//# sourceMappingURL=Employee.js.map
+EmployeeModel.db = database_service_1.DatabaseService.getInstance();

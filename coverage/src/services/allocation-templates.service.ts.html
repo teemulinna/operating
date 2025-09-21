@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">2.69% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/223</span>
+                <span class='fraction'>6/223</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">7.14% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>1/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">2.69% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/223</span>
+                <span class='fraction'>6/223</span>
             </div>
         
             
@@ -832,9 +832,15 @@
 <a name='L767'></a><a href='#L767'>767</a>
 <a name='L768'></a><a href='#L768'>768</a>
 <a name='L769'></a><a href='#L769'>769</a>
-<a name='L770'></a><a href='#L770'>770</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L770'></a><a href='#L770'>770</a>
+<a name='L771'></a><a href='#L771'>771</a>
+<a name='L772'></a><a href='#L772'>772</a>
+<a name='L773'></a><a href='#L773'>773</a>
+<a name='L774'></a><a href='#L774'>774</a>
+<a name='L775'></a><a href='#L775'>775</a>
+<a name='L776'></a><a href='#L776'>776</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -905,13 +911,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1056,6 +1062,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1082,6 +1091,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1601,9 +1613,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { DatabaseService } from '../database/database.service';</span>
-<span class="cstat-no" title="statement not covered" >import { ApiError } from '../utils/api-error';</span>
-<span class="cstat-no" title="statement not covered" >import { ResourceAssignmentService } from './resource-assignment.service';</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { DatabaseService } from '../database/database.service';
+import { ApiError } from '../utils/api-error';
+import { ResourceAssignmentService } from './resource-assignment.service';
 &nbsp;
 interface AllocationTemplateData {
   name: string;
@@ -1674,13 +1686,13 @@ type TemplateCategory = 'web_development' | 'mobile_app' | 'consulting' | 'resea
 type VisibilityLevel = 'private' | 'organization' | 'public';
 type TemplateStatus = 'draft' | 'active' | 'deprecated' | 'archived';
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export class A</span>llocationTemplatesService {
+export class AllocationTemplatesService {
   private db: DatabaseService;
   private assignmentService: ResourceAssignmentService;
 &nbsp;
-<span class="fstat-no" title="function not covered" >  constructor() {</span>
-<span class="cstat-no" title="statement not covered" >    this.db = DatabaseService.getInstance();</span>
-<span class="cstat-no" title="statement not covered" >    this.assignmentService = new ResourceAssignmentService();</span>
+  constructor() {
+    this.db = DatabaseService.getInstance();
+    this.assignmentService = new ResourceAssignmentService();
   }
 &nbsp;
   // Template CRUD Operations
@@ -1804,12 +1816,15 @@ type TemplateStatus = 'draft' | 'active' | 'deprecated' | 'archived';
       const query = <span class="cstat-no" title="statement not covered" >`</span>
         SELECT 
           t.*,
-          e.first_name || ' ' || e.last_name as creator_name,
+          CASE 
+            WHEN e.id IS NOT NULL THEN e.first_name || ' ' || e.last_name
+            ELSE 'Unknown Creator'
+          END as creator_name,
           COALESCE(role_count.total_roles, 0) as total_roles,
           COALESCE(milestone_count.total_milestones, 0) as total_milestones,
           COALESCE(t.usage_count, 0) as usage_count
         FROM allocation_templates t
-        JOIN employees e ON t.created_by = e.id
+        LEFT JOIN employees e ON t.created_by = e.id
         LEFT JOIN (
           SELECT template_id, COUNT(*) as total_roles
           FROM template_roles
@@ -1853,10 +1868,13 @@ type TemplateStatus = 'draft' | 'active' | 'deprecated' | 'archived';
       const templateQuery = <span class="cstat-no" title="statement not covered" >`</span>
         SELECT 
           t.*,
-          e.first_name || ' ' || e.last_name as creator_name,
+          CASE 
+            WHEN e.id IS NOT NULL THEN e.first_name || ' ' || e.last_name
+            ELSE 'Unknown Creator'
+          END as creator_name,
           e.email as creator_email
         FROM allocation_templates t
-        JOIN employees e ON t.created_by = e.id
+        LEFT JOIN employees e ON t.created_by = e.id
         WHERE t.id = $1 
           AND (
             t.visibility = 'public' OR 
@@ -2229,7 +2247,7 @@ type TemplateStatus = 'draft' | 'active' | 'deprecated' | 'archived';
           COALESCE(AVG(uth.success_rating), 0) as avg_rating,
           COUNT(DISTINCT uth.project_id) as projects_count
         FROM allocation_templates t
-        JOIN employees e ON t.created_by = e.id
+        LEFT JOIN employees e ON t.created_by = e.id
         LEFT JOIN template_usage_history uth ON t.id = uth.template_id
         WHERE t.status = 'active' AND t.visibility IN ('public', 'organization')
         GROUP BY t.id, e.first_name, e.last_name
@@ -2377,7 +2395,7 @@ type TemplateStatus = 'draft' | 'active' | 'deprecated' | 'archived';
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-06T22:18:59.275Z
+                at 2025-09-20T16:44:39.688Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -5,6 +5,7 @@ const department_service_1 = require("../services/department.service");
 const api_error_1 = require("../utils/api-error");
 class DepartmentController {
     constructor() {
+        // GET /api/departments
         this.getDepartments = async (_req, res, next) => {
             try {
                 const departments = await this.departmentService.getDepartments();
@@ -14,6 +15,7 @@ class DepartmentController {
                 next(error);
             }
         };
+        // GET /api/departments/:id
         this.getDepartmentById = async (req, res, next) => {
             try {
                 const id = parseInt(req.params.id);
@@ -27,9 +29,11 @@ class DepartmentController {
                 next(error);
             }
         };
+        // POST /api/departments
         this.createDepartment = async (req, res, next) => {
             try {
                 const departmentData = req.body;
+                // Check for duplicate name
                 const existingDepartment = await this.departmentService.getDepartmentByName(departmentData.name);
                 if (existingDepartment) {
                     throw api_error_1.ApiError.conflict('A department with this name already exists');
@@ -41,14 +45,17 @@ class DepartmentController {
                 next(error);
             }
         };
+        // PUT /api/departments/:id
         this.updateDepartment = async (req, res, next) => {
             try {
                 const id = parseInt(req.params.id);
                 const updateData = req.body;
+                // Check if department exists
                 const existingDepartment = await this.departmentService.getDepartmentById(id);
                 if (!existingDepartment) {
                     throw api_error_1.ApiError.notFound('Department');
                 }
+                // Check for duplicate name if name is being updated
                 if (updateData.name && updateData.name !== existingDepartment.name) {
                     const duplicateDepartment = await this.departmentService.getDepartmentByName(updateData.name);
                     if (duplicateDepartment) {
@@ -62,13 +69,16 @@ class DepartmentController {
                 next(error);
             }
         };
+        // DELETE /api/departments/:id
         this.deleteDepartment = async (req, res, next) => {
             try {
                 const id = parseInt(req.params.id);
+                // Check if department exists
                 const existingDepartment = await this.departmentService.getDepartmentById(id);
                 if (!existingDepartment) {
                     throw api_error_1.ApiError.notFound('Department');
                 }
+                // Check if department has employees
                 const employeeCount = await this.departmentService.getDepartmentEmployeeCount(id);
                 if (employeeCount > 0) {
                     throw api_error_1.ApiError.badRequest(`Cannot delete department with ${employeeCount} employee(s). Please reassign employees first.`);
@@ -80,9 +90,11 @@ class DepartmentController {
                 next(error);
             }
         };
+        // GET /api/departments/:id/employees
         this.getDepartmentEmployees = async (req, res, next) => {
             try {
                 const id = parseInt(req.params.id);
+                // Check if department exists
                 const existingDepartment = await this.departmentService.getDepartmentById(id);
                 if (!existingDepartment) {
                     throw api_error_1.ApiError.notFound('Department');
@@ -98,6 +110,7 @@ class DepartmentController {
                 next(error);
             }
         };
+        // GET /api/departments/analytics
         this.getDepartmentAnalytics = async (_req, res, next) => {
             try {
                 const analytics = await this.departmentService.getDepartmentAnalytics();
@@ -111,4 +124,3 @@ class DepartmentController {
     }
 }
 exports.DepartmentController = DepartmentController;
-//# sourceMappingURL=department.controller.js.map

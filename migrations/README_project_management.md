@@ -1,7 +1,7 @@
 # Project Management Schema Implementation
 
 ## Overview
-This implements the database foundation for project-resource integration system using Test-Driven Development methodology. The schema extends the existing employee management system with comprehensive project management capabilities.
+This implements the database foundation for ResourceForge project-resource integration system using Test-Driven Development methodology. The schema extends the existing resource management system with comprehensive project management capabilities.
 
 ## Migration Files (Run in Order)
 
@@ -52,7 +52,7 @@ Resource assignments with capacity tracking:
 - Compound indexes for date range and status queries
 
 ### Integration Points
-- Seamless integration with existing employees, skills, departments tables
+- Seamless integration with existing resources, skills, departments tables
 - Leverages existing proficiency_level and skill_category enums
 - Maintains referential integrity with proper CASCADE behaviors
 - Compatible with existing capacity_history tracking

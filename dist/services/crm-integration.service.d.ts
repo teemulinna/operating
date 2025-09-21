@@ -1,11 +1,10 @@
 import { CRMSystemConfig, CRMSyncOperation, CRMSyncConflict, CRMSyncRequest } from '../types/pipeline';
 export declare class CRMIntegrationService {
     private db;
-    private activeSyncs;
     constructor();
-    createCRMSystem(config: Omit<CRMSystemConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<CRMSystemConfig>;
+    createCRMSystem(data: Omit<CRMSystemConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<CRMSystemConfig>;
     getCRMSystems(includeInactive?: boolean): Promise<CRMSystemConfig[]>;
-    updateCRMSystem(id: string, updates: Partial<CRMSystemConfig>): Promise<CRMSystemConfig>;
+    updateCRMSystem(id: string, data: Partial<Omit<CRMSystemConfig, 'id' | 'createdAt' | 'updatedAt'>>): Promise<CRMSystemConfig>;
     startSync(request: CRMSyncRequest): Promise<CRMSyncOperation>;
     getSyncOperations(crmSystemId?: string, limit?: number): Promise<CRMSyncOperation[]>;
     getSyncOperation(id: string): Promise<CRMSyncOperation | null>;
@@ -14,6 +13,8 @@ export declare class CRMIntegrationService {
         message: string;
         details?: any;
     }>;
+    getSyncConflicts(crmSystemId?: string): Promise<CRMSyncConflict[]>;
+    resolveSyncConflict(conflictId: string, resolution: string, customValue?: any): Promise<void>;
     syncProjectToCRM(projectId: string, crmSystemId: string): Promise<{
         success: boolean;
         crmId?: string;
@@ -24,28 +25,13 @@ export declare class CRMIntegrationService {
         projectId?: string;
         error?: string;
     }>;
-    getSyncConflicts(crmSystemId?: string): Promise<CRMSyncConflict[]>;
-    resolveSyncConflict(conflictId: string, resolution: 'use-system' | 'use-crm' | 'merge', customValue?: any): Promise<void>;
+    private mapRowToCRMSystem;
+    private mapRowToSyncOperation;
+    private mapRowToSyncConflict;
+    private camelToSnake;
     private getCRMSystemById;
-    private createSyncOperation;
-    private performSync;
-    private performBidirectionalSync;
-    private performImportFromCRM;
-    private performExportToCRM;
-    private makeAPIRequest;
-    private transformProjectToCRM;
-    private transformCRMToProject;
-    private getNestedValue;
-    private setNestedValue;
-    private transformValue;
-    private updateSyncStatus;
     private getProjectById;
     private updateProjectCRMId;
-    private getProjectByCRMId;
-    private createProject;
-    private updateProject;
-    private transformCRMSystem;
-    private transformSyncOperation;
-    private transformSyncConflict;
+    private createOrUpdateProjectFromCRM;
 }
 //# sourceMappingURL=crm-integration.service.d.ts.map

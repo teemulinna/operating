@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 export declare class ProjectController {
     private projectService;
     private assignmentService;
+    private webSocketService;
     constructor();
     createProject: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     getProjects: (req: Request, res: Response, next: NextFunction) => Promise<void>;

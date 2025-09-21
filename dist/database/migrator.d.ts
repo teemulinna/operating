@@ -9,7 +9,7 @@ export declare class DatabaseMigrator {
     private getMigrationFiles;
     private getMigrationName;
     private executeMigration;
-    rollback(_targetMigration?: string): Promise<void>;
+    rollback(targetMigration?: string): Promise<void>;
     getStatus(): Promise<void>;
 }
 //# sourceMappingURL=migrator.d.ts.map

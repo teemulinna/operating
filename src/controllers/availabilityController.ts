@@ -195,7 +195,7 @@ export class AvailabilityController {
       `;
 
       const values = [id, status, capacity, currentProjects, availableHours];
-      const result = await this.pool.query(upsertQuery, values);
+      await this.pool.query(upsertQuery, values);
 
       // Get updated employee data with department info
       const employeeQuery = `
@@ -258,7 +258,7 @@ export class AvailabilityController {
         return;
       }
 
-      const departmentName = deptCheck.rows[0].name;
+      const departmentName = deptCheck.rows[0].name as string;
 
       // Get department utilization data
       const utilizationQuery = `
@@ -302,8 +302,8 @@ export class AvailabilityController {
       const employees = employeesResult.rows.map(this.mapAvailabilityRow);
 
       const departmentUtilization: DepartmentUtilization = {
-        departmentId: id,
-        departmentName,
+        departmentId: id as string,
+        departmentName: departmentName,
         totalEmployees: parseInt(stats.total_employees),
         availableEmployees: parseInt(stats.available_employees),
         busyEmployees: parseInt(stats.busy_employees),
@@ -329,7 +329,7 @@ export class AvailabilityController {
   /**
    * Get real-time WebSocket configuration
    */
-  static async getRealTimeConfig(req: Request, res: Response): Promise<void> {
+  static async getRealTimeConfig(_req: Request, res: Response): Promise<void> {
     try {
       res.json({
         success: true,
@@ -354,7 +354,7 @@ export class AvailabilityController {
   /**
    * Get real-time status for monitoring
    */
-  static async getRealTimeStatus(req: Request, res: Response): Promise<void> {
+  static async getRealTimeStatus(_req: Request, res: Response): Promise<void> {
     try {
       // This would typically check WebSocket server status
       const status = {

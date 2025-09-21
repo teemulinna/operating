@@ -16,13 +16,12 @@ export class CapacityController {
 
     const { employeeId, dateFrom, dateTo, minUtilization, maxUtilization } = req.query;
 
-    const filters = {
-      employeeId: employeeId as string,
-      dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
-      dateTo: dateTo ? new Date(dateTo as string) : undefined,
-      minUtilizationRate: minUtilization ? parseFloat(minUtilization as string) : undefined,
-      maxUtilizationRate: maxUtilization ? parseFloat(maxUtilization as string) : undefined,
-    };
+    const filters: any = {};
+    if (employeeId) filters.employeeId = employeeId as string;
+    if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+    if (dateTo) filters.dateTo = new Date(dateTo as string);
+    if (minUtilization) filters.minUtilizationRate = parseFloat(minUtilization as string);
+    if (maxUtilization) filters.maxUtilizationRate = parseFloat(maxUtilization as string);
 
     const capacityData = await CapacityHistoryModel.findAll(filters);
 
@@ -109,7 +108,7 @@ export class CapacityController {
     const { id } = req.params;
     const { availableHours, allocatedHours, notes } = req.body;
 
-    const updatedEntry = await CapacityHistoryModel.update(id, {
+    const updatedEntry = await CapacityHistoryModel.update(id!, {
       availableHours,
       allocatedHours,
       notes
@@ -417,7 +416,7 @@ export class CapacityController {
         timestamp: new Date().toISOString()
       });
       
-    } catch (error) {
+    } catch (error: any) {
       await client.query('ROLLBACK');
       throw error;
     } finally {
@@ -431,11 +430,10 @@ export class CapacityController {
   static exportCapacityCSV = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
     const { employeeId, departmentId, dateFrom, dateTo } = req.query;
 
-    const filters = {
-      employeeId: employeeId as string,
-      dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
-      dateTo: dateTo ? new Date(dateTo as string) : undefined,
-    };
+    const filters: any = {};
+    if (employeeId) filters.employeeId = employeeId as string;
+    if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
+    if (dateTo) filters.dateTo = new Date(dateTo as string);
 
     const capacityData = await CapacityHistoryModel.getCapacityWithEmployeeDetails(filters, departmentId as string);
 
@@ -465,7 +463,7 @@ export class CapacityController {
     ]);
 
     const csvContent = [csvHeaders, ...csvRows]
-      .map(row => row.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(','))
+      .map(row => row.map(cell => `"${(cell ?? '').toString().replace(/"/g, '""')}"`).join(','))
       .join('\n');
 
     // Set headers for file download

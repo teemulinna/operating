@@ -5,7 +5,7 @@ export class CreateAllocationsTableMigration {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS allocations (
         id SERIAL PRIMARY KEY,
-        employee_id INTEGER NOT NULL,
+        employee_id UUID NOT NULL,
         project_id INTEGER NOT NULL,
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
@@ -16,7 +16,7 @@ export class CreateAllocationsTableMigration {
         status VARCHAR(50) NOT NULL DEFAULT 'tentative',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_by INTEGER,
+        created_by UUID,
         
         -- Foreign key constraints
         CONSTRAINT fk_allocations_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
@@ -56,13 +56,13 @@ export class CreateAllocationsTableMigration {
     // Create function to check for allocation overlaps
     await pool.query(`
       CREATE OR REPLACE FUNCTION check_allocation_overlap(
-        p_employee_id INTEGER,
+        p_employee_id UUID,
         p_start_date DATE,
         p_end_date DATE,
-        p_allocation_id INTEGER DEFAULT NULL
+        p_allocation_id UUID DEFAULT NULL
       )
       RETURNS TABLE(
-        overlapping_allocation_id INTEGER,
+        overlapping_allocation_id UUID,
         overlapping_project_name VARCHAR(255),
         overlapping_start_date DATE,
         overlapping_end_date DATE,

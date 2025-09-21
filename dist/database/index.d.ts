@@ -1,12 +1,9 @@
-import { DatabaseConnection } from './connection';
-import { DatabaseMigrator } from './migrator';
-import { DatabaseSeeder } from './seeder';
-export declare function initializeDatabase(): Promise<DatabaseConnection>;
-export declare function runMigrations(): Promise<void>;
-export declare function seedDatabase(): Promise<void>;
-export declare function closeDatabase(): Promise<void>;
-export declare function getDatabase(): DatabaseConnection;
-export { DatabaseConnection, DatabaseMigrator, DatabaseSeeder };
-export * from '../models';
-export * from '../types';
+import { Pool } from 'pg';
+import { DatabaseService } from './database.service';
+declare const dbService: DatabaseService;
+export declare function initializeDatabase(): Promise<void>;
+export declare function getPool(): Pool;
+export { getPool as pool };
+export { DatabaseService } from './database.service';
+export { dbService as database };
 //# sourceMappingURL=index.d.ts.map

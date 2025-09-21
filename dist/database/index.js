@@ -1,77 +1,29 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DatabaseSeeder = exports.DatabaseMigrator = exports.DatabaseConnection = void 0;
+exports.database = exports.DatabaseService = void 0;
 exports.initializeDatabase = initializeDatabase;
-exports.runMigrations = runMigrations;
-exports.seedDatabase = seedDatabase;
-exports.closeDatabase = closeDatabase;
-exports.getDatabase = getDatabase;
-const connection_1 = require("./connection");
-Object.defineProperty(exports, "DatabaseConnection", { enumerable: true, get: function () { return connection_1.DatabaseConnection; } });
-const migrator_1 = require("./migrator");
-Object.defineProperty(exports, "DatabaseMigrator", { enumerable: true, get: function () { return migrator_1.DatabaseMigrator; } });
-const seeder_1 = require("./seeder");
-Object.defineProperty(exports, "DatabaseSeeder", { enumerable: true, get: function () { return seeder_1.DatabaseSeeder; } });
-const models_1 = require("../models");
-const database_1 = require("../../config/database");
-let dbConnection = null;
+exports.getPool = getPool;
+exports.pool = getPool;
+const database_service_1 = require("./database.service");
+const dbService = database_service_1.DatabaseService.getInstance();
+exports.database = dbService;
+let pool;
 async function initializeDatabase() {
-    if (dbConnection) {
-        return dbConnection;
-    }
-    const config = (0, database_1.getDatabaseConfig)();
-    dbConnection = new connection_1.DatabaseConnection(config);
-    try {
-        await dbConnection.connect();
-        (0, models_1.initializeModels)(dbConnection.getPool());
-        console.log('Database initialized successfully');
-        return dbConnection;
-    }
-    catch (error) {
-        console.error('Failed to initialize database:', error);
-        throw error;
-    }
+    await dbService.connect();
+    pool = dbService.getPool();
 }
-async function runMigrations() {
-    if (!dbConnection) {
-        throw new Error('Database not initialized. Call initializeDatabase() first.');
+function getPool() {
+    if (!pool) {
+        try {
+            pool = dbService.getPool();
+        }
+        catch (error) {
+            console.warn('Database not connected, attempting to connect...');
+            throw new Error('Database not initialized. Call initializeDatabase() first.');
+        }
     }
-    const migrator = new migrator_1.DatabaseMigrator(dbConnection.getPool());
-    await migrator.migrate();
+    return pool;
 }
-async function seedDatabase() {
-    if (!dbConnection) {
-        throw new Error('Database not initialized. Call initializeDatabase() first.');
-    }
-    const seeder = new seeder_1.DatabaseSeeder(dbConnection.getPool());
-    await seeder.seedAll();
-}
-async function closeDatabase() {
-    if (dbConnection) {
-        await dbConnection.disconnect();
-        dbConnection = null;
-    }
-}
-function getDatabase() {
-    if (!dbConnection) {
-        throw new Error('Database not initialized. Call initializeDatabase() first.');
-    }
-    return dbConnection;
-}
-__exportStar(require("../models"), exports);
-__exportStar(require("../types"), exports);
+var database_service_2 = require("./database.service");
+Object.defineProperty(exports, "DatabaseService", { enumerable: true, get: function () { return database_service_2.DatabaseService; } });
 //# sourceMappingURL=index.js.map

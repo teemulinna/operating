@@ -31,8 +31,8 @@ export declare class AvailabilityController {
     static getEmployeeStatuses(req: Request, res: Response): Promise<void>;
     static updateEmployeeStatus(req: Request, res: Response): Promise<void>;
     static getDepartmentUtilization(req: Request, res: Response): Promise<void>;
-    static getRealTimeConfig(req: Request, res: Response): Promise<void>;
-    static getRealTimeStatus(req: Request, res: Response): Promise<void>;
+    static getRealTimeConfig(_req: Request, res: Response): Promise<void>;
+    static getRealTimeStatus(_req: Request, res: Response): Promise<void>;
     static bulkUpdateAvailability(req: Request, res: Response): Promise<void>;
     private static mapAvailabilityRow;
 }

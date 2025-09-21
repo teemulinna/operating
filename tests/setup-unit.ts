@@ -1,4 +1,4 @@
-// Jest setup file for unit tests (with mocked database)
+// Jest setup file for unit tests (with real database)
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-key';
 
@@ -14,370 +14,352 @@ global.console = {
   error: jest.fn(),
 };
 
-import { 
-  Department, 
-  Employee, 
-  Skill, 
-  CreateDepartmentInput, 
-  CreateEmployeeInput, 
+import { DatabaseService } from '../src/database/database.service';
+import {
+  Department,
+  Employee,
+  Skill,
+  CreateDepartmentInput,
+  CreateEmployeeInput,
   CreateSkillInput,
   SkillCategory,
   ProficiencyLevel
 } from '../src/types';
 
-// Mock data store
-interface MockDataStore {
-  departments: Department[];
-  employees: Employee[];
-  skills: Skill[];
-  nextId: number;
-}
+// Real database service for testing
+let testDb: DatabaseService;
 
-let mockData: MockDataStore = {
-  departments: [],
-  employees: [],
-  skills: [],
-  nextId: 1
-};
+// Initialize database connection before tests
+beforeAll(async () => {
+  testDb = DatabaseService.getInstance();
+  await testDb.connect();
+});
 
-// Helper to generate UUID-like strings
-const generateId = (): string => {
-  const id = mockData.nextId++;
-  return `mock-uuid-${id.toString().padStart(8, '0')}`;
+// Clean up after all tests
+afterAll(async () => {
+  await DatabaseService.disconnect();
+});
+
+// Helper to generate unique IDs for test data
+const generateTestId = (): string => {
+  return `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
 // Helper to create timestamps
 const now = (): Date => new Date();
 
-// Mock helper functions
+// Real helper functions that interact with the actual database
 export const createTestDepartment = async (input?: Partial<CreateDepartmentInput>): Promise<Department> => {
-  const department: Department = {
-    id: generateId(),
+  const departmentData = {
     name: input?.name || `Test Department ${Date.now()}`,
     description: input?.description || 'Test department description',
-    managerId: input?.managerId || undefined,
-    isActive: true,
-    createdAt: now(),
-    updatedAt: now()
+    managerId: input?.managerId || undefined
   };
-  
-  mockData.departments.push(department);
-  return department;
+
+  const result = await testDb.query(`
+    INSERT INTO departments (name, description, manager_id, is_active, created_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *
+  `, [
+    departmentData.name,
+    departmentData.description,
+    departmentData.managerId,
+    true,
+    now(),
+    now()
+  ]);
+
+  return {
+    id: result.rows[0].id,
+    name: result.rows[0].name,
+    description: result.rows[0].description,
+    managerId: result.rows[0].manager_id,
+    isActive: result.rows[0].is_active,
+    createdAt: result.rows[0].created_at,
+    updatedAt: result.rows[0].updated_at
+  };
 };
 
 export const createTestSkill = async (input?: Partial<CreateSkillInput>): Promise<Skill> => {
-  const skill: Skill = {
-    id: generateId(),
+  const skillData = {
     name: input?.name || `Test Skill ${Date.now()}`,
     category: input?.category || SkillCategory.TECHNICAL,
-    description: input?.description || 'Test skill description',
-    isActive: true,
-    createdAt: now(),
-    updatedAt: now()
+    description: input?.description || 'Test skill description'
   };
-  
-  mockData.skills.push(skill);
-  return skill;
+
+  const result = await testDb.query(`
+    INSERT INTO skills (name, category, description, is_active, created_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *
+  `, [
+    skillData.name,
+    skillData.category,
+    skillData.description,
+    true,
+    now(),
+    now()
+  ]);
+
+  return {
+    id: result.rows[0].id,
+    name: result.rows[0].name,
+    category: result.rows[0].category,
+    description: result.rows[0].description,
+    isActive: result.rows[0].is_active,
+    createdAt: result.rows[0].created_at,
+    updatedAt: result.rows[0].updated_at
+  };
 };
 
 export const createTestEmployee = async (departmentId: string, input?: Partial<CreateEmployeeInput>): Promise<Employee> => {
-  const employee: Employee = {
-    id: generateId(),
+  const employeeData = {
     firstName: input?.firstName || 'Test',
     lastName: input?.lastName || `Employee-${Date.now()}`,
     email: input?.email || `test-${Date.now()}@example.com`,
     departmentId,
     position: input?.position || 'Test Position',
-    hireDate: input?.hireDate || now(),
-    isActive: true,
-    createdAt: now(),
-    updatedAt: now()
+    hireDate: input?.hireDate || now()
   };
-  
-  mockData.employees.push(employee);
-  return employee;
-};
 
-// Mock the database models
-const mockDepartmentModel = {
-  create: jest.fn().mockImplementation(async (input: CreateDepartmentInput) => {
-    const department: Department = {
-      id: generateId(),
-      name: input.name,
-      description: input.description,
-      managerId: input.managerId,
-      isActive: true,
-      createdAt: now(),
-      updatedAt: now()
-    };
-    mockData.departments.push(department);
-    return department;
-  }),
+  const result = await testDb.query(`
+    INSERT INTO employees (first_name, last_name, email, department_id, position, hire_date, is_active, created_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    RETURNING *
+  `, [
+    employeeData.firstName,
+    employeeData.lastName,
+    employeeData.email,
+    employeeData.departmentId,
+    employeeData.position,
+    employeeData.hireDate,
+    true,
+    now(),
+    now()
+  ]);
 
-  findById: jest.fn().mockImplementation(async (id: string) => {
-    return mockData.departments.find(d => d.id === id && d.isActive) || null;
-  }),
-
-  update: jest.fn().mockImplementation(async (id: string, updates: any) => {
-    const department = mockData.departments.find(d => d.id === id);
-    if (!department) return null;
-    
-    Object.assign(department, updates, { updatedAt: now() });
-    return department;
-  }),
-
-  delete: jest.fn().mockImplementation(async (id: string) => {
-    const department = mockData.departments.find(d => d.id === id);
-    if (!department) return null;
-    
-    department.isActive = false;
-    department.updatedAt = now();
-    return department;
-  }),
-
-  findAll: jest.fn().mockImplementation(async (filters: any = {}) => {
-    let filtered = mockData.departments.filter(d => d.isActive);
-    if (filters.isActive !== undefined) {
-      filtered = mockData.departments.filter(d => d.isActive === filters.isActive);
-    }
-    return filtered;
-  })
-};
-
-const mockSkillModel = {
-  create: jest.fn().mockImplementation(async (input: CreateSkillInput) => {
-    const skill: Skill = {
-      id: generateId(),
-      name: input.name,
-      category: input.category,
-      description: input.description,
-      isActive: true,
-      createdAt: now(),
-      updatedAt: now()
-    };
-    mockData.skills.push(skill);
-    return skill;
-  }),
-
-  findById: jest.fn().mockImplementation(async (id: string) => {
-    return mockData.skills.find(s => s.id === id && s.isActive) || null;
-  }),
-
-  update: jest.fn().mockImplementation(async (id: string, updates: any) => {
-    const skill = mockData.skills.find(s => s.id === id);
-    if (!skill) return null;
-    
-    Object.assign(skill, updates, { updatedAt: now() });
-    return skill;
-  }),
-
-  findAll: jest.fn().mockImplementation(async (filters: any = {}) => {
-    let filtered = mockData.skills.filter(s => s.isActive);
-    if (filters.category) {
-      filtered = filtered.filter(s => s.category === filters.category);
-    }
-    return filtered;
-  })
-};
-
-const mockEmployeeModel = {
-  create: jest.fn().mockImplementation(async (input: CreateEmployeeInput) => {
-    // Check for duplicate email
-    const existingEmployee = mockData.employees.find(e => e.email.toLowerCase() === input.email.toLowerCase());
-    if (existingEmployee) {
-      throw new Error(`Employee with email '${input.email}' already exists`);
-    }
-
-    const employee: Employee = {
-      id: generateId(),
-      firstName: input.firstName,
-      lastName: input.lastName,
-      email: input.email,
-      departmentId: input.departmentId,
-      position: input.position,
-      hireDate: input.hireDate,
-      isActive: true,
-      createdAt: now(),
-      updatedAt: now()
-    };
-    mockData.employees.push(employee);
-    return employee;
-  }),
-
-  findById: jest.fn().mockImplementation(async (id: string) => {
-    return mockData.employees.find(e => e.id === id && e.isActive) || null;
-  }),
-
-  findByIdWithDetails: jest.fn().mockImplementation(async (id: string) => {
-    const employee = mockData.employees.find(e => e.id === id && e.isActive);
-    if (!employee) return null;
-
-    const department = mockData.departments.find(d => d.id === employee.departmentId);
-    
-    // Find employee skills
-    const employeeSkills = mockEmployeeSkills.filter(es => 
-      es.employeeId === id && es.isActive
-    );
-    
-    const skills = employeeSkills.map(es => ({
-      ...es,
-      skill: mockData.skills.find(s => s.id === es.skillId)
-    }));
-    
-    return {
-      ...employee,
-      department,
-      skills
-    };
-  }),
-
-  findAll: jest.fn().mockImplementation(async (filters: any = {}) => {
-    let filtered = mockData.employees.filter(e => e.isActive);
-    if (filters.departmentId) {
-      filtered = filtered.filter(e => e.departmentId === filters.departmentId);
-    }
-    
-    return {
-      data: filtered,
-      total: filtered.length,
-      page: 1,
-      limit: 50,
-      totalPages: 1
-    };
-  })
-};
-
-// Employee Skills mock store
-let mockEmployeeSkills: any[] = [];
-
-const mockEmployeeSkillModel = {
-  create: jest.fn().mockImplementation(async (input: any) => {
-    // Check for duplicate employee-skill mapping
-    const existing = mockEmployeeSkills.find(es => 
-      es.employeeId === input.employeeId && 
-      es.skillId === input.skillId && 
-      es.isActive
-    );
-    
-    if (existing) {
-      throw new Error('Employee-skill mapping already exists');
-    }
-
-    const employeeSkill = {
-      id: generateId(),
-      employeeId: input.employeeId,
-      skillId: input.skillId,
-      proficiencyLevel: input.proficiencyLevel,
-      yearsOfExperience: input.yearsOfExperience,
-      lastAssessed: input.lastAssessed,
-      isActive: true,
-      createdAt: now(),
-      updatedAt: now()
-    };
-    
-    mockEmployeeSkills.push(employeeSkill);
-    return employeeSkill;
-  }),
-
-  findByEmployee: jest.fn().mockImplementation(async (employeeId: string) => {
-    const employeeSkills = mockEmployeeSkills.filter(es => 
-      es.employeeId === employeeId && es.isActive
-    );
-    
-    return employeeSkills.map(es => ({
-      ...es,
-      skill: mockData.skills.find(s => s.id === es.skillId)
-    }));
-  })
-};
-
-// Capacity History mock store
-let mockCapacityHistory: any[] = [];
-
-const mockCapacityHistoryModel = {
-  create: jest.fn().mockImplementation(async (input: any) => {
-    const utilizationRate = input.allocatedHours / input.availableHours;
-    
-    const capacity = {
-      id: generateId(),
-      employeeId: input.employeeId,
-      date: input.date,
-      availableHours: input.availableHours,
-      allocatedHours: input.allocatedHours,
-      utilizationRate,
-      notes: input.notes,
-      createdAt: now(),
-      updatedAt: now()
-    };
-    
-    mockCapacityHistory.push(capacity);
-    return capacity;
-  }),
-
-  findByDateRange: jest.fn().mockImplementation(async (employeeId: string, startDate: Date, endDate: Date) => {
-    return mockCapacityHistory.filter(ch => 
-      ch.employeeId === employeeId &&
-      ch.date >= startDate &&
-      ch.date <= endDate
-    );
-  }),
-
-  findAll: jest.fn().mockImplementation(async (filters: any = {}) => {
-    let filtered = mockCapacityHistory;
-    
-    if (filters.employeeId) {
-      filtered = filtered.filter(ch => ch.employeeId === filters.employeeId);
-    }
-    
-    if (filters.dateFrom) {
-      filtered = filtered.filter(ch => ch.date >= filters.dateFrom);
-    }
-    
-    if (filters.dateTo) {
-      filtered = filtered.filter(ch => ch.date <= filters.dateTo);
-    }
-    
-    return filtered;
-  })
-};
-
-// Mock the models
-jest.mock('../src/models/Department', () => ({
-  DepartmentModel: mockDepartmentModel
-}));
-
-jest.mock('../src/models/Skill', () => ({
-  SkillModel: mockSkillModel
-}));
-
-jest.mock('../src/models/Employee', () => ({
-  EmployeeModel: mockEmployeeModel
-}));
-
-jest.mock('../src/models/EmployeeSkill', () => ({
-  EmployeeSkillModel: mockEmployeeSkillModel
-}));
-
-jest.mock('../src/models/CapacityHistory', () => ({
-  CapacityHistoryModel: mockCapacityHistoryModel
-}));
-
-// Reset mock data before each test
-beforeEach(() => {
-  mockData = {
-    departments: [],
-    employees: [],
-    skills: [],
-    nextId: 1
+  return {
+    id: result.rows[0].id,
+    firstName: result.rows[0].first_name,
+    lastName: result.rows[0].last_name,
+    email: result.rows[0].email,
+    departmentId: result.rows[0].department_id,
+    position: result.rows[0].position,
+    hireDate: result.rows[0].hire_date,
+    isActive: result.rows[0].is_active,
+    createdAt: result.rows[0].created_at,
+    updatedAt: result.rows[0].updated_at
   };
-  
-  mockEmployeeSkills = [];
-  mockCapacityHistory = [];
+};
 
-  // Clear all mock calls
-  Object.values(mockDepartmentModel).forEach(mock => jest.clearAllMocks && (mock as any).mockClear?.());
-  Object.values(mockSkillModel).forEach(mock => jest.clearAllMocks && (mock as any).mockClear?.());
-  Object.values(mockEmployeeModel).forEach(mock => jest.clearAllMocks && (mock as any).mockClear?.());
-  Object.values(mockEmployeeSkillModel).forEach(mock => jest.clearAllMocks && (mock as any).mockClear?.());
-  Object.values(mockCapacityHistoryModel).forEach(mock => jest.clearAllMocks && (mock as any).mockClear?.());
+// Clean up helper for test data
+export const cleanupTestData = async (patterns: string[] = ['test-%']): Promise<void> => {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('cleanupTestData can only be called in test environment');
+  }
+
+  for (const pattern of patterns) {
+    try {
+      // Clean up in dependency order
+      await testDb.query('DELETE FROM employee_skills WHERE employee_id LIKE $1', [pattern]);
+      await testDb.query('DELETE FROM resource_assignments WHERE employee_id LIKE $1', [pattern]);
+      await testDb.query('DELETE FROM capacity_history WHERE employee_id LIKE $1', [pattern]);
+      await testDb.query('DELETE FROM employees WHERE id LIKE $1', [pattern]);
+      await testDb.query('DELETE FROM projects WHERE id LIKE $1', [pattern]);
+      await testDb.query('DELETE FROM skills WHERE id LIKE $1', [pattern]);
+      await testDb.query('DELETE FROM departments WHERE id LIKE $1', [pattern]);
+      await testDb.query('DELETE FROM capacity_bottlenecks WHERE id LIKE $1', [pattern]);
+    } catch (error) {
+      // Ignore cleanup errors (tables might not exist)
+      console.warn(`Cleanup warning for pattern ${pattern}:`, error);
+    }
+  }
+};
+
+// Test database utilities
+export const getTestDatabase = (): DatabaseService => {
+  if (!testDb) {
+    throw new Error('Test database not initialized. Make sure setup is imported.');
+  }
+  return testDb;
+};
+
+// Reset sequences for consistent test IDs
+export const resetTestSequences = async (): Promise<void> => {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('resetTestSequences can only be called in test environment');
+  }
+
+  try {
+    await testDb.query('ALTER SEQUENCE IF EXISTS employees_id_seq RESTART WITH 1000');
+    await testDb.query('ALTER SEQUENCE IF EXISTS departments_id_seq RESTART WITH 1000');
+    await testDb.query('ALTER SEQUENCE IF EXISTS skills_id_seq RESTART WITH 1000');
+    await testDb.query('ALTER SEQUENCE IF EXISTS projects_id_seq RESTART WITH 1000');
+  } catch (error) {
+    // Ignore sequence reset errors
+    console.warn('Sequence reset warning:', error);
+  }
+};
+
+// Ensure test data is cleaned up before each test
+beforeEach(async () => {
+  if (testDb) {
+    await cleanupTestData();
+  }
 });
+
+// Create test tables if they don't exist (for testing)
+export const ensureTestTables = async (): Promise<void> => {
+  if (process.env.NODE_ENV !== 'test') {
+    return;
+  }
+
+  try {
+    // Create departments table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS departments (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        description TEXT,
+        manager_id INTEGER,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create skills table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS skills (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        category VARCHAR(100) NOT NULL,
+        description TEXT,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create employees table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS employees (
+        id SERIAL PRIMARY KEY,
+        first_name VARCHAR(255) NOT NULL,
+        last_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        department_id INTEGER REFERENCES departments(id),
+        position VARCHAR(255),
+        hire_date DATE,
+        is_active BOOLEAN DEFAULT true,
+        weekly_hours INTEGER DEFAULT 40,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create projects table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        start_date DATE,
+        end_date DATE,
+        status VARCHAR(100) DEFAULT 'planning',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create resource_assignments table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS resource_assignments (
+        id SERIAL PRIMARY KEY,
+        project_id INTEGER REFERENCES projects(id),
+        employee_id INTEGER,
+        planned_allocation_percentage DECIMAL(5,2),
+        start_date DATE NOT NULL,
+        end_date DATE,
+        status VARCHAR(100) DEFAULT 'planned',
+        planned_hours_per_week DECIMAL(5,2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create employee_skills table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS employee_skills (
+        id SERIAL PRIMARY KEY,
+        employee_id INTEGER,
+        skill_id INTEGER,
+        proficiency_level VARCHAR(100),
+        years_of_experience INTEGER,
+        last_assessed DATE,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create capacity_history table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS capacity_history (
+        id SERIAL PRIMARY KEY,
+        employee_id VARCHAR(255),
+        date DATE NOT NULL,
+        available_hours DECIMAL(5,2),
+        allocated_hours DECIMAL(5,2),
+        utilization_rate DECIMAL(5,4),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create capacity_bottlenecks table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS capacity_bottlenecks (
+        id VARCHAR(255) PRIMARY KEY,
+        bottleneck_type VARCHAR(100),
+        affected_resource VARCHAR(255),
+        severity VARCHAR(100),
+        impact_score DECIMAL(5,2),
+        estimated_duration INTEGER,
+        affected_projects TEXT,
+        root_causes TEXT,
+        resolution_actions TEXT,
+        status VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create project_skill_requirements table if it doesn't exist
+    await testDb.query(`
+      CREATE TABLE IF NOT EXISTS project_skill_requirements (
+        id SERIAL PRIMARY KEY,
+        project_id INTEGER,
+        skill_id VARCHAR(255),
+        required_level VARCHAR(100),
+        quantity_needed INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log('Test tables ensured successfully');
+  } catch (error) {
+    console.warn('Error ensuring test tables:', error);
+  }
+};
+
+// Initialize test tables when setup is imported
+if (process.env.NODE_ENV === 'test') {
+  // Delay table creation until database is connected
+  setTimeout(async () => {
+    if (testDb) {
+      await ensureTestTables();
+    }
+  }, 1000);
+}

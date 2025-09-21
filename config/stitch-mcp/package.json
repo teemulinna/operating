@@ -1,0 +1,33 @@
+{
+  "name": "stitch-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Google Stitch AI design tool integration",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "google",
+    "stitch",
+    "ai",
+    "design",
+    "ui",
+    "model-context-protocol"
+  ],
+  "author": "Claude Assistant",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.1",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "tsx": "^4.7.1",
+    "typescript": "^5.5.3"
+  }
+}

@@ -7,6 +7,7 @@ export declare class AnalyticsController {
     static getDepartmentPerformance(req: Request, res: Response): Promise<void>;
     static compareDepartments(req: Request, res: Response): Promise<void>;
     static exportAnalytics(req: Request, res: Response): Promise<void>;
+    static getDashboardStats(_req: Request, res: Response): Promise<void>;
     static getDashboardSummary(req: Request, res: Response): Promise<void>;
 }
 //# sourceMappingURL=analytics.controller.d.ts.map

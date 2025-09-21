@@ -8,7 +8,10 @@ import { DatabaseService } from '../database/database.service';
 import { DepartmentService } from '../services/department.service';
 import { EmployeeService } from '../services/employee.service';
 import { SkillService } from '../services/skill.service';
-import { AllocationService } from '../services/allocation.service';
+import { AllocationServiceWrapper } from '../services/allocation-service-wrapper';
+import { DependencyService } from '../services/dependency.service';
+import { ScheduleManagementService } from '../services/schedule-management.service';
+import { ExportController } from '../controllers/exportController';
 import { initializeModels } from '../models';
 
 /**
@@ -20,37 +23,65 @@ export const SERVICE_NAMES = {
   EMPLOYEE: 'EmployeeService',
   SKILL: 'SkillService',
   ALLOCATION: 'AllocationService',
+  DEPENDENCY: 'DependencyService',
+  SCHEDULE_MANAGEMENT: 'ScheduleManagementService',
 } as const;
 
 /**
  * Configure all services in the container
  */
 export function configureServices(): void {
-  // Register database service as singleton
+  // Register database service as singleton first
   registerService.instance(
     SERVICE_NAMES.DATABASE,
     DatabaseService.getInstance()
   );
 
-  // Register business services as singletons with database injection
+  // Register business services as singletons with proper database injection
   registerService.singleton(
     SERVICE_NAMES.DEPARTMENT,
-    () => new DepartmentService()
+    () => {
+      const db = container.resolve<DatabaseService>(SERVICE_NAMES.DATABASE);
+      return new DepartmentService(db);
+    }
   );
 
   registerService.singleton(
     SERVICE_NAMES.EMPLOYEE,
-    () => new EmployeeService()
+    () => {
+      const db = container.resolve<DatabaseService>(SERVICE_NAMES.DATABASE);
+      return new EmployeeService(db);
+    }
   );
 
   registerService.singleton(
     SERVICE_NAMES.SKILL,
-    () => new SkillService()
+    () => {
+      // SkillService uses static initialization pattern, return instance
+      return new SkillService();
+    }
   );
 
   registerService.singleton(
     SERVICE_NAMES.ALLOCATION,
-    () => new AllocationService()
+    () => {
+      // Use wrapper for AllocationService to make it injectable
+      return new AllocationServiceWrapper();
+    }
+  );
+
+  registerService.singleton(
+    SERVICE_NAMES.DEPENDENCY,
+    () => {
+      return new DependencyService();
+    }
+  );
+
+  registerService.singleton(
+    SERVICE_NAMES.SCHEDULE_MANAGEMENT,
+    () => {
+      return new ScheduleManagementService();
+    }
   );
 }
 
@@ -62,28 +93,52 @@ export const Services = {
   department: () => container.resolve<DepartmentService>(SERVICE_NAMES.DEPARTMENT),
   employee: () => container.resolve<EmployeeService>(SERVICE_NAMES.EMPLOYEE),
   skill: () => container.resolve<SkillService>(SERVICE_NAMES.SKILL),
-  allocation: () => container.resolve<AllocationService>(SERVICE_NAMES.ALLOCATION),
+  allocation: () => container.resolve<AllocationServiceWrapper>(SERVICE_NAMES.ALLOCATION),
+  dependency: () => container.resolve<DependencyService>(SERVICE_NAMES.DEPENDENCY),
+  scheduleManagement: () => container.resolve<ScheduleManagementService>(SERVICE_NAMES.SCHEDULE_MANAGEMENT),
 };
 
 /**
  * Initialize all services and ensure they're connected
  */
 export async function initializeServices(): Promise<void> {
-  // Configure service registrations
-  configureServices();
+  try {
+    // Configure service registrations first
+    configureServices();
 
-  // Initialize database connection
-  const databaseService = Services.database();
-  await databaseService.connect();
+    // Initialize database connection
+    const databaseService = Services.database();
+    if (!databaseService) {
+      throw new Error('DatabaseService not registered properly');
+    }
 
-  // Initialize all models with database connection
-  const pool = databaseService.getPool();
-  if (!pool) {
-    throw new Error('Database pool is not available');
+    await databaseService.connect();
+
+    // Get database pool and validate
+    const pool = databaseService.getPool();
+    if (!pool) {
+      throw new Error('Database pool is not available after connection');
+    }
+
+    // Initialize all models with database connection
+    initializeModels(pool);
+
+    // Initialize services that need static setup
+    SkillService.initialize(pool);
+
+    // Initialize controllers that need database access
+    console.log('🔧 Initializing ExportController with pool from service registration:', !!pool);
+    ExportController.initialize(pool);
+    console.log('✅ ExportController initialization called');
+
+    // Validate all services are properly registered and can be resolved
+    await validateServiceInitialization();
+
+    console.log('✅ All services initialized and configured');
+  } catch (error) {
+    console.error('❌ Service initialization failed:', error);
+    throw new Error(`Service initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-  initializeModels(pool);
-
-  console.log('✅ All services initialized and configured');
 }
 
 /**
@@ -91,12 +146,20 @@ export async function initializeServices(): Promise<void> {
  */
 export async function shutdownServices(): Promise<void> {
   try {
+    // Cleanup NotificationService timers if initialized
+    try {
+      const { NotificationService } = await import('../services/notification.service');
+      NotificationService.resetInstance();
+    } catch (error) {
+      // Ignore if NotificationService not initialized
+    }
+
     // Disconnect database
     await DatabaseService.disconnect();
-    
+
     // Clear container
     container.clear();
-    
+
     console.log('✅ All services shut down gracefully');
   } catch (error) {
     console.error('❌ Error during service shutdown:', error);
@@ -133,6 +196,42 @@ export async function checkServiceHealth(): Promise<{
       overall: false
     };
   }
+}
+
+/**
+ * Validate that all services are properly initialized
+ */
+export async function validateServiceInitialization(): Promise<void> {
+  const requiredServices = Object.values(SERVICE_NAMES);
+  const missingServices: string[] = [];
+  const failedServices: string[] = [];
+
+  for (const serviceName of requiredServices) {
+    if (!container.hasService(serviceName)) {
+      missingServices.push(serviceName);
+      continue;
+    }
+
+    try {
+      const service = container.resolve(serviceName);
+      if (!service) {
+        failedServices.push(serviceName);
+      }
+    } catch (error) {
+      failedServices.push(serviceName);
+      console.error(`Failed to resolve service ${serviceName}:`, error);
+    }
+  }
+
+  if (missingServices.length > 0) {
+    throw new Error(`Missing services: ${missingServices.join(', ')}`);
+  }
+
+  if (failedServices.length > 0) {
+    throw new Error(`Failed to resolve services: ${failedServices.join(', ')}`);
+  }
+
+  console.log('✅ All services validated successfully');
 }
 
 /**

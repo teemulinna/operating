@@ -1,3 +1,4 @@
+import { Pool } from 'pg';
 export interface TeamAnalyticsDashboard {
     overview: {
         totalProjects: number;
@@ -130,67 +131,6 @@ export interface ResourceUtilizationPatterns {
         expectedImpact: number;
     }>;
 }
-export interface ProjectSuccessCorrelations {
-    correlations: Array<{
-        factor: string;
-        correlationCoefficient: number;
-        significance: number;
-        description: string;
-        recommendation: string;
-    }>;
-    successFactors: Array<{
-        factor: string;
-        impact: number;
-        frequency: number;
-        actionable: boolean;
-    }>;
-    riskFactors: Array<{
-        factor: string;
-        riskLevel: 'low' | 'medium' | 'high' | 'critical';
-        frequency: number;
-        mitigation: string;
-    }>;
-    recommendations: Array<{
-        category: 'team_composition' | 'process' | 'tools' | 'communication';
-        recommendation: string;
-        expectedImpact: number;
-        implementationEffort: 'low' | 'medium' | 'high';
-    }>;
-}
-export interface DepartmentEfficiency {
-    departments: Array<{
-        name: string;
-        efficiencyScore: number;
-        metrics: {
-            productivity: number;
-            quality: number;
-            collaboration: number;
-            innovation: number;
-        };
-        rank: number;
-        strengths: string[];
-        improvementAreas: string[];
-        trend: 'improving' | 'declining' | 'stable';
-    }>;
-    overallRanking: Array<{
-        rank: number;
-        department: string;
-        score: number;
-        change: number;
-    }>;
-    efficiencyTrends: Array<{
-        period: string;
-        departmentScores: Array<{
-            department: string;
-            score: number;
-        }>;
-    }>;
-    benchmarkComparison: {
-        internalBenchmark: number;
-        industryBenchmark?: number;
-        bestPractices: string[];
-    };
-}
 export interface BurnoutRiskAssessment {
     riskAssessment: {
         overallRiskLevel: 'low' | 'medium' | 'high' | 'critical';
@@ -236,56 +176,9 @@ export interface BurnoutRiskAssessment {
         priority: 'immediate' | 'short_term' | 'long_term';
     }>;
 }
-export interface WorkforceOptimization {
-    currentState: {
-        totalCapacity: number;
-        utilizationRate: number;
-        skillDistribution: Array<{
-            skill: string;
-            count: number;
-            utilization: number;
-        }>;
-        departmentBalance: Array<{
-            department: string;
-            headcount: number;
-            optimalSize: number;
-            variance: number;
-        }>;
-    };
-    optimizationOpportunities: Array<{
-        type: 'skill_rebalancing' | 'role_optimization' | 'team_restructuring' | 'workload_distribution';
-        impact: number;
-        effort: 'low' | 'medium' | 'high';
-        priority: 'low' | 'medium' | 'high' | 'critical';
-        description: string;
-        affectedEmployees: number;
-        timeframe: string;
-    }>;
-    skillRealignments: Array<{
-        skill: string;
-        currentDemand: number;
-        optimalDemand: number;
-        action: 'hire' | 'train' | 'reassign' | 'reduce';
-        priority: number;
-    }>;
-    teamRestructuring: Array<{
-        department: string;
-        currentStructure: string;
-        recommendedStructure: string;
-        benefits: string[];
-        risks: string[];
-        implementationPlan: string;
-    }>;
-    capacityOptimization: {
-        underutilizedCapacity: number;
-        overallocatedCapacity: number;
-        optimizationPotential: number;
-        recommendedActions: string[];
-    };
-}
 export declare class TeamAnalyticsService {
-    private db;
-    constructor();
+    private pool;
+    constructor(pool: Pool);
     getTeamAnalyticsDashboard(filters?: {
         timeframe?: string;
         department?: string;
@@ -295,51 +188,43 @@ export declare class TeamAnalyticsService {
         timeframe?: string;
     }): Promise<PerformanceAnalytics>;
     analyzeResourceUtilizationPatterns(granularity?: string): Promise<ResourceUtilizationPatterns>;
-    analyzeProjectSuccessCorrelations(): Promise<ProjectSuccessCorrelations>;
-    analyzeDepartmentEfficiency(compare?: boolean): Promise<DepartmentEfficiency>;
     assessBurnoutRisk(): Promise<BurnoutRiskAssessment>;
-    analyzeWorkforceOptimization(): Promise<WorkforceOptimization>;
-    private getOverviewMetrics;
-    private getUtilizationMetrics;
-    private getPerformanceMetrics;
-    private getProjectSuccessRates;
-    private getSkillUtilization;
-    private getTeamEfficiency;
+    private getOverviewMetricsReal;
+    private getUtilizationMetricsReal;
+    private getPerformanceMetricsReal;
+    private getProjectSuccessRatesReal;
+    private getSkillUtilizationReal;
+    private getTeamEfficiencyReal;
+    private getActiveEmployeesCount;
+    private calculateVelocityTrend;
+    private calculateDefectRate;
+    private calculateReworkPercentage;
+    private getCustomerSatisfactionScore;
+    private calculateCostPerDeliverable;
+    private getDateRangeCondition;
+    private determineSkillGrowthTrend;
+    private getRiskLevel;
+    private identifyEmployeeRiskFactors;
+    private getRecommendedActions;
+    private calculateDepartmentRisks;
+    private calculateOverallRiskLevel;
+    private getEarlyWarningIndicatorsReal;
+    private getAverageOvertimeHours;
+    private getProjectDelayRate;
+    private getEmployeeTurnoverTrend;
+    private generateInterventionRecommendations;
     private getDefaultProductivityMetrics;
     private getDefaultQualityMetrics;
     private getDefaultEfficiencyMetrics;
-    private getProductivityMetrics;
-    private getQualityMetrics;
-    private getEfficiencyMetrics;
-    private getPerformanceTrends;
-    private getBenchmarkComparisons;
-    private getUtilizationPatterns;
-    private identifyPeakUtilizationPeriods;
-    private identifyUnderutilizedResources;
-    private identifyOverutilizedResources;
+    private getProductivityMetricsReal;
+    private getQualityMetricsReal;
+    private getEfficiencyMetricsReal;
+    private getPerformanceTrendsReal;
+    private getBenchmarkComparisonsReal;
+    private getUtilizationPatternsReal;
+    private identifyPeakUtilizationPeriodsReal;
+    private identifyUnderutilizedResourcesReal;
+    private identifyOverutilizedResourcesReal;
     private generateUtilizationRecommendations;
-    private calculateProjectCorrelations;
-    private identifySuccessFactors;
-    private generateProjectRecommendations;
-    private calculateDepartmentMetrics;
-    private calculateEfficiencyScore;
-    private identifyDepartmentStrengths;
-    private identifyImprovementAreas;
-    private calculateDepartmentTrend;
-    private getDepartmentEfficiencyTrends;
-    private getBenchmarkComparison;
-    private calculateBurnoutRisk;
-    private getRiskLevel;
-    private getRecommendedActions;
-    private calculateDepartmentRisks;
-    private calculateDepartmentRiskLevel;
-    private calculateOverallRiskLevel;
-    private getEarlyWarningIndicators;
-    private generateInterventionRecommendations;
-    private getCurrentWorkforceState;
-    private identifyOptimizationOpportunities;
-    private analyzeSkillRealignments;
-    private evaluateTeamRestructuring;
-    private analyzeCapacityOptimization;
 }
 //# sourceMappingURL=team-analytics.service.d.ts.map

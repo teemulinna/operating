@@ -201,12 +201,15 @@ export class AllocationTemplatesService {
       const query = `
         SELECT 
           t.*,
-          e.first_name || ' ' || e.last_name as creator_name,
+          CASE 
+            WHEN e.id IS NOT NULL THEN e.first_name || ' ' || e.last_name
+            ELSE 'Unknown Creator'
+          END as creator_name,
           COALESCE(role_count.total_roles, 0) as total_roles,
           COALESCE(milestone_count.total_milestones, 0) as total_milestones,
           COALESCE(t.usage_count, 0) as usage_count
         FROM allocation_templates t
-        JOIN employees e ON t.created_by = e.id
+        LEFT JOIN employees e ON t.created_by = e.id
         LEFT JOIN (
           SELECT template_id, COUNT(*) as total_roles
           FROM template_roles
@@ -250,10 +253,13 @@ export class AllocationTemplatesService {
       const templateQuery = `
         SELECT 
           t.*,
-          e.first_name || ' ' || e.last_name as creator_name,
+          CASE 
+            WHEN e.id IS NOT NULL THEN e.first_name || ' ' || e.last_name
+            ELSE 'Unknown Creator'
+          END as creator_name,
           e.email as creator_email
         FROM allocation_templates t
-        JOIN employees e ON t.created_by = e.id
+        LEFT JOIN employees e ON t.created_by = e.id
         WHERE t.id = $1 
           AND (
             t.visibility = 'public' OR 
@@ -626,7 +632,7 @@ export class AllocationTemplatesService {
           COALESCE(AVG(uth.success_rating), 0) as avg_rating,
           COUNT(DISTINCT uth.project_id) as projects_count
         FROM allocation_templates t
-        JOIN employees e ON t.created_by = e.id
+        LEFT JOIN employees e ON t.created_by = e.id
         LEFT JOIN template_usage_history uth ON t.id = uth.template_id
         WHERE t.status = 'active' AND t.visibility IN ('public', 'organization')
         GROUP BY t.id, e.first_name, e.last_name

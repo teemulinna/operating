@@ -1,3 +1,27 @@
+interface ProjectDetails {
+    name: string;
+    estimatedHours: number;
+    requiredSkills: string[];
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    startDate?: string;
+    endDate?: string;
+    teamSize?: number;
+    duration?: number;
+}
+interface ResourceDetails {
+    employeeIds?: number[];
+    skills?: string[];
+    hoursPerWeek?: number;
+    department?: string;
+    costPerHour?: number;
+    count?: number;
+}
+interface DemandChangeDetails {
+    percentage: number;
+    affectedDepartments?: string[];
+    affectedSkills?: string[];
+    reason?: string;
+}
 export interface CapacityIntelligence {
     currentUtilization: {
         overall: number;
@@ -175,7 +199,7 @@ export declare class CapacityIntelligenceService {
             description: string;
             changes: Array<{
                 type: 'add_project' | 'add_resources' | 'remove_resources' | 'change_demand';
-                details: any;
+                details: ProjectDetails | ResourceDetails | DemandChangeDetails;
             }>;
         };
         analysisOptions: {
@@ -216,4 +240,5 @@ export declare class CapacityIntelligenceService {
     private findTrainingCandidates;
     private estimateTrainingTime;
 }
+export {};
 //# sourceMappingURL=capacity-intelligence.service.d.ts.map

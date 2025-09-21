@@ -407,21 +407,28 @@ class AllocationModel {
         return this.mapRow(result.rows[0]);
     }
     static mapRow(row) {
-        return {
+        const allocation = {
             id: row.id,
             projectId: row.project_id,
             employeeId: row.employee_id,
             allocatedHours: parseFloat(row.allocated_hours) || 0,
-            actualHours: row.actual_hours ? parseFloat(row.actual_hours) : undefined,
-            hourlyRate: row.hourly_rate ? parseFloat(row.hourly_rate) : undefined,
             roleOnProject: row.role,
             startDate: row.start_date,
             endDate: row.end_date,
-            notes: row.notes,
             isActive: row.status === 'confirmed',
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
+        if (row.actual_hours !== null && row.actual_hours !== undefined) {
+            allocation.actualHours = parseFloat(row.actual_hours);
+        }
+        if (row.hourly_rate !== null && row.hourly_rate !== undefined) {
+            allocation.hourlyRate = parseFloat(row.hourly_rate);
+        }
+        if (row.notes !== null && row.notes !== undefined) {
+            allocation.notes = row.notes;
+        }
+        return allocation;
     }
 }
 exports.AllocationModel = AllocationModel;

@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/140</span>
+                <span class='fraction'>0/156</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/78</span>
+                <span class='fraction'>0/76</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/136</span>
+                <span class='fraction'>0/144</span>
             </div>
         
             
@@ -539,9 +539,7 @@
 <a name='L474'></a><a href='#L474'>474</a>
 <a name='L475'></a><a href='#L475'>475</a>
 <a name='L476'></a><a href='#L476'>476</a>
-<a name='L477'></a><a href='#L477'>477</a>
-<a name='L478'></a><a href='#L478'>478</a>
-<a name='L479'></a><a href='#L479'>479</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L477'></a><a href='#L477'>477</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -560,12 +558,11 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -975,10 +972,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1037,13 +1033,12 @@
 &nbsp;
     const { employeeId, dateFrom, dateTo, minUtilization, maxUtilization } = <span class="cstat-no" title="statement not covered" >req.query;</span>
 &nbsp;
-    const filters = <span class="cstat-no" title="statement not covered" >{</span>
-      employeeId: employeeId as string,
-      dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
-      dateTo: dateTo ? new Date(dateTo as string) : undefined,
-      minUtilizationRate: minUtilization ? parseFloat(minUtilization as string) : undefined,
-      maxUtilizationRate: maxUtilization ? parseFloat(maxUtilization as string) : undefined,
-    };
+    const filters: any = <span class="cstat-no" title="statement not covered" >{};</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (employeeId) <span class="cstat-no" title="statement not covered" >filters.employeeId = employeeId as string;</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (dateFrom) <span class="cstat-no" title="statement not covered" >filters.dateFrom = new Date(dateFrom as string);</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (dateTo) <span class="cstat-no" title="statement not covered" >filters.dateTo = new Date(dateTo as string);</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (minUtilization) <span class="cstat-no" title="statement not covered" >filters.minUtilizationRate = parseFloat(minUtilization as string);</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (maxUtilization) <span class="cstat-no" title="statement not covered" >filters.maxUtilizationRate = parseFloat(maxUtilization as string);</span></span>
 &nbsp;
     const capacityData = <span class="cstat-no" title="statement not covered" >await CapacityHistoryModel.findAll(filters);</span>
 &nbsp;
@@ -1130,7 +1125,7 @@
     const { id } = <span class="cstat-no" title="statement not covered" >req.params;</span>
     const { availableHours, allocatedHours, notes } = <span class="cstat-no" title="statement not covered" >req.body;</span>
 &nbsp;
-    const updatedEntry = <span class="cstat-no" title="statement not covered" >await CapacityHistoryModel.update(id, {</span>
+    const updatedEntry = <span class="cstat-no" title="statement not covered" >await CapacityHistoryModel.update(id!, {</span>
       availableHours,
       allocatedHours,
       notes
@@ -1438,7 +1433,7 @@
         timestamp: new Date().toISOString()
       });
       
-    } catch (error) {
+    } catch (error: any) {
 <span class="cstat-no" title="statement not covered" >      await client.query('ROLLBACK');</span>
 <span class="cstat-no" title="statement not covered" >      throw error;</span>
     } finally {
@@ -1452,11 +1447,10 @@
   static <span class="cstat-no" title="statement not covered" >exportCapacityCSV = a</span>syncHandler(<span class="fstat-no" title="function not covered" >async </span>(req: Request, res: Response, _next: NextFunction) =&gt; {
     const { employeeId, departmentId, dateFrom, dateTo } = <span class="cstat-no" title="statement not covered" >req.query;</span>
 &nbsp;
-    const filters = <span class="cstat-no" title="statement not covered" >{</span>
-      employeeId: employeeId as string,
-      dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
-      dateTo: dateTo ? new Date(dateTo as string) : undefined,
-    };
+    const filters: any = <span class="cstat-no" title="statement not covered" >{};</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (employeeId) <span class="cstat-no" title="statement not covered" >filters.employeeId = employeeId as string;</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (dateFrom) <span class="cstat-no" title="statement not covered" >filters.dateFrom = new Date(dateFrom as string);</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (dateTo) <span class="cstat-no" title="statement not covered" >filters.dateTo = new Date(dateTo as string);</span></span>
 &nbsp;
     const capacityData = <span class="cstat-no" title="statement not covered" >await CapacityHistoryModel.getCapacityWithEmployeeDetails(filters, departmentId as string);</span>
 &nbsp;
@@ -1486,7 +1480,7 @@
     ]);
 &nbsp;
     const csvContent = <span class="cstat-no" title="statement not covered" >[csvHeaders, ...csvRows]</span>
-      .map(<span class="fstat-no" title="function not covered" >row </span>=&gt; <span class="cstat-no" title="statement not covered" >row.map(<span class="fstat-no" title="function not covered" >cell </span>=&gt; <span class="cstat-no" title="statement not covered" >`"${cell.toString().replace(/"/g, '""')}"`)</span>.join(','))</span>
+      .map(<span class="fstat-no" title="function not covered" >row </span>=&gt; <span class="cstat-no" title="statement not covered" >row.map(<span class="fstat-no" title="function not covered" >cell </span>=&gt; <span class="cstat-no" title="statement not covered" >`"${(cell ?? '').toString().replace(/"/g, '""')}"`)</span>.join(','))</span>
       .join('\n');
 &nbsp;
     // Set headers for file download
@@ -1504,7 +1498,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-06T22:18:59.228Z
+                at 2025-09-20T16:44:39.550Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

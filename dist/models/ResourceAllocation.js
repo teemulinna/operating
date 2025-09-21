@@ -28,13 +28,13 @@ class ResourceAllocationModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint violation
                 throw new types_1.DatabaseError('Employee is already allocated to this project for overlapping dates');
             }
-            if (error.code === '23503') {
+            if (error.code === '23503') { // Foreign key constraint violation
                 throw new types_1.DatabaseError('Invalid project ID or employee ID');
             }
-            if (error.code === '23P01') {
+            if (error.code === '23P01') { // Serialization failure (custom check for overlapping)
                 throw new types_1.DatabaseError('Employee has overlapping resource allocation for the specified period');
             }
             throw error;
@@ -118,6 +118,7 @@ class ResourceAllocationModel {
                 position: row.employee.position,
                 hireDate: row.employee.hireDate,
                 isActive: row.employee.isActive,
+                defaultHours: row.employee.defaultHours || 40,
                 createdAt: row.employee.createdAt || new Date(),
                 updatedAt: row.employee.updatedAt || new Date()
             }
@@ -222,6 +223,7 @@ class ResourceAllocationModel {
         }
         const whereClause = whereConditions.join(' AND ');
         const offset = (page - 1) * limit;
+        // Get total count
         const countQuery = `
       SELECT COUNT(*) as total
       FROM resource_allocations ra
@@ -229,6 +231,7 @@ class ResourceAllocationModel {
     `;
         const countResult = await this.pool.query(countQuery, values);
         const total = parseInt(countResult.rows[0].total);
+        // Get paginated results
         values.push(limit, offset);
         const dataQuery = `
       SELECT ra.*
@@ -423,22 +426,29 @@ class ResourceAllocationModel {
         }));
     }
     static mapRow(row) {
-        return {
+        const allocation = {
             id: row.id,
             projectId: row.project_id,
             employeeId: row.employee_id,
             allocatedHours: parseFloat(row.allocated_hours) || 0,
-            hourlyRate: row.hourly_rate ? parseFloat(row.hourly_rate) : undefined,
             roleOnProject: row.role_on_project,
             startDate: row.start_date,
             endDate: row.end_date,
-            actualHours: row.actual_hours ? parseFloat(row.actual_hours) : undefined,
-            notes: row.notes,
             isActive: row.is_active,
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
+        // Only set optional properties if they have values
+        if (row.hourly_rate !== null && row.hourly_rate !== undefined) {
+            allocation.hourlyRate = parseFloat(row.hourly_rate);
+        }
+        if (row.actual_hours !== null && row.actual_hours !== undefined) {
+            allocation.actualHours = parseFloat(row.actual_hours);
+        }
+        if (row.notes !== null && row.notes !== undefined) {
+            allocation.notes = row.notes;
+        }
+        return allocation;
     }
 }
 exports.ResourceAllocationModel = ResourceAllocationModel;
-//# sourceMappingURL=ResourceAllocation.js.map

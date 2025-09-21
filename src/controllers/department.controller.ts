@@ -14,7 +14,7 @@ export class DepartmentController {
     try {
       const departments = await this.departmentService.getDepartments();
       res.status(200).json(departments);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -30,7 +30,7 @@ export class DepartmentController {
       }
       
       res.status(200).json(department);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -49,7 +49,7 @@ export class DepartmentController {
       const newDepartment = await this.departmentService.createDepartment(departmentData);
       
       res.status(201).json(newDepartment);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -77,7 +77,7 @@ export class DepartmentController {
       const updatedDepartment = await this.departmentService.updateDepartment(id, updateData);
       
       res.status(200).json(updatedDepartment);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -104,7 +104,7 @@ export class DepartmentController {
       await this.departmentService.deleteDepartment(id);
       
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -127,7 +127,7 @@ export class DepartmentController {
         employees,
         totalEmployees: employees.length
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -138,7 +138,7 @@ export class DepartmentController {
       const analytics = await this.departmentService.getDepartmentAnalytics();
       
       res.status(200).json(analytics);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };

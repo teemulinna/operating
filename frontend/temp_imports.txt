@@ -1,0 +1,13 @@
+import { EmployeeManagement } from './features/employees';
+import { AllocationManagement } from './features/allocations/AllocationManagement';
+import { ProjectManagement } from './features/projects/ProjectManagement';
+import { AllocationsPage } from './components/pages/AllocationsPage';
+import { ReportsPage } from './components/pages/ReportsPage';
+import { PlanningPage } from './components/pages/PlanningPage';
+import { TeamDashboard } from './components/pages/TeamDashboard';
+// Weekly Schedule imports
+import WeeklyScheduleGrid from './components/schedule/WeeklyScheduleGrid';
+import EnhancedSchedulePage from './pages/EnhancedSchedulePage';
+import ResourceAllocationForm from './components/allocations/ResourceAllocationForm';
+import DragDropSchedulerDemo from './pages/DragDropSchedulerDemo';
+import { apiService } from './services/api';

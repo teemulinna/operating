@@ -23,7 +23,7 @@ class SkillModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint violation
                 throw new types_1.DatabaseError(`Skill with name '${input.name}' already exists`);
             }
             throw error;
@@ -118,13 +118,14 @@ class SkillModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint violation
                 throw new types_1.DatabaseError(`Skill with name '${updates.name}' already exists`);
             }
             throw error;
         }
     }
     static async delete(id) {
+        // Check if skill is being used by employees
         const usageCheck = await this.pool.query('SELECT COUNT(*) FROM employee_skills WHERE skill_id = $1 AND is_active = true', [id]);
         if (parseInt(usageCheck.rows[0].count) > 0) {
             throw new types_1.DatabaseError('Cannot delete skill that is assigned to employees');
@@ -142,6 +143,7 @@ class SkillModel {
         return this.mapRow(result.rows[0]);
     }
     static async getStatistics() {
+        // Get total skills and skills by category
         const categoryQuery = `
       SELECT 
         COUNT(*) as total_skills,
@@ -160,6 +162,7 @@ class SkillModel {
                 skillsByCategory[row.category] = parseInt(row.category_count);
             }
         });
+        // Get most used skills
         const mostUsedQuery = `
       SELECT 
         s.*,
@@ -227,4 +230,3 @@ class SkillModel {
     }
 }
 exports.SkillModel = SkillModel;
-//# sourceMappingURL=Skill.js.map

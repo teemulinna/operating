@@ -16,13 +16,17 @@ CapacityController.getAllCapacity = (0, async_handler_1.asyncHandler)(async (req
         throw new api_error_1.ApiError(400, 'Invalid request parameters', errors.array());
     }
     const { employeeId, dateFrom, dateTo, minUtilization, maxUtilization } = req.query;
-    const filters = {
-        employeeId: employeeId,
-        dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-        dateTo: dateTo ? new Date(dateTo) : undefined,
-        minUtilizationRate: minUtilization ? parseFloat(minUtilization) : undefined,
-        maxUtilizationRate: maxUtilization ? parseFloat(maxUtilization) : undefined,
-    };
+    const filters = {};
+    if (employeeId)
+        filters.employeeId = employeeId;
+    if (dateFrom)
+        filters.dateFrom = new Date(dateFrom);
+    if (dateTo)
+        filters.dateTo = new Date(dateTo);
+    if (minUtilization)
+        filters.minUtilizationRate = parseFloat(minUtilization);
+    if (maxUtilization)
+        filters.maxUtilizationRate = parseFloat(maxUtilization);
     const capacityData = await CapacityHistory_1.CapacityHistoryModel.findAll(filters);
     res.json({
         success: true,

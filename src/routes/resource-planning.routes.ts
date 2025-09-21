@@ -10,7 +10,9 @@ const router = Router();
 const resourceAssignmentService = new ResourceAssignmentService();
 const projectService = new ProjectService();
 const capacityEngine = new CapacityEngineService(resourceAssignmentService, projectService);
-const analyticsService = new ResourceAnalyticsService(resourceAssignmentService, capacityEngine);
+import { DatabaseService } from '../database/database.service';
+const db = DatabaseService.getInstance();
+const analyticsService = new ResourceAnalyticsService(db.getPool());
 
 /**
  * @route GET /api/v1/resource-planning/capacity
@@ -30,7 +32,7 @@ router.get('/capacity', async (req: Request, res: Response) => {
 
     const start = new Date(startDate as string);
     const end = new Date(endDate as string);
-    
+
     // Validate date range
     if (start >= end) {
       return res.status(400).json({
@@ -49,12 +51,12 @@ router.get('/capacity', async (req: Request, res: Response) => {
     }
 
     // Get capacity data for all employees or specific employees
-    const employees = targetEmployeeIds.length > 0 
-      ? await resourceAssignmentService.getEmployeesByIds(targetEmployeeIds)
+    const employees = targetEmployeeIds.length > 0
+      ? await resourceAssignmentService.getEmployeesByIds(targetEmployeeIds.map(id => String(id)))
       : await resourceAssignmentService.getAllEmployees();
 
     const capacityData = await Promise.all(
-      employees.map(async (employee) => {
+      employees.map(async (employee: any) => {
         const availability = await capacityEngine.calculateEmployeeAvailability(
           employee.id,
           start,
@@ -74,7 +76,7 @@ router.get('/capacity', async (req: Request, res: Response) => {
       })
     );
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         period: { startDate: start, endDate: end },
@@ -90,7 +92,7 @@ router.get('/capacity', async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Error fetching capacity data:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to fetch capacity data'
     });
@@ -104,10 +106,10 @@ router.get('/capacity', async (req: Request, res: Response) => {
  */
 router.post('/optimize', async (req: Request, res: Response) => {
   try {
-    const { 
-      projectRequirements, 
-      currentAllocations, 
-      optimizationGoals = ['efficiency', 'utilization'] 
+    const {
+      projectRequirements,
+      currentAllocations,
+      optimizationGoals = ['efficiency', 'utilization']
     } = req.body;
 
     if (!projectRequirements && !currentAllocations) {
@@ -122,8 +124,8 @@ router.post('/optimize', async (req: Request, res: Response) => {
     if (projectRequirements) {
       // Project-based optimization
       optimizationResult = await capacityEngine.optimizeResourceAllocation(projectRequirements);
-      
-      res.json({
+
+      return res.json({
         success: true,
         data: {
           type: 'project_optimization',
@@ -144,8 +146,8 @@ router.post('/optimize', async (req: Request, res: Response) => {
     } else {
       // Current allocation optimization
       const allocationOptimization = await analyticsService.optimizeAllocation(currentAllocations);
-      
-      res.json({
+
+      return res.json({
         success: true,
         data: {
           type: 'allocation_optimization',
@@ -160,7 +162,7 @@ router.post('/optimize', async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Error generating optimization recommendations:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to generate optimization recommendations'
     });
@@ -187,8 +189,8 @@ router.get('/conflicts', async (req: Request, res: Response) => {
     const end = new Date(endDate as string);
 
     // Get all assignments in the period
-    const assignments = await resourceAssignmentService.getAssignmentsInPeriod(start, end);
-    
+    const assignments = await resourceAssignmentService.getAssignmentsInPeriod(startDate as string, endDate as string);
+
     // Detect conflicts
     const conflicts = await capacityEngine.detectConflicts(assignments);
 
@@ -201,10 +203,10 @@ router.get('/conflicts', async (req: Request, res: Response) => {
     // Group conflicts by employee and add employee details
     const conflictsByEmployee = new Map();
     for (const conflict of filteredConflicts) {
-      const affectedAssignments = assignments.filter(a => 
+      const affectedAssignments = assignments.filter(a =>
         conflict.assignmentIds.includes(a.id)
       );
-      
+
       for (const assignment of affectedAssignments) {
         const employeeId = assignment.employeeId;
         if (!conflictsByEmployee.has(employeeId)) {
@@ -219,7 +221,7 @@ router.get('/conflicts', async (req: Request, res: Response) => {
             totalOverAllocation: 0
           });
         }
-        
+
         const employeeConflicts = conflictsByEmployee.get(employeeId);
         employeeConflicts.conflicts.push({
           ...conflict,
@@ -234,7 +236,7 @@ router.get('/conflicts', async (req: Request, res: Response) => {
       }
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         period: { startDate: start, endDate: end },
@@ -254,7 +256,7 @@ router.get('/conflicts', async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Error fetching conflicts:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to fetch resource conflicts'
     });
@@ -283,8 +285,8 @@ router.get('/forecasts', async (req: Request, res: Response) => {
     startDate.setMonth(startDate.getMonth() - historicalRange);
 
     const historicalData = await resourceAssignmentService.getHistoricalResourceData(
-      startDate, 
-      endDate
+      startDate.toISOString().split('T')[0], 
+      endDate.toISOString().split('T')[0]
     );
 
     // Generate forecast
@@ -365,7 +367,7 @@ router.get('/analytics/utilization', async (req: Request, res: Response) => {
 
     const utilizationReport = await analyticsService.generateUtilizationReport(start, end);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         period: { startDate: start, endDate: end },
@@ -375,8 +377,8 @@ router.get('/analytics/utilization', async (req: Request, res: Response) => {
           totalProjects: utilizationReport.projectUtilization.length,
           underUtilized: utilizationReport.underUtilized.length,
           overUtilized: utilizationReport.overUtilized.length,
-          optimal: utilizationReport.employeeUtilization.length - 
-                   utilizationReport.underUtilized.length - 
+          optimal: utilizationReport.employeeUtilization.length -
+                   utilizationReport.underUtilized.length -
                    utilizationReport.overUtilized.length
         },
         ...(groupBy === 'employee' && {
@@ -393,7 +395,7 @@ router.get('/analytics/utilization', async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Error generating utilization analytics:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to generate utilization analytics'
     });

@@ -140,6 +140,7 @@ export class ResourceAllocationModel {
         position: row.employee.position,
         hireDate: row.employee.hireDate,
         isActive: row.employee.isActive,
+        defaultHours: row.employee.defaultHours || 40,
         createdAt: row.employee.createdAt || new Date(),
         updatedAt: row.employee.updatedAt || new Date()
       }
@@ -539,20 +540,30 @@ export class ResourceAllocationModel {
   }
 
   private static mapRow(row: any): ResourceAllocation {
-    return {
+    const allocation: ResourceAllocation = {
       id: row.id,
       projectId: row.project_id,
       employeeId: row.employee_id,
       allocatedHours: parseFloat(row.allocated_hours) || 0,
-      hourlyRate: row.hourly_rate ? parseFloat(row.hourly_rate) : undefined,
       roleOnProject: row.role_on_project,
       startDate: row.start_date,
       endDate: row.end_date,
-      actualHours: row.actual_hours ? parseFloat(row.actual_hours) : undefined,
-      notes: row.notes,
       isActive: row.is_active,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
+
+    // Only set optional properties if they have values
+    if (row.hourly_rate !== null && row.hourly_rate !== undefined) {
+      allocation.hourlyRate = parseFloat(row.hourly_rate);
+    }
+    if (row.actual_hours !== null && row.actual_hours !== undefined) {
+      allocation.actualHours = parseFloat(row.actual_hours);
+    }
+    if (row.notes !== null && row.notes !== undefined) {
+      allocation.notes = row.notes;
+    }
+
+    return allocation;
   }
 }

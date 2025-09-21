@@ -1,0 +1,913 @@
+import { ResourceAssignmentService } from '../../../src/services/resource-assignment.service';
+import { DatabaseService } from '../../../src/database/database.service';
+import { ApiError } from '../../../src/utils/api-error';
+import { createQueryResult, createMockDatabaseService } from './__mocks__/database.mock';
+
+// Mock DatabaseService
+const mockDb = createMockDatabaseService();
+
+describe('ResourceAssignmentService', () => {
+  let service: ResourceAssignmentService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Mock DatabaseService.getInstance()
+    (DatabaseService.getInstance as jest.Mock).;
+
+    service = new ResourceAssignmentService();
+  });
+
+  describe('createAssignment', () => {
+    const validAssignmentData = {
+      project_id: 1,
+      employee_id: 'emp-123',
+      project_role_id: 'role-456',
+      assignment_type: 'employee',
+      start_date: '2024-01-01',
+      end_date: '2024-03-31',
+      planned_allocation_percentage: 80,
+      hourly_rate: 100,
+      confidence_level: 'confirmed',
+      notes: 'Key developer for frontend'
+    };
+
+    const mockEmployee = {
+      id: 'emp-123',
+      weekly_hours: 40,
+      first_name: 'John',
+      last_name: 'Doe'
+    };
+
+    const mockCreatedAssignment = {
+      id: 'assign-789',
+      ...validAssignmentData,
+      planned_hours_per_week: 32,
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+
+    it('should create assignment successfully with valid data', async () => {
+      // Mock capacity validation
+      mockDb.query
+        ) // Employee lookup
+        ) // Existing allocations
+        ) // Insert result
+        ); // Get with details
+
+      const result = await service.createAssignment(validAssignmentData);
+
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO resource_assignments'),
+        expect.arrayContaining([
+          1, 'emp-123', 'role-456', 'employee',
+          '2024-01-01', '2024-03-31', 80, 32, 100, 'confirmed', 'Key developer for frontend'
+        ])
+      );
+
+      expect(result).toBeDefined();
+    });
+
+    it('should throw validation error for missing required fields', async () => {
+      const invalidData = {
+        ...validAssignmentData,
+        project_id: undefined as any,
+        employee_id: '',
+        start_date: ''
+      };
+
+      await expect(service.createAssignment(invalidData))
+        .rejects.toThrow('Project ID, employee ID, and start date are required');
+    });
+
+    it('should throw validation error for invalid allocation percentage', async () => {
+      const invalidData = {
+        ...validAssignmentData,
+        planned_allocation_percentage: 150
+      };
+
+      await expect(service.createAssignment(invalidData))
+        .rejects.toThrow('Planned allocation percentage must be between 1 and 100');
+    });
+
+    it('should throw validation error for zero allocation percentage', async () => {
+      const invalidData = {
+        ...validAssignmentData,
+        planned_allocation_percentage: 0
+      };
+
+      await expect(service.createAssignment(invalidData))
+        .rejects.toThrow('Planned allocation percentage must be between 1 and 100');
+    });
+
+    it('should calculate planned hours per week correctly', async () => {
+      mockDb.query
+        
+        
+        
+        ;
+
+      await service.createAssignment(validAssignmentData);
+
+      // Should calculate 80% of 40 hours = 32 hours per week
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining([32])
+      );
+    });
+
+    it('should handle employee not found', async () => {
+      mockDb.query;
+
+      await expect(service.createAssignment(validAssignmentData)
+        .rejects.toThrow('Employee not found or inactive');
+    });
+
+    it('should handle capacity validation failure', async () => {
+      const overAllocatedEmployee = { ...mockEmployee };
+
+      mockDb.query
+        
+        ; // Existing 90% + 80% = 170%
+
+      await expect(service.createAssignment(validAssignmentData)
+        .rejects.toThrow('Assignment would exceed employee capacity');
+    });
+
+    it('should allow slight over-allocation up to 105%', async () => {
+      const data = {
+        ...validAssignmentData,
+        planned_allocation_percentage: 30
+      };
+
+      mockDb.query
+        
+         // 75% + 30% = 105%
+        
+        ;
+
+      const result = await service.createAssignment(data);
+
+      expect(result).toBeDefined();
+    });
+
+    it('should warn for over 100% allocation', async () => {
+      const consoleSpy = jest.spyOn(console, 'warn').;
+
+      const data = {
+        ...validAssignmentData,
+        planned_allocation_percentage: 25
+      };
+
+      mockDb.query
+        
+         // 80% + 25% = 105%
+        
+        ;
+
+      await service.createAssignment(data);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('will be over-allocated: 105%')
+      );
+
+      consoleSpy;
+    });
+
+    it('should handle database insert failure', async () => {
+      mockDb.query
+        
+        
+        ; // No rows returned from insert
+
+      await expect(service.createAssignment(validAssignmentData)
+        .rejects.toThrow('Failed to create assignment');
+    });
+
+    it('should set default values for optional fields', async () => {
+      const minimalData = {
+        project_id: 1,
+        employee_id: 'emp-123',
+        start_date: '2024-01-01',
+        planned_allocation_percentage: 50
+      };
+
+      mockDb.query
+        
+        
+        
+        ;
+
+      await service.createAssignment(minimalData);
+
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining([
+          1, 'emp-123', undefined, 'employee', // assignment_type default
+          '2024-01-01', undefined, 50, 20, undefined, 'confirmed', undefined // confidence_level default
+        ])
+      );
+    });
+  });
+
+  describe('validateEmployeeCapacity', () => {
+    const mockEmployee = {
+      id: 'emp-123',
+      weekly_hours: 40,
+      first_name: 'John',
+      last_name: 'Doe'
+    };
+
+    it('should validate capacity successfully for normal allocation', async () => {
+      mockDb.query
+        
+        ;
+
+      // Should not throw for 60% + 30% = 90%
+      await expect(
+        service.validateEmployeeCapacity('emp-123', '2024-01-01', '2024-03-31', 30)
+      ).resolves.not.toThrow();
+    });
+
+    it('should reject over-allocation beyond 105%', async () => {
+      mockDb.query
+        
+        ;
+
+      await expect(
+        service.validateEmployeeCapacity('emp-123', '2024-01-01', '2024-03-31', 50)
+      ).rejects.toThrow('Assignment would exceed employee capacity');
+    });
+
+    it('should exclude specified assignment from validation', async () => {
+      mockDb.query
+        
+        ;
+
+      await service.validateEmployeeCapacity(
+        'emp-123', '2024-01-01', '2024-03-31', 40, 'exclude-123'
+      );
+
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.stringContaining('AND id != $4'),
+        ['emp-123', '2024-01-01', '2024-03-31', 'exclude-123']
+      );
+    });
+
+    it('should use default capacity when employee weekly_hours is null', async () => {
+      const employeeWithoutHours = {
+        ...mockEmployee,
+        weekly_hours: null
+      };
+
+      mockDb.query
+        
+        ;
+
+      // Should use 40 hours as default
+      await expect(
+        service.validateEmployeeCapacity('emp-123', '2024-01-01', '2024-03-31', 30)
+      ).resolves.not.toThrow();
+    });
+
+    it('should handle null end date with default max date', async () => {
+      mockDb.query
+        
+        ;
+
+      await service.validateEmployeeCapacity(
+        'emp-123', '2024-01-01', undefined, 40
+      );
+
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.any(String),
+        ['emp-123', '2024-01-01', '9999-12-31']
+      );
+    });
+
+    it('should handle database errors gracefully', async () => {
+      mockDb.query;
+
+      await expect(
+        service.validateEmployeeCapacity('emp-123', '2024-01-01', '2024-03-31', 50)
+      ).rejects.toThrow('Failed to validate employee capacity');
+    });
+  });
+
+  describe('getEmployeeAssignments', () => {
+    const mockAssignments = [
+      {
+        id: 'assign-1',
+        project_id: 1,
+        employee_id: 'emp-123',
+        planned_allocation_percentage: 80,
+        start_date: '2024-01-01',
+        status: 'active',
+        project_name: 'Project Alpha',
+        first_name: 'John',
+        last_name: 'Doe'
+      },
+      {
+        id: 'assign-2',
+        project_id: 2,
+        employee_id: 'emp-123',
+        planned_allocation_percentage: 20,
+        start_date: '2024-02-01',
+        status: 'planned',
+        project_name: 'Project Beta',
+        first_name: 'John',
+        last_name: 'Doe'
+      }
+    ];
+
+    const mockUtilization = {
+      total_allocation: '60',
+      active_assignments: '2',
+      total_hours: '24'
+    };
+
+    it('should return employee assignments with summary', async () => {
+      mockDb.query
+        
+        ;
+
+      const result = await service.getEmployeeAssignments('emp-123');
+
+      expect(result.employeeId).toBe('emp-123');
+      expect(result.assignments).toHaveLength(2);
+      expect(result.summary).toMatchObject({
+        totalAssignments: 2,
+        activeAssignments: 1,
+        totalAllocation: 60,
+        totalHours: 24,
+        utilizationStatus: 'available'
+      });
+    });
+
+    it('should determine utilization status correctly', async () => {
+      const testCases = [
+        { allocation: '120', expected: 'over-allocated' },
+        { allocation: '100', expected: 'fully-allocated' },
+        { allocation: '90', expected: 'highly-utilized' },
+        { allocation: '70', expected: 'available' }
+      ];
+
+      for (const testCase of testCases) {
+        mockDb.query
+          
+          ;
+
+        const result = await service.getEmployeeAssignments('emp-123');
+
+        expect(result.summary.utilizationStatus).toBe(testCase.expected);
+      }
+    });
+
+    it('should handle employee with no assignments', async () => {
+      mockDb.query
+        
+        ;
+
+      const result = await service.getEmployeeAssignments('emp-123');
+
+      expect(result.assignments).toHaveLength(0);
+      expect(result.summary.totalAssignments).toBe(0);
+      expect(result.summary.totalAllocation).toBe(0);
+    });
+
+    it('should handle database errors', async () => {
+      mockDb.query;
+
+      await expect(service.getEmployeeAssignments('emp-123')
+        .rejects.toThrow('Failed to fetch employee assignments');
+    });
+  });
+
+  describe('getProjectAssignments', () => {
+    const mockProjectAssignments = [
+      {
+        id: 'assign-1',
+        project_id: 1,
+        employee_id: 'emp-123',
+        planned_allocation_percentage: 80,
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        position: 'Developer',
+        role_name: 'Frontend Developer',
+        employee_skills: [
+          { name: 'React', category: 'Technical' },
+          { name: 'JavaScript', category: 'Technical' }
+        ]
+      },
+      {
+        id: 'assign-2',
+        project_id: 1,
+        employee_id: 'emp-456',
+        planned_allocation_percentage: 60,
+        first_name: 'Jane',
+        last_name: 'Smith',
+        email: 'jane@example.com',
+        position: 'Designer',
+        role_name: 'UI/UX Designer',
+        employee_skills: [
+          { name: 'Figma', category: 'Design' },
+          { name: 'Adobe XD', category: 'Design' }
+        ]
+      }
+    ];
+
+    it('should return project assignments with employee details', async () => {
+      mockDb.query.;
+
+      const result = await service.getProjectAssignments(1);
+
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.stringContaining('WHERE ra.project_id = $1'),
+        [1]
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatchObject({
+        id: 'assign-1',
+        first_name: 'John',
+        last_name: 'Doe',
+        role_name: 'Frontend Developer',
+        employee_skills: expect.arrayContaining([
+          { name: 'React', category: 'Technical' }
+        ])
+      });
+    });
+
+    it('should handle project with no assignments', async () => {
+      mockDb.query.;
+
+      const result = await service.getProjectAssignments(999);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should handle database errors', async () => {
+      mockDb.query;
+
+      await expect(service.getProjectAssignments(1)
+        .rejects.toThrow('Failed to fetch project assignments');
+    });
+  });
+
+  describe('updateAssignment', () => {
+    const mockCurrentAssignment = {
+      id: 'assign-123',
+      employee_id: 'emp-456',
+      start_date: '2024-01-01',
+      end_date: '2024-03-31',
+      planned_allocation_percentage: 80
+    };
+
+    const mockUpdatedAssignment = {
+      ...mockCurrentAssignment,
+      planned_allocation_percentage: 60,
+      updated_at: new Date()
+    };
+
+    it('should update assignment successfully', async () => {
+      const updateData = { planned_allocation_percentage: 60 };
+
+      mockDb.query
+         // Get current assignment
+         // Employee for capacity validation
+         // Existing allocations
+        ; // Update result
+
+      const result = await service.updateAssignment('assign-123', updateData);
+
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE resource_assignments'),
+        [60, 'assign-123']
+      );
+
+      expect(result).toEqual(mockUpdatedAssignment);
+    });
+
+    it('should handle assignment not found', async () => {
+      mockDb.query;
+
+      await expect(service.updateAssignment('non-existent', {})
+        .rejects.toThrow('Assignment not found');
+    });
+
+    it('should validate capacity when updating allocation percentage', async () => {
+      const updateData = { planned_allocation_percentage: 90 };
+
+      mockDb.query
+        
+        
+        ; // Would exceed capacity
+
+      await expect(service.updateAssignment('assign-123', updateData)
+        .rejects.toThrow('Assignment would exceed employee capacity');
+    });
+
+    it('should skip capacity validation when allocation is not updated', async () => {
+      const updateData = { notes: 'Updated notes' };
+
+      mockDb.query
+        
+        ;
+
+      const result = await service.updateAssignment('assign-123', updateData);
+
+      expect(result).toEqual(mockUpdatedAssignment);
+      // Should not call capacity validation queries
+      expect(mockDb.query).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle empty update data', async () => {
+      mockDb.query;
+
+      const result = await service.updateAssignment('assign-123', {});
+
+      expect(result).toEqual(mockCurrentAssignment);
+    });
+
+    it('should filter out undefined values', async () => {
+      const updateData = {
+        planned_allocation_percentage: 70,
+        notes: undefined,
+        hourly_rate: null,
+        confidence_level: 'high'
+      };
+
+      mockDb.query
+        
+        
+        
+        ;
+
+      await service.updateAssignment('assign-123', updateData);
+
+      const updateCall = mockDb.query.mock.calls[3];
+      expect(updateCall[0]).toContain('planned_allocation_percentage = $1');
+      expect(updateCall[0]).toContain('confidence_level = $2');
+      expect(updateCall[0]).not.toContain('notes');
+      expect(updateCall[1]).toEqual([70, 'high', 'assign-123']);
+    });
+  });
+
+  describe('deleteAssignment', () => {
+    it('should delete assignment successfully', async () => {
+      mockDb.query.;
+
+      await service.deleteAssignment('assign-123');
+
+      expect(mockDb.query).toHaveBeenCalledWith(
+        'DELETE FROM resource_assignments WHERE id = $1',
+        ['assign-123']
+      );
+    });
+
+    it('should handle assignment not found', async () => {
+      mockDb.query.;
+
+      await expect(service.deleteAssignment('non-existent')
+        .rejects.toThrow('Assignment not found');
+    });
+
+    it('should handle database errors', async () => {
+      mockDb.query;
+
+      await expect(service.deleteAssignment('assign-123')
+        .rejects.toThrow('Failed to delete assignment');
+    });
+  });
+
+  describe('utility methods', () => {
+    describe('getAllEmployees', () => {
+      const mockEmployees = [
+        {
+          id: 'emp-1',
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john@example.com',
+          department: 'Engineering',
+          role: 'Developer',
+          skills: ['JavaScript', 'React'],
+          hourly_rate: 100
+        },
+        {
+          id: 'emp-2',
+          first_name: 'Jane',
+          last_name: 'Smith',
+          email: 'jane@example.com',
+          department: 'Design',
+          role: 'Designer',
+          skills: ['Figma', 'Adobe XD'],
+          hourly_rate: 85
+        }
+      ];
+
+      it('should return all active employees', async () => {
+        mockDb.query.;
+
+        const result = await service.getAllEmployees();
+
+        expect(mockDb.query).toHaveBeenCalledWith(
+          expect.stringContaining('WHERE is_active = true'),
+          undefined
+        );
+
+        expect(result).toEqual(mockEmployees);
+      });
+
+      it('should order employees by last name, first name', async () => {
+        mockDb.query.;
+
+        await service.getAllEmployees();
+
+        expect(mockDb.query).toHaveBeenCalledWith(
+          expect.stringContaining('ORDER BY last_name, first_name'),
+          undefined
+        );
+      });
+    });
+
+    describe('getEmployeesByIds', () => {
+      it('should return employees by IDs', async () => {
+        const employeeIds = ['emp-1', 'emp-2'];
+        const mockEmployees = [
+          { id: 'emp-1', first_name: 'John' },
+          { id: 'emp-2', first_name: 'Jane' }
+        ];
+
+        mockDb.query.;
+
+        const result = await service.getEmployeesByIds(employeeIds);
+
+        expect(mockDb.query).toHaveBeenCalledWith(
+          expect.stringContaining('WHERE id = ANY($1)'),
+          [employeeIds]
+        );
+
+        expect(result).toEqual(mockEmployees);
+      });
+
+      it('should handle empty ID array', async () => {
+        const result = await service.getEmployeesByIds([]);
+
+        expect(result).toEqual([]);
+        expect(mockDb.query).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('getAssignmentsInPeriod', () => {
+      it('should return assignments in date range', async () => {
+        const mockAssignments = [
+          {
+            id: 'assign-1',
+            start_date: '2024-01-15',
+            end_date: '2024-02-15',
+            status: 'active'
+          }
+        ];
+
+        mockDb.query.;
+
+        const result = await service.getAssignmentsInPeriod('2024-01-01', '2024-03-31');
+
+        expect(mockDb.query).toHaveBeenCalledWith(
+          expect.stringContaining('WHERE'),
+          ['2024-01-01', '2024-03-31']
+        );
+
+        expect(result).toEqual(mockAssignments);
+      });
+    });
+
+    describe('getResourceConflicts', () => {
+      const mockConflicts = [
+        {
+          employee_id: 'emp-123',
+          employee_name: 'John Doe',
+          start_date: '2024-01-01',
+          end_date: '2024-01-31',
+          total_allocation: '120',
+          conflicting_assignments: ['assign-1', 'assign-2']
+        }
+      ];
+
+      it('should identify resource conflicts', async () => {
+        mockDb.query.;
+
+        const result = await service.getResourceConflicts();
+
+        expect(mockDb.query).toHaveBeenCalledWith(
+          expect.stringContaining('HAVING SUM(planned_allocation_percentage) > 100')
+        );
+
+        expect(result).toEqual(mockConflicts);
+        expect(result[0].total_allocation).toBe('120');
+      });
+
+      it('should handle no conflicts', async () => {
+        mockDb.query.;
+
+        const result = await service.getResourceConflicts();
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('should handle database errors', async () => {
+        mockDb.query;
+
+        await expect(service.getResourceConflicts()
+          .rejects.toThrow('Failed to fetch resource conflicts');
+      });
+    });
+  });
+
+  describe('edge cases and boundary conditions', () => {
+    it('should handle maximum allocation percentage (100%)', async () => {
+      const maxAllocation = {
+        project_id: 1,
+        employee_id: 'emp-123',
+        start_date: '2024-01-01',
+        planned_allocation_percentage: 100
+      };
+
+      mockDb.query
+        
+        
+        
+        ;
+
+      await expect(service.createAssignment(maxAllocation)
+        .resolves.toBeDefined();
+    });
+
+    it('should handle very long date ranges', async () => {
+      const longTerm = {
+        project_id: 1,
+        employee_id: 'emp-123',
+        start_date: '2024-01-01',
+        end_date: '2026-12-31',
+        planned_allocation_percentage: 50
+      };
+
+      mockDb.query
+        
+        
+        
+        ;
+
+      await expect(service.createAssignment(longTerm)
+        .resolves.toBeDefined();
+    });
+
+    it('should handle fractional allocation percentages', async () => {
+      const fractional = {
+        project_id: 1,
+        employee_id: 'emp-123',
+        start_date: '2024-01-01',
+        planned_allocation_percentage: 12.5
+      };
+
+      mockDb.query
+        
+        
+        
+        ;
+
+      await service.createAssignment(fractional);
+
+      // Should calculate 12.5% of 40 hours = 5 hours per week
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining([5])
+      );
+    });
+
+    it('should handle null values in database responses', async () => {
+      const assignmentWithNulls = {
+        id: 'assign-123',
+        project_id: 1,
+        employee_id: 'emp-123',
+        planned_allocation_percentage: null,
+        hourly_rate: null,
+        notes: null,
+        first_name: 'John',
+        last_name: 'Doe'
+      };
+
+      mockDb.query.;
+
+      const result = await service.getProjectAssignments(1);
+
+      expect(result[0]).toMatchObject({
+        id: 'assign-123',
+        planned_allocation_percentage: null,
+        hourly_rate: null,
+        notes: null
+      });
+    });
+
+    it('should handle employees with custom weekly hours', async () => {
+      const partTimeEmployee = {
+        id: 'emp-123',
+        weekly_hours: 20, // Part-time
+        first_name: 'Part',
+        last_name: 'Timer'
+      };
+
+      const allocation = {
+        project_id: 1,
+        employee_id: 'emp-123',
+        start_date: '2024-01-01',
+        planned_allocation_percentage: 50
+      };
+
+      mockDb.query
+        
+        
+        
+        ;
+
+      await service.createAssignment(allocation);
+
+      // Should calculate 50% of 20 hours = 10 hours per week
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining([10])
+      );
+    });
+
+    it('should handle concurrent assignment operations', async () => {
+      const assignment1 = {
+        project_id: 1,
+        employee_id: 'emp-123',
+        start_date: '2024-01-01',
+        planned_allocation_percentage: 50
+      };
+
+      const assignment2 = {
+        project_id: 2,
+        employee_id: 'emp-123',
+        start_date: '2024-01-01',
+        planned_allocation_percentage: 40
+      };
+
+      // Mock successful responses for both assignments
+      mockDb.query
+        .
+        .
+        .
+        .;
+
+      const promises = [
+        service.createAssignment(assignment1),
+        service.createAssignment(assignment2)
+      ];
+
+      const results = await Promise.allSettled(promises);
+
+      expect(results).toHaveLength(2);
+      // At least one should succeed, potential race condition might cause one to fail
+    });
+  });
+
+  describe('performance considerations', () => {
+    it('should handle large employee lists efficiently', async () => {
+      const manyEmployees = Array.from({ length: 1000 }, (_, i) => ({
+        id: `emp-${i}`,
+        first_name: `Employee${i}`,
+        last_name: 'Test'
+      });
+
+      mockDb.query.;
+
+      const startTime = Date.now();
+      const result = await service.getAllEmployees();
+      const endTime = Date.now();
+
+      expect(endTime - startTime).toBeLessThan(100); // Should be very fast for query execution
+      expect(result).toHaveLength(1000);
+    });
+
+    it('should handle large assignment datasets', async () => {
+      const manyAssignments = Array.from({ length: 500 }, (_, i) => ({
+        id: `assign-${i}`,
+        employee_id: 'emp-123',
+        project_id: i % 10,
+        planned_allocation_percentage: Math.random() * 100
+      });
+
+      mockDb.query
+        
+        ;
+
+      const result = await service.getEmployeeAssignments('emp-123');
+
+      expect(result.assignments).toHaveLength(500);
+      expect(result.summary).toBeDefined();
+    });
+  });
+});

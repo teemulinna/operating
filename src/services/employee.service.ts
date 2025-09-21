@@ -1,4 +1,5 @@
 import { DatabaseService } from '../database/database.service';
+import { DatabaseFactory } from '../database/database-factory';
 import { 
   Employee, 
   CreateEmployeeRequest, 
@@ -12,8 +13,13 @@ import {
 export class EmployeeService {
   private db: DatabaseService;
 
-  constructor() {
-    this.db = DatabaseService.getInstance();
+  constructor(db?: DatabaseService) {
+    this.db = db || DatabaseService.getInstance();
+  }
+
+  static async create(): Promise<EmployeeService> {
+    const db = await DatabaseFactory.getDatabaseService();
+    return new EmployeeService(db);
   }
 
   async getEmployees(query: EmployeeQuery): Promise<PaginatedResponse<Employee>> {
@@ -22,7 +28,7 @@ export class EmployeeService {
     const offset = (page - 1) * limit;
 
     let whereConditions: string[] = [];
-    let params: any[] = [];
+    let params: (string | number | boolean | string[])[] = [];
     let paramIndex = 1;
 
     // Build WHERE conditions
@@ -138,7 +144,7 @@ export class EmployeeService {
     };
   }
 
-  async getEmployeeById(id: number): Promise<Employee | null> {
+  async getEmployeeById(id: string): Promise<Employee | null> {
     const query = `
       SELECT 
         e.id,
@@ -223,9 +229,9 @@ export class EmployeeService {
     return result.rows[0];
   }
 
-  async updateEmployee(id: number, updateData: UpdateEmployeeRequest): Promise<Employee> {
+  async updateEmployee(id: string, updateData: UpdateEmployeeRequest): Promise<Employee> {
     const fields: string[] = [];
-    const params: any[] = [];
+    const params: (string | number | boolean | string[])[] = [];
     let paramIndex = 1;
 
     if (updateData.firstName !== undefined) {
@@ -294,9 +300,30 @@ export class EmployeeService {
     return result.rows[0];
   }
 
-  async deleteEmployee(id: number): Promise<void> {
-    const query = 'DELETE FROM employees WHERE id = $1';
-    await this.db.query(query, [id]);
+  async deleteEmployee(id: string): Promise<void> {
+    try {
+      // First check if employee has any allocation templates
+      const templatesQuery = 'SELECT COUNT(*) as count FROM allocation_templates WHERE created_by = $1';
+      const templatesResult = await this.db.query(templatesQuery, [id]);
+      const templateCount = parseInt(templatesResult.rows[0]?.count || '0');
+
+      if (templateCount > 0) {
+        throw new Error(`Cannot delete employee. This employee has created ${templateCount} allocation template(s). Please reassign or delete the templates first.`);
+      }
+
+      // If no templates, proceed with deletion
+      const query = 'DELETE FROM employees WHERE id = $1';
+      const result = await this.db.query(query, [id]);
+      
+      if (result.rowCount === 0) {
+        throw new Error('Employee not found');
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to delete employee due to database constraints');
+    }
   }
 
   async bulkImportEmployees(employees: CreateEmployeeRequest[]): Promise<BulkImportResponse> {

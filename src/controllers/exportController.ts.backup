@@ -1,0 +1,1136 @@
+import { Request, Response } from 'express';
+import { Pool } from 'pg';
+import { validationResult } from 'express-validator';
+
+export class ExportController {
+  private static pool: Pool;
+
+  static initialize(pool: Pool): void {
+    this.pool = pool;
+  }
+
+  /**
+   * Export employees as CSV
+   */
+  static async exportEmployeesCSV(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const { 
+        filters = {}, 
+        fields = ['firstName', 'lastName', 'email', 'position', 'departmentName', 'status'] 
+      } = req.body;
+
+      // Build query based on filters
+      let whereConditions = ['e.is_active = true'];
+      const values: any[] = [];
+
+      if (filters.status && filters.status !== 'all') {
+        values.push(filters.status);
+        whereConditions.push(`COALESCE(ea.status, 'available') = $${values.length}`);
+      }
+
+      if (filters.departmentId) {
+        values.push(filters.departmentId);
+        whereConditions.push(`e.department_id = $${values.length}`);
+      }
+
+      if (filters.search) {
+        values.push(`%${filters.search}%`);
+        whereConditions.push(`(
+          LOWER(e.first_name) ILIKE LOWER($${values.length}) OR 
+          LOWER(e.last_name) ILIKE LOWER($${values.length}) OR 
+          LOWER(e.email) ILIKE LOWER($${values.length}) OR 
+          LOWER(e.position) ILIKE LOWER($${values.length})
+        )`);
+      }
+
+      const whereClause = whereConditions.join(' AND ');
+
+      const query = `
+        SELECT 
+          e.id,
+          e.first_name,
+          e.last_name,
+          e.email,
+          e.position,
+          e.hire_date,
+          d.name as department_name,
+          COALESCE(ea.status, 'available') as status,
+          COALESCE(ea.capacity, 100) as capacity,
+          COALESCE(ea.current_projects, 0) as current_projects,
+          COALESCE(ea.available_hours, 40) as available_hours,
+          e.created_at,
+          e.updated_at
+        FROM employees e
+        JOIN departments d ON e.department_id = d.id
+        LEFT JOIN employee_availability ea ON e.id = ea.employee_id
+        WHERE ${whereClause}
+        ORDER BY e.last_name, e.first_name
+      `;
+
+      const result = await this.pool.query(query, values);
+      const employees = result.rows;
+
+      // Map field names for CSV headers
+      const fieldMapping: Record<string, string> = {
+        firstName: 'First Name',
+        lastName: 'Last Name', 
+        email: 'Email',
+        position: 'Position',
+        departmentName: 'Department',
+        status: 'Status',
+        capacity: 'Capacity (%)',
+        currentProjects: 'Current Projects',
+        availableHours: 'Available Hours',
+        hireDate: 'Hire Date',
+        createdAt: 'Created At',
+        updatedAt: 'Updated At'
+      };
+
+      // Generate CSV headers
+      const csvHeaders = fields.map((field: string) => fieldMapping[field] || field).join(',');
+
+      // Generate CSV rows
+      const csvRows = employees.map(employee => {
+        return fields.map((field: string) => {
+          let value: any;
+          
+          switch (field) {
+            case 'firstName':
+              value = employee.first_name;
+              break;
+            case 'lastName':
+              value = employee.last_name;
+              break;
+            case 'departmentName':
+              value = employee.department_name;
+              break;
+            case 'currentProjects':
+              value = employee.current_projects;
+              break;
+            case 'availableHours':
+              value = employee.available_hours;
+              break;
+            case 'hireDate':
+              value = employee.hire_date ? new Date(employee.hire_date).toLocaleDateString() : '';
+              break;
+            case 'createdAt':
+              value = employee.created_at ? new Date(employee.created_at).toLocaleDateString() : '';
+              break;
+            case 'updatedAt':
+              value = employee.updated_at ? new Date(employee.updated_at).toLocaleDateString() : '';
+              break;
+            default:
+              value = employee[field];
+          }
+
+          // Escape CSV values
+          if (value === null || value === undefined) {
+            return '';
+          }
+          
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          
+          return stringValue;
+        }).join(',');
+      }).join('\n');
+
+      const csvContent = `${csvHeaders}\n${csvRows}`;
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `employees_export_${timestamp}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', Buffer.byteLength(csvContent));
+      
+      res.send(csvContent);
+    } catch (error: any) {
+      console.error('Error exporting CSV:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export CSV',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Export projects as CSV
+   */
+  static async exportProjectsCSV(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const { 
+        filters = {}, 
+        fields = ['name', 'status', 'startDate', 'endDate', 'budget', 'description'] 
+      } = req.body;
+
+      // Build query based on filters
+      let whereConditions = ['p.is_active = true'];
+      const values: any[] = [];
+
+      if (filters.status && filters.status !== 'all') {
+        values.push(filters.status);
+        whereConditions.push(`p.status = $${values.length}`);
+      }
+
+      if (filters.search) {
+        values.push(`%${filters.search}%`);
+        whereConditions.push(`(
+          LOWER(p.name) ILIKE LOWER($${values.length}) OR 
+          LOWER(p.description) ILIKE LOWER($${values.length})
+        )`);
+      }
+
+      const whereClause = whereConditions.join(' AND ');
+
+      const query = `
+        SELECT 
+          p.id,
+          p.name,
+          p.description,
+          p.status,
+          p.start_date,
+          p.end_date,
+          p.budget,
+          p.created_at,
+          p.updated_at,
+          COUNT(ra.id) as allocated_resources
+        FROM projects p
+        LEFT JOIN resource_assignments ra ON p.id = ra.project_id AND ra.status = 'active'
+        WHERE ${whereClause}
+        GROUP BY p.id, p.name, p.description, p.status, p.start_date, p.end_date, p.budget, p.created_at, p.updated_at
+        ORDER BY p.name
+      `;
+
+      const result = await this.pool.query(query, values);
+      const projects = result.rows;
+
+      // Map field names for CSV headers
+      const fieldMapping: Record<string, string> = {
+        name: 'Project Name',
+        description: 'Description',
+        status: 'Status',
+        startDate: 'Start Date',
+        endDate: 'End Date',
+        budget: 'Budget',
+        allocatedResources: 'Allocated Resources',
+        createdAt: 'Created At',
+        updatedAt: 'Updated At'
+      };
+
+      // Generate CSV headers
+      const csvHeaders = fields.map((field: string) => fieldMapping[field] || field).join(',');
+
+      // Generate CSV rows
+      const csvRows = projects.map(project => {
+        return fields.map((field: string) => {
+          let value: any;
+          
+          switch (field) {
+            case 'startDate':
+              value = project.start_date ? new Date(project.start_date).toLocaleDateString() : '';
+              break;
+            case 'endDate':
+              value = project.end_date ? new Date(project.end_date).toLocaleDateString() : '';
+              break;
+            case 'allocatedResources':
+              value = project.allocated_resources || 0;
+              break;
+            case 'createdAt':
+              value = project.created_at ? new Date(project.created_at).toLocaleDateString() : '';
+              break;
+            case 'updatedAt':
+              value = project.updated_at ? new Date(project.updated_at).toLocaleDateString() : '';
+              break;
+            default:
+              value = project[field];
+          }
+
+          // Escape CSV values
+          if (value === null || value === undefined) {
+            return '';
+          }
+          
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          
+          return stringValue;
+        }).join(',');
+      }).join('\n');
+
+      const csvContent = `${csvHeaders}\n${csvRows}`;
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `projects_export_${timestamp}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', Buffer.byteLength(csvContent));
+      
+      res.send(csvContent);
+    } catch (error: any) {
+      console.error('Error exporting projects CSV:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export projects CSV',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Export allocations as CSV
+   */
+  static async exportAllocationsCSV(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const { 
+        filters = {}, 
+        fields = ['employeeName', 'projectName', 'plannedHoursPerWeek', 'startDate', 'endDate', 'status'] 
+      } = req.body;
+
+      // Build query based on filters
+      let whereConditions = ['ra.status = \'active\''];
+      const values: any[] = [];
+
+      if (filters.employeeId) {
+        values.push(filters.employeeId);
+        whereConditions.push(`ra.employee_id = $${values.length}`);
+      }
+
+      if (filters.projectId) {
+        values.push(filters.projectId);
+        whereConditions.push(`ra.project_id = $${values.length}`);
+      }
+
+      if (filters.status && filters.status !== 'all') {
+        values.push(filters.status);
+        whereConditions.push(`ra.status = $${values.length}`);
+      }
+
+      const whereClause = whereConditions.join(' AND ');
+
+      const query = `
+        SELECT 
+          ra.id,
+          ra.employee_id,
+          ra.project_id,
+          e.first_name || ' ' || e.last_name as employee_name,
+          e.email as employee_email,
+          e.position,
+          p.name as project_name,
+          p.status as project_status,
+          ra.planned_allocation_percentage,
+          ra.actual_allocation_percentage,
+          ra.planned_hours_per_week,
+          ra.start_date,
+          ra.end_date,
+          ra.status,
+          ra.notes,
+          ra.created_at,
+          ra.updated_at
+        FROM resource_assignments ra
+        JOIN employees e ON ra.employee_id = e.id
+        JOIN projects p ON ra.project_id = p.id
+        WHERE ${whereClause}
+        ORDER BY ra.start_date DESC
+      `;
+
+      const result = await this.pool.query(query, values);
+      const allocations = result.rows;
+
+      // Map field names for CSV headers
+      const fieldMapping: Record<string, string> = {
+        employeeName: 'Employee Name',
+        employeeEmail: 'Employee Email',
+        position: 'Position',
+        projectName: 'Project Name',
+        plannedHoursPerWeek: 'Planned Hours/Week',
+        plannedAllocationPercentage: 'Allocation %',
+        actualAllocationPercentage: 'Actual Allocation %',
+        startDate: 'Start Date',
+        endDate: 'End Date',
+        status: 'Status',
+        notes: 'Notes',
+        createdAt: 'Created At',
+        updatedAt: 'Updated At'
+      };
+
+      // Generate CSV headers
+      const csvHeaders = fields.map((field: string) => fieldMapping[field] || field).join(',');
+
+      // Generate CSV rows
+      const csvRows = allocations.map(allocation => {
+        return fields.map((field: string) => {
+          let value: any;
+          
+          switch (field) {
+            case 'employeeName':
+              value = allocation.employee_name;
+              break;
+            case 'employeeEmail':
+              value = allocation.employee_email;
+              break;
+            case 'projectName':
+              value = allocation.project_name;
+              break;
+            case 'plannedHoursPerWeek':
+              // Calculate hours per week if not available
+              if (allocation.planned_hours_per_week) {
+                value = allocation.planned_hours_per_week;
+              } else if (allocation.planned_allocation_percentage) {
+                value = (40 * parseFloat(allocation.planned_allocation_percentage)) / 100;
+              } else {
+                value = 0;
+              }
+              break;
+            case 'plannedAllocationPercentage':
+              value = allocation.planned_allocation_percentage || 0;
+              break;
+            case 'actualAllocationPercentage':
+              value = allocation.actual_allocation_percentage || 0;
+              break;
+            case 'startDate':
+              value = allocation.start_date ? new Date(allocation.start_date).toLocaleDateString() : '';
+              break;
+            case 'endDate':
+              value = allocation.end_date ? new Date(allocation.end_date).toLocaleDateString() : '';
+              break;
+            case 'createdAt':
+              value = allocation.created_at ? new Date(allocation.created_at).toLocaleDateString() : '';
+              break;
+            case 'updatedAt':
+              value = allocation.updated_at ? new Date(allocation.updated_at).toLocaleDateString() : '';
+              break;
+            default:
+              value = allocation[field];
+          }
+
+          // Escape CSV values
+          if (value === null || value === undefined) {
+            return '';
+          }
+          
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          
+          return stringValue;
+        }).join(',');
+      }).join('\n');
+
+      const csvContent = `${csvHeaders}\n${csvRows}`;
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `allocations_export_${timestamp}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', Buffer.byteLength(csvContent));
+      
+      res.send(csvContent);
+    } catch (error: any) {
+      console.error('Error exporting allocations CSV:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export allocations CSV',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Export projects as CSV
+   */
+  static async exportProjectsCSV(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const { 
+        filters = {}, 
+        fields = ['name', 'description', 'status', 'priority', 'startDate', 'endDate', 'budget'] 
+      } = req.body;
+
+      // Build query based on filters
+      let whereConditions = ['p.is_active = true'];
+      const values: any[] = [];
+
+      if (filters.status && filters.status !== 'all') {
+        values.push(filters.status);
+        whereConditions.push(`p.status = $${values.length}`);
+      }
+
+      if (filters.priority) {
+        values.push(filters.priority);
+        whereConditions.push(`p.priority = $${values.length}`);
+      }
+
+      if (filters.search) {
+        values.push(`%${filters.search}%`);
+        whereConditions.push(`(
+          LOWER(p.name) ILIKE LOWER($${values.length}) OR 
+          LOWER(p.description) ILIKE LOWER($${values.length})
+        )`);
+      }
+
+      const whereClause = whereConditions.join(' AND ');
+
+      const query = `
+        SELECT 
+          p.id,
+          p.name,
+          p.description,
+          p.status,
+          p.priority,
+          p.start_date,
+          p.end_date,
+          p.budget,
+          p.client_name,
+          p.project_manager,
+          p.created_at,
+          p.updated_at,
+          COUNT(ra.id) as allocation_count,
+          COALESCE(SUM(ra.allocation_percentage), 0) as total_allocation
+        FROM projects p
+        LEFT JOIN resource_allocations ra ON p.id = ra.project_id
+        WHERE ${whereClause}
+        GROUP BY p.id, p.name, p.description, p.status, p.priority, p.start_date, p.end_date, p.budget, p.client_name, p.project_manager, p.created_at, p.updated_at
+        ORDER BY p.name
+      `;
+
+      const result = await this.pool.query(query, values);
+      const projects = result.rows;
+
+      // Map field names for CSV headers
+      const fieldMapping: Record<string, string> = {
+        name: 'Project Name',
+        description: 'Description',
+        status: 'Status',
+        priority: 'Priority',
+        startDate: 'Start Date',
+        endDate: 'End Date',
+        budget: 'Budget',
+        clientName: 'Client Name',
+        projectManager: 'Project Manager',
+        allocationCount: 'Total Allocations',
+        totalAllocation: 'Total Allocation %',
+        createdAt: 'Created At',
+        updatedAt: 'Updated At'
+      };
+
+      // Generate CSV headers
+      const csvHeaders = fields.map((field: string) => fieldMapping[field] || field).join(',');
+
+      // Generate CSV rows
+      const csvRows = projects.map(project => {
+        return fields.map((field: string) => {
+          let value: any;
+          
+          switch (field) {
+            case 'startDate':
+              value = project.start_date ? new Date(project.start_date).toLocaleDateString() : '';
+              break;
+            case 'endDate':
+              value = project.end_date ? new Date(project.end_date).toLocaleDateString() : '';
+              break;
+            case 'clientName':
+              value = project.client_name;
+              break;
+            case 'projectManager':
+              value = project.project_manager;
+              break;
+            case 'allocationCount':
+              value = project.allocation_count;
+              break;
+            case 'totalAllocation':
+              value = project.total_allocation;
+              break;
+            case 'createdAt':
+              value = project.created_at ? new Date(project.created_at).toLocaleDateString() : '';
+              break;
+            case 'updatedAt':
+              value = project.updated_at ? new Date(project.updated_at).toLocaleDateString() : '';
+              break;
+            default:
+              value = project[field];
+          }
+
+          // Escape CSV values
+          if (value === null || value === undefined) {
+            return '';
+          }
+          
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          
+          return stringValue;
+        }).join(',');
+      }).join('\n');
+
+      const csvContent = `${csvHeaders}\n${csvRows}`;
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `projects_export_${timestamp}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', Buffer.byteLength(csvContent));
+      
+      res.send(csvContent);
+    } catch (error: any) {
+      console.error('Error exporting projects CSV:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export projects CSV',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Export allocations as CSV
+   */
+  static async exportAllocationsCSV(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const { 
+        filters = {}, 
+        fields = ['employeeName', 'projectName', 'allocationPercentage', 'startDate', 'endDate', 'status'] 
+      } = req.body;
+
+      // Build query based on filters
+      let whereConditions = ['ra.is_active = true'];
+      const values: any[] = [];
+
+      if (filters.employeeId) {
+        values.push(filters.employeeId);
+        whereConditions.push(`ra.employee_id = $${values.length}`);
+      }
+
+      if (filters.projectId) {
+        values.push(filters.projectId);
+        whereConditions.push(`ra.project_id = $${values.length}`);
+      }
+
+      if (filters.status && filters.status !== 'all') {
+        values.push(filters.status);
+        whereConditions.push(`COALESCE(ra.status, 'active') = $${values.length}`);
+      }
+
+      const whereClause = whereConditions.join(' AND ');
+
+      const query = `
+        SELECT 
+          ra.id,
+          ra.employee_id,
+          ra.project_id,
+          ra.allocation_percentage,
+          ra.start_date,
+          ra.end_date,
+          ra.notes,
+          COALESCE(ra.status, 'active') as status,
+          ra.created_at,
+          ra.updated_at,
+          CONCAT(e.first_name, ' ', e.last_name) as employee_name,
+          e.position as employee_position,
+          d.name as department_name,
+          p.name as project_name,
+          p.priority as project_priority,
+          p.status as project_status
+        FROM resource_allocations ra
+        JOIN employees e ON ra.employee_id = e.id
+        JOIN departments d ON e.department_id = d.id
+        JOIN projects p ON ra.project_id = p.id
+        WHERE ${whereClause}
+        ORDER BY ra.start_date DESC, employee_name, project_name
+      `;
+
+      const result = await this.pool.query(query, values);
+      const allocations = result.rows;
+
+      // Map field names for CSV headers
+      const fieldMapping: Record<string, string> = {
+        employeeName: 'Employee Name',
+        employeePosition: 'Employee Position',
+        departmentName: 'Department',
+        projectName: 'Project Name',
+        projectPriority: 'Project Priority',
+        projectStatus: 'Project Status',
+        allocationPercentage: 'Allocation %',
+        startDate: 'Start Date',
+        endDate: 'End Date',
+        status: 'Allocation Status',
+        notes: 'Notes',
+        createdAt: 'Created At',
+        updatedAt: 'Updated At'
+      };
+
+      // Generate CSV headers
+      const csvHeaders = fields.map((field: string) => fieldMapping[field] || field).join(',');
+
+      // Generate CSV rows
+      const csvRows = allocations.map(allocation => {
+        return fields.map((field: string) => {
+          let value: any;
+          
+          switch (field) {
+            case 'employeeName':
+              value = allocation.employee_name;
+              break;
+            case 'employeePosition':
+              value = allocation.employee_position;
+              break;
+            case 'departmentName':
+              value = allocation.department_name;
+              break;
+            case 'projectName':
+              value = allocation.project_name;
+              break;
+            case 'projectPriority':
+              value = allocation.project_priority;
+              break;
+            case 'projectStatus':
+              value = allocation.project_status;
+              break;
+            case 'allocationPercentage':
+              value = allocation.allocation_percentage;
+              break;
+            case 'startDate':
+              value = allocation.start_date ? new Date(allocation.start_date).toLocaleDateString() : '';
+              break;
+            case 'endDate':
+              value = allocation.end_date ? new Date(allocation.end_date).toLocaleDateString() : '';
+              break;
+            case 'createdAt':
+              value = allocation.created_at ? new Date(allocation.created_at).toLocaleDateString() : '';
+              break;
+            case 'updatedAt':
+              value = allocation.updated_at ? new Date(allocation.updated_at).toLocaleDateString() : '';
+              break;
+            default:
+              value = allocation[field];
+          }
+
+          // Escape CSV values
+          if (value === null || value === undefined) {
+            return '';
+          }
+          
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          
+          return stringValue;
+        }).join(',');
+      }).join('\n');
+
+      const csvContent = `${csvHeaders}\n${csvRows}`;
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `allocations_export_${timestamp}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', Buffer.byteLength(csvContent));
+      
+      res.send(csvContent);
+    } catch (error: any) {
+      console.error('Error exporting allocations CSV:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export allocations CSV',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Export employees as Excel (simulated - would use actual Excel library in production)
+   */
+  static async exportEmployeesExcel(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      // For this demo, we'll return a mock Excel file response
+      // In production, you would use libraries like 'exceljs' or 'xlsx'
+      
+      const { filters = {}, includeCharts = false, worksheets = ['employees'] } = req.body;
+      
+      // Simulate Excel file generation
+      const excelData = Buffer.from('Excel file content would be here');
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `employees_export_${timestamp}.xlsx`;
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', excelData.length);
+      
+      res.send(excelData);
+    } catch (error: any) {
+      console.error('Error exporting Excel:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export Excel',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Generate PDF capacity planning report
+   */
+  static async generateCapacityReportPDF(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const {
+        dateRange,
+        includeDepartments = [],
+        reportType = 'quarterly',
+        includeCharts = true,
+        includeProjections = true
+      } = req.body;
+
+      // Get capacity data for report
+      let whereConditions = ['e.is_active = true'];
+      const values: any[] = [];
+
+      if (includeDepartments.length > 0) {
+        values.push(includeDepartments);
+        whereConditions.push(`e.department_id = ANY($${values.length})`);
+      }
+
+      const whereClause = whereConditions.join(' AND ');
+
+      const query = `
+        SELECT 
+          d.name as department_name,
+          COUNT(e.id) as total_employees,
+          AVG(COALESCE(ea.capacity, 100)) as avg_capacity,
+          COUNT(*) FILTER (WHERE COALESCE(ea.status, 'available') = 'available') as available_count,
+          COUNT(*) FILTER (WHERE COALESCE(ea.status, 'available') = 'busy') as busy_count,
+          COUNT(*) FILTER (WHERE COALESCE(ea.status, 'available') = 'unavailable') as unavailable_count
+        FROM employees e
+        JOIN departments d ON e.department_id = d.id
+        LEFT JOIN employee_availability ea ON e.id = ea.employee_id
+        WHERE ${whereClause}
+        GROUP BY d.id, d.name
+        ORDER BY d.name
+      `;
+
+      const result = await this.pool.query(query, values);
+      const capacityData = result.rows;
+
+      // For this demo, we'll return a mock PDF response
+      // In production, you would use libraries like 'puppeteer', 'jspdf', or 'pdfkit'
+      
+      const pdfData = Buffer.from('PDF report content would be here');
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `capacity-report-${reportType}-${timestamp}.pdf`;
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', pdfData.length);
+      
+      res.send(pdfData);
+    } catch (error: any) {
+      console.error('Error generating PDF report:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate PDF report',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Schedule automated reports
+   */
+  static async scheduleReport(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const {
+        reportType,
+        frequency,
+        format,
+        recipients,
+        filters,
+        startDate
+      } = req.body;
+
+      // Calculate next run time based on frequency
+      const now = new Date();
+      let nextRun: Date;
+      
+      switch (frequency) {
+        case 'daily':
+          nextRun = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+          break;
+        case 'weekly':
+          nextRun = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'monthly':
+          nextRun = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+          break;
+        default:
+          nextRun = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      }
+
+      // Create schedule record
+      const scheduleQuery = `
+        INSERT INTO report_schedules (
+          report_type, frequency, format, recipients, filters, next_run, is_active, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, true, CURRENT_TIMESTAMP)
+        RETURNING *
+      `;
+
+      const scheduleValues = [
+        reportType,
+        frequency,
+        format,
+        JSON.stringify(recipients),
+        JSON.stringify(filters || {}),
+        nextRun
+      ];
+
+      const result = await this.pool.query(scheduleQuery, scheduleValues);
+      const schedule = result.rows[0];
+
+      res.status(201).json({
+        success: true,
+        message: 'Report schedule created successfully',
+        data: {
+          scheduleId: schedule.id,
+          reportType: schedule.report_type,
+          frequency: schedule.frequency,
+          format: schedule.format,
+          recipients: JSON.parse(schedule.recipients),
+          filters: JSON.parse(schedule.filters),
+          nextRun: schedule.next_run,
+          isActive: schedule.is_active
+        },
+        scheduleId: schedule.id,
+        nextRun: schedule.next_run
+      });
+    } catch (error: any) {
+      console.error('Error scheduling report:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to schedule report',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Sync data with external project management tools
+   */
+  static async syncWithExternalTools(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const { targetSystems, syncType, data } = req.body;
+
+      const syncResults = [];
+
+      for (const system of targetSystems) {
+        try {
+          // Mock external API integration
+          // In production, you would make actual API calls to JIRA, Asana, etc.
+          
+          let syncResult;
+          
+          switch (system.toLowerCase()) {
+            case 'jira':
+              syncResult = await this.syncWithJira(syncType, data);
+              break;
+            case 'asana':
+              syncResult = await this.syncWithAsana(syncType, data);
+              break;
+            case 'trello':
+              syncResult = await this.syncWithTrello(syncType, data);
+              break;
+            default:
+              throw new Error(`Unsupported system: ${system}`);
+          }
+
+          syncResults.push({
+            system,
+            status: 'success',
+            syncedAt: new Date().toISOString(),
+            recordsProcessed: syncResult.recordsProcessed || 1,
+            details: syncResult.details
+          });
+        } catch (error: any) {
+          syncResults.push({
+            system,
+            status: 'error',
+            syncedAt: new Date().toISOString(),
+            error: error.message
+          });
+        }
+      }
+
+      // Log sync attempt
+      const logQuery = `
+        INSERT INTO external_sync_log (
+          target_systems, sync_type, sync_data, results, created_at
+        ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+      `;
+
+      await this.pool.query(logQuery, [
+        JSON.stringify(targetSystems),
+        syncType,
+        JSON.stringify(data),
+        JSON.stringify(syncResults)
+      ]);
+
+      res.json({
+        success: true,
+        message: 'External sync completed',
+        syncResults
+      });
+    } catch (error: any) {
+      console.error('Error syncing with external tools:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to sync with external tools',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Mock JIRA integration
+   */
+  private static async syncWithJira(syncType: string, data: any): Promise<any> {
+    // Mock JIRA API call
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate network delay
+    
+    return {
+      recordsProcessed: 1,
+      details: {
+        issueUpdated: 'PROJ-123',
+        capacityUpdated: data.capacity,
+        assigneeCapacity: data.availableHours
+      }
+    };
+  }
+
+  /**
+   * Mock Asana integration
+   */
+  private static async syncWithAsana(syncType: string, data: any): Promise<any> {
+    // Mock Asana API call
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate network delay
+    
+    return {
+      recordsProcessed: 1,
+      details: {
+        taskCapacityUpdated: 'task_123456789',
+        userCapacity: data.capacity,
+        availableHours: data.availableHours
+      }
+    };
+  }
+
+  /**
+   * Mock Trello integration
+   */
+  private static async syncWithTrello(syncType: string, data: any): Promise<any> {
+    // Mock Trello API call
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate network delay
+    
+    return {
+      recordsProcessed: 1,
+      details: {
+        boardUpdated: 'board_123',
+        memberCapacity: data.capacity,
+        cardAssignments: data.currentProjects
+      }
+    };
+  }
+}

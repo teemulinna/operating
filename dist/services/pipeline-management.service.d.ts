@@ -2,19 +2,16 @@ import { PipelineProject, CreatePipelineProjectRequest, UpdatePipelineProjectReq
 export declare class PipelineManagementService {
     private db;
     constructor();
-    createPipelineProject(request: CreatePipelineProjectRequest): Promise<PipelineProject>;
-    getPipelineProject(id: string): Promise<PipelineProject>;
-    getPipelineProjects(filters?: PipelineFilters): Promise<{
+    createPipelineProject(data: CreatePipelineProjectRequest): Promise<PipelineProject>;
+    getPipelineProjects(filters: PipelineFilters): Promise<{
         projects: PipelineProject[];
         total: number;
     }>;
-    updatePipelineProject(request: UpdatePipelineProjectRequest): Promise<PipelineProject>;
+    getPipelineProject(id: string): Promise<PipelineProject | null>;
+    updatePipelineProject(data: UpdatePipelineProjectRequest): Promise<PipelineProject>;
     deletePipelineProject(id: string): Promise<void>;
-    getPipelineAnalytics(filters?: PipelineFilters): Promise<PipelineAnalytics>;
-    private getResourceDemandForecast;
-    private getWinLossAnalysis;
-    private getPipelineTrends;
-    private transformPipelineProject;
-    private transformPipelineProjectSummary;
+    getPipelineAnalytics(filters: Partial<PipelineFilters>): Promise<PipelineAnalytics>;
+    private mapRowToPipelineProject;
+    private camelToSnake;
 }
 //# sourceMappingURL=pipeline-management.service.d.ts.map

@@ -1,6 +1,8 @@
 "use strict";
+// Project Pipeline Integration Types for CRM Integration
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SYNC_STATUS_COLORS = exports.PIPELINE_PRIORITY_COLORS = exports.PIPELINE_STAGE_COLORS = void 0;
+// Color mappings for UI
 exports.PIPELINE_STAGE_COLORS = {
     lead: 'bg-gray-100 text-gray-800',
     prospect: 'bg-blue-100 text-blue-800',
@@ -23,4 +25,3 @@ exports.SYNC_STATUS_COLORS = {
     failed: 'bg-red-100 text-red-800',
     conflict: 'bg-orange-100 text-orange-800',
 };
-//# sourceMappingURL=pipeline.js.map

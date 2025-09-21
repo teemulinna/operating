@@ -11,7 +11,7 @@ export interface Skill {
 
 export interface EmployeeSkill {
   id?: number;
-  employeeId: number;
+  employeeId: string;
   skillId: number;
   proficiencyLevel: number; // 1-5
   certificationLevel?: string;
@@ -191,7 +191,7 @@ export class SkillsManagementService {
   }
 
   // Employee Skills Management
-  async assignSkillToEmployee(employeeId: number, skillAssignment: {
+  async assignSkillToEmployee(employeeId: string, skillAssignment: {
     skillId: number;
     proficiencyLevel: number;
     certificationLevel?: string;
@@ -223,7 +223,7 @@ export class SkillsManagementService {
     return this.mapEmployeeSkillRow(result.rows[0]);
   }
 
-  async getEmployeeSkills(employeeId: number): Promise<EmployeeSkill[]> {
+  async getEmployeeSkills(employeeId: string): Promise<EmployeeSkill[]> {
     const query = `
       SELECT 
         es.*,
@@ -240,7 +240,7 @@ export class SkillsManagementService {
     return result.rows.map(this.mapEmployeeSkillWithSkill);
   }
 
-  async updateEmployeeSkill(employeeId: number, skillId: number, updates: {
+  async updateEmployeeSkill(employeeId: string, updates: {
     proficiencyLevel?: number;
     certificationLevel?: string;
     yearsOfExperience?: number;
@@ -283,7 +283,7 @@ export class SkillsManagementService {
   }
 
   // Skill Gap Analysis
-  async performSkillGapAnalysis(employeeId: number): Promise<SkillGapAnalysis> {
+  async performSkillGapAnalysis(employeeId: string): Promise<SkillGapAnalysis> {
     // Get employee's current position and department
     const employeeQuery = `
       SELECT position, department_id FROM employees WHERE id = $1
@@ -459,7 +459,7 @@ export class SkillsManagementService {
   }
 
   // Training Recommendations
-  async getTrainingRecommendations(employeeId: number): Promise<{ recommendations: TrainingRecommendation[] }> {
+  async getTrainingRecommendations(employeeId: string): Promise<{ recommendations: TrainingRecommendation[] }> {
     const gapAnalysis = await this.performSkillGapAnalysis(employeeId);
     const recommendations: TrainingRecommendation[] = [];
 

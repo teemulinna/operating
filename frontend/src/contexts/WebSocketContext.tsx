@@ -1,223 +1,147 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface WebSocketContextType {
   socket: Socket | null;
   isConnected: boolean;
-  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
-  emit: (event: string, data?: any) => void;
-  on: (event: string, handler: (data: any) => void) => void;
-  off: (event: string, handler?: (data: any) => void) => void;
   connectionError: string | null;
-  retryCount: number;
+  reconnectAttempts: number;
 }
 
-interface WebSocketProviderProps {
-  children: React.ReactNode;
-  url?: string;
-  options?: any;
-}
-
-const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
+const WebSocketContext = createContext<WebSocketContextType>({
+  socket: null,
+  isConnected: false,
+  connectionError: null,
+  reconnectAttempts: 0,
+});
 
 export const useWebSocket = () => {
   const context = useContext(WebSocketContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useWebSocket must be used within a WebSocketProvider');
   }
   return context;
 };
 
-export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ 
-  children, 
-  url = process.env.VITE_API_URL || 'http://localhost:3001',
-  options = {}
+interface WebSocketProviderProps {
+  children: ReactNode;
+  url?: string;
+  options?: any;
+}
+
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
+  children,
+  url = 'http://localhost:3001', // Default to backend server
+  options = {},
 }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
-  const maxRetries = 10;
-  const baseDelay = 1000; // 1 second
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
-  // Exponential backoff calculation
-  const calculateDelay = useCallback((attempt: number) => {
-    return Math.min(baseDelay * Math.pow(2, attempt), 30000); // Max 30 seconds
-  }, [baseDelay]);
-
-  // Initialize WebSocket connection
   useEffect(() => {
-    let currentSocket: Socket | null = null;
-    let reconnectTimeout: NodeJS.Timeout;
-    let reconnectAttempts = 0;
+    // Initialize socket connection
+    const newSocket = io(url, {
+      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000,
+      ...options,
+    });
 
-    const initializeSocket = () => {
-      try {
-        currentSocket = io(url, {
-          transports: ['websocket', 'polling'],
-          autoConnect: true,
-          reconnection: false, // We'll handle reconnection manually
-          timeout: 20000,
-          ...options
-        });
+    // Connection event handlers
+    newSocket.on('connect', () => {
+      console.log('WebSocket connected:', newSocket.id);
+      setIsConnected(true);
+      setConnectionError(null);
+      setReconnectAttempts(0);
+    });
 
-        currentSocket.on('connect', () => {
-          console.log('WebSocket connected');
-          setIsConnected(true);
-          setConnectionStatus('connected');
-          setConnectionError(null);
-          setRetryCount(0);
-          reconnectAttempts = 0;
-          
-          // Join the resource allocation room for real-time updates
-          currentSocket?.emit('join-resource-room', { userId: 'current-user' });
-        });
-
-        currentSocket.on('disconnect', (reason) => {
-          console.log('WebSocket disconnected:', reason);
-          setIsConnected(false);
-          setConnectionStatus('disconnected');
-          
-          // Attempt reconnection if not a manual disconnect
-          if (reason !== 'io client disconnect' && reconnectAttempts < maxRetries) {
-            attemptReconnection();
-          }
-        });
-
-        currentSocket.on('connect_error', (error) => {
-          console.error('WebSocket connection error:', error);
-          setIsConnected(false);
-          setConnectionStatus('error');
-          setConnectionError(error.message);
-          
-          // Attempt reconnection with exponential backoff
-          if (reconnectAttempts < maxRetries) {
-            attemptReconnection();
-          }
-        });
-
-        // Resource allocation real-time events
-        currentSocket.on('resource-allocation-updated', (data) => {
-          console.log('Resource allocation updated:', data);
-          window.dispatchEvent(new CustomEvent('resource-allocation-changed', { detail: data }));
-        });
-
-        // User presence events
-        currentSocket.on('user-presence-updated', (data) => {
-          console.log('User presence updated:', data);
-          window.dispatchEvent(new CustomEvent('user-presence-changed', { detail: data }));
-        });
-
-        // Cursor tracking events
-        currentSocket.on('cursor-position-updated', (data) => {
-          window.dispatchEvent(new CustomEvent('cursor-position-changed', { detail: data }));
-        });
-
-        // Selection highlighting events
-        currentSocket.on('selection-updated', (data) => {
-          window.dispatchEvent(new CustomEvent('selection-changed', { detail: data }));
-        });
-
-        // Notification events
-        currentSocket.on('notification', (data) => {
-          window.dispatchEvent(new CustomEvent('realtime-notification', { detail: data }));
-        });
-
-        setSocket(currentSocket);
-        return currentSocket;
-      } catch (error) {
-        console.error('Failed to initialize WebSocket:', error);
-        setConnectionStatus('error');
-        setConnectionError(error instanceof Error ? error.message : 'Unknown error');
-        return null;
-      }
-    };
-
-    const attemptReconnection = () => {
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-      }
-
-      const delay = calculateDelay(reconnectAttempts);
-      console.log(`Attempting reconnection in ${delay}ms (attempt ${reconnectAttempts + 1}/${maxRetries})`);
+    newSocket.on('disconnect', (reason) => {
+      console.log('WebSocket disconnected:', reason);
+      setIsConnected(false);
       
-      reconnectTimeout = setTimeout(() => {
-        reconnectAttempts++;
-        setRetryCount(reconnectAttempts);
-        setConnectionStatus('connecting');
-        
-        // Clean up existing socket
-        if (currentSocket) {
-          currentSocket.removeAllListeners();
-          currentSocket.disconnect();
-        }
-        
-        // Create new socket
-        initializeSocket();
-      }, delay);
-    };
+      if (reason === 'io server disconnect') {
+        // Server initiated disconnect, reconnect manually
+        newSocket.connect();
+      }
+    });
 
-    // Initialize the socket
-    initializeSocket();
+    newSocket.on('connect_error', (error) => {
+      console.error('WebSocket connection error:', error);
+      setConnectionError(error.message);
+      setIsConnected(false);
+    });
+
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('WebSocket reconnected after', attemptNumber, 'attempts');
+      setIsConnected(true);
+      setConnectionError(null);
+      setReconnectAttempts(0);
+    });
+
+    newSocket.on('reconnect_attempt', (attemptNumber) => {
+      console.log('WebSocket reconnection attempt:', attemptNumber);
+      setReconnectAttempts(attemptNumber);
+    });
+
+    newSocket.on('reconnect_error', (error) => {
+      console.error('WebSocket reconnection error:', error);
+      setConnectionError(error.message);
+    });
+
+    newSocket.on('reconnect_failed', () => {
+      console.error('WebSocket reconnection failed');
+      setConnectionError('Failed to reconnect to server');
+    });
+
+    // Project-specific event handlers
+    newSocket.on('project:updated', (data) => {
+      console.log('Project updated:', data);
+    });
+
+    newSocket.on('allocation:created', (data) => {
+      console.log('Allocation created:', data);
+    });
+
+    newSocket.on('allocation:updated', (data) => {
+      console.log('Allocation updated:', data);
+    });
+
+    newSocket.on('allocation:deleted', (data) => {
+      console.log('Allocation deleted:', data);
+    });
+
+    newSocket.on('employee:updated', (data) => {
+      console.log('Employee updated:', data);
+    });
+
+    setSocket(newSocket);
 
     // Cleanup on unmount
     return () => {
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-      }
-      if (currentSocket) {
-        currentSocket.removeAllListeners();
-        currentSocket.disconnect();
-      }
+      console.log('Cleaning up WebSocket connection');
+      newSocket.removeAllListeners();
+      newSocket.disconnect();
+      setSocket(null);
+      setIsConnected(false);
     };
-  }, [url]);
+  }, [url, options]);
 
-  // Emit function wrapper
-  const emit = useCallback((event: string, data?: any) => {
-    if (socket && isConnected) {
-      socket.emit(event, data);
-    } else {
-      console.warn('WebSocket not connected. Cannot emit event:', event);
-    }
-  }, [socket, isConnected]);
-
-  // Event listener wrapper
-  const on = useCallback((event: string, handler: (data: any) => void) => {
-    if (socket) {
-      socket.on(event, handler);
-    }
-  }, [socket]);
-
-  // Remove event listener wrapper
-  const off = useCallback((event: string, handler?: (data: any) => void) => {
-    if (socket) {
-      if (handler) {
-        socket.off(event, handler);
-      } else {
-        socket.off(event);
-      }
-    }
-  }, [socket]);
-
-  const contextValue: WebSocketContextType = {
+  const value: WebSocketContextType = {
     socket,
     isConnected,
-    connectionStatus,
-    emit,
-    on,
-    off,
     connectionError,
-    retryCount
+    reconnectAttempts,
   };
 
   return (
-    <WebSocketContext.Provider value={contextValue}>
+    <WebSocketContext.Provider value={value}>
       {children}
     </WebSocketContext.Provider>
   );
 };
 
-export default WebSocketProvider;
+export default WebSocketContext;

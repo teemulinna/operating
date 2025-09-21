@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 export declare class ResourceController {
-    private employeeService;
     constructor();
     static getResourceAllocation: (req: Request, res: Response, next: NextFunction) => void;
     static getOptimizationSuggestions: (req: Request, res: Response, next: NextFunction) => void;

@@ -2,17 +2,24 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmployeeService = void 0;
 const database_service_1 = require("../database/database.service");
+const database_factory_1 = require("../database/database-factory");
+// Removed unused import: ApiError
 class EmployeeService {
-    constructor() {
-        this.db = database_service_1.DatabaseService.getInstance();
+    constructor(db) {
+        this.db = db || database_service_1.DatabaseService.getInstance();
+    }
+    static async create() {
+        const db = await database_factory_1.DatabaseFactory.getDatabaseService();
+        return new EmployeeService(db);
     }
     async getEmployees(query) {
         const page = query.page || 1;
-        const limit = Math.min(query.limit || 10, 100);
+        const limit = Math.min(query.limit || 10, 100); // Max 100 items per page
         const offset = (page - 1) * limit;
         let whereConditions = [];
         let params = [];
         let paramIndex = 1;
+        // Build WHERE conditions
         if (query.search) {
             whereConditions.push(`(
         e.first_name ILIKE $${paramIndex} OR 
@@ -55,6 +62,7 @@ class EmployeeService {
             paramIndex++;
         }
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+        // Build ORDER BY clause
         const validSortFields = {
             firstName: 'e.first_name',
             lastName: 'e.last_name',
@@ -63,6 +71,7 @@ class EmployeeService {
         };
         const sortField = validSortFields[query.sortBy || 'lastName'] || 'e.last_name';
         const sortOrder = query.sortOrder === 'desc' ? 'DESC' : 'ASC';
+        // Get total count
         const countQuery = `
       SELECT COUNT(*) as total
       FROM employees e
@@ -71,6 +80,7 @@ class EmployeeService {
         const countResult = await this.db.query(countQuery, params);
         const totalItems = parseInt(countResult.rows[0].total);
         const totalPages = Math.ceil(totalItems / limit);
+        // Get employees
         const dataQuery = `
       SELECT 
         e.id,
@@ -244,8 +254,27 @@ class EmployeeService {
         return result.rows[0];
     }
     async deleteEmployee(id) {
-        const query = 'DELETE FROM employees WHERE id = $1';
-        await this.db.query(query, [id]);
+        try {
+            // First check if employee has any allocation templates
+            const templatesQuery = 'SELECT COUNT(*) as count FROM allocation_templates WHERE created_by = $1';
+            const templatesResult = await this.db.query(templatesQuery, [id]);
+            const templateCount = parseInt(templatesResult.rows[0]?.count || '0');
+            if (templateCount > 0) {
+                throw new Error(`Cannot delete employee. This employee has created ${templateCount} allocation template(s). Please reassign or delete the templates first.`);
+            }
+            // If no templates, proceed with deletion
+            const query = 'DELETE FROM employees WHERE id = $1';
+            const result = await this.db.query(query, [id]);
+            if (result.rowCount === 0) {
+                throw new Error('Employee not found');
+            }
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Failed to delete employee due to database constraints');
+        }
     }
     async bulkImportEmployees(employees) {
         const response = {
@@ -256,6 +285,7 @@ class EmployeeService {
         for (let i = 0; i < employees.length; i++) {
             const employee = employees[i];
             try {
+                // Check for duplicate email
                 const existingEmployee = await this.getEmployeeByEmail(employee.email);
                 if (existingEmployee) {
                     response.duplicates++;
@@ -281,23 +311,28 @@ class EmployeeService {
     }
     async getEmployeeAnalytics() {
         const queries = [
+            // Total employees
             'SELECT COUNT(*) as total_employees FROM employees WHERE is_active = true',
+            // Employees by department
             `SELECT d.name as department, COUNT(e.id) as count
        FROM departments d
        LEFT JOIN employees e ON d.id = e.department_id AND e.is_active = true
        GROUP BY d.id, d.name
        ORDER BY count DESC`,
+            // Average salary by department
             `SELECT d.name as department, ROUND(AVG(e.salary), 2) as avg_salary
        FROM departments d
        JOIN employees e ON d.id = e.department_id AND e.is_active = true
        GROUP BY d.id, d.name
        ORDER BY avg_salary DESC`,
+            // Most common skills
             `SELECT skill, COUNT(*) as count
        FROM employees e, unnest(e.skills) as skill
        WHERE e.is_active = true
        GROUP BY skill
        ORDER BY count DESC
        LIMIT 10`,
+            // Hiring trends (last 12 months)
             `SELECT 
          DATE_TRUNC('month', hire_date) as month,
          COUNT(*) as hires
@@ -317,4 +352,3 @@ class EmployeeService {
     }
 }
 exports.EmployeeService = EmployeeService;
-//# sourceMappingURL=employee.service.js.map

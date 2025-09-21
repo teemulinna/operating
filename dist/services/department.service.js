@@ -2,9 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DepartmentService = void 0;
 const database_service_1 = require("../database/database.service");
+const database_factory_1 = require("../database/database-factory");
 class DepartmentService {
-    constructor() {
-        this.db = database_service_1.DatabaseService.getInstance();
+    constructor(db) {
+        this.db = db || database_service_1.DatabaseService.getInstance();
+    }
+    static async create() {
+        const db = await database_factory_1.DatabaseFactory.getDatabaseService();
+        return new DepartmentService(db);
     }
     async getDepartments() {
         const query = `
@@ -134,6 +139,7 @@ class DepartmentService {
     }
     async getDepartmentAnalytics() {
         const queries = [
+            // Department overview
             `SELECT 
         d.id,
         d.name,
@@ -145,6 +151,7 @@ class DepartmentService {
       LEFT JOIN employees e ON d.id = e.department_id AND e.is_active = true
       GROUP BY d.id, d.name
       ORDER BY employee_count DESC`,
+            // Department growth
             `SELECT 
         d.name as department,
         DATE_TRUNC('month', e.hire_date) as month,
@@ -154,6 +161,7 @@ class DepartmentService {
       WHERE e.hire_date >= CURRENT_DATE - INTERVAL '12 months'
       GROUP BY d.id, d.name, month
       ORDER BY d.name, month`,
+            // Skills by department
             `SELECT 
         d.name as department,
         skill,
@@ -174,4 +182,3 @@ class DepartmentService {
     }
 }
 exports.DepartmentService = DepartmentService;
-//# sourceMappingURL=department.service.js.map

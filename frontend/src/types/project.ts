@@ -1,55 +1,55 @@
 // Project Management Types
 export type ProjectStatus = 'planning' | 'active' | 'completed' | 'on-hold' | 'cancelled';
 
-// API Response Project (matches backend)
+// API Response Project (matches actual backend response)
 export interface ApiProject {
-  id: string; // UUID string from backend
+  id: number; // Backend uses integer IDs
   name: string;
   description?: string;
-  clientName: string;
+  client_name?: string; // Backend uses snake_case
   status: ProjectStatus;
-  startDate: string; // ISO date string
-  endDate?: string; // ISO date string
-  budget?: number;
-  hourlyRate?: number;
-  totalHours?: number;
-  billedHours?: number;
-  isActive: boolean;
-  teamMembers?: string[]; // Employee IDs
-  tags?: string[];
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  // Calculated fields from backend
-  budgetUtilization?: number; // Percentage
-  timeProgress?: number; // Percentage
-  estimatedCompletion?: string; // ISO date string
+  start_date: string; // Backend uses snake_case and ISO date string
+  end_date?: string; // Backend uses snake_case and ISO date string
+  budget?: string; // Backend returns as string (decimal)
+  hourly_rate?: string; // Backend returns as string (decimal)
+  estimated_hours?: number;
+  actual_hours?: string; // Backend returns as string (decimal)
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  created_at?: string;
+  updated_at?: string;
+  created_by?: number;
+  // Calculated fields from backend aggregation
+  total_roles?: string;
+  filled_roles?: string;
+  assigned_employees?: string;
+  total_planned_hours?: string;
 }
 
 // Frontend Project (for display)
 export interface Project {
-  id: string; // UUID string
+  id: number;
   name: string;
   description?: string;
-  clientName: string;
+  clientName?: string;
   status: ProjectStatus;
+  priority: 'low' | 'medium' | 'high' | 'critical';
   startDate: string; // ISO date string
   endDate?: string; // ISO date string
   budget?: number;
   hourlyRate?: number;
-  totalHours?: number;
-  billedHours?: number;
-  isActive: boolean;
-  teamMembers?: string[]; // Employee IDs
-  teamMembersCount?: number; // Calculated field
-  tags?: string[];
-  notes?: string;
+  estimatedHours?: number;
+  actualHours?: number;
   createdAt?: string;
   updatedAt?: string;
-  // Calculated fields
+  createdBy?: number;
+  // Calculated fields from aggregation
+  totalRoles?: number;
+  filledRoles?: number;
+  assignedEmployees?: number;
+  totalPlannedHours?: number;
+  // Client-side calculated fields
   budgetUtilization?: number; // 0-100 percentage
   timeProgress?: number; // 0-100 percentage
-  estimatedCompletion?: string; // ISO date string
   daysRemaining?: number; // Calculated
   isOverBudget?: boolean; // Calculated
   isOverdue?: boolean; // Calculated
@@ -58,17 +58,14 @@ export interface Project {
 export interface CreateProjectRequest {
   name: string;
   description?: string;
-  clientName: string;
+  client_name?: string;
   status?: ProjectStatus;
-  startDate: string; // ISO date string
-  endDate?: string; // ISO date string
+  priority?: 'low' | 'medium' | 'high' | 'critical';
+  start_date: string; // ISO date string
+  end_date?: string; // ISO date string
   budget?: number;
-  hourlyRate?: number;
-  totalHours?: number;
-  teamMembers?: string[]; // Employee IDs
-  tags?: string[];
-  notes?: string;
-  isActive?: boolean;
+  hourly_rate?: number;
+  estimated_hours?: number;
 }
 
 export interface UpdateProjectRequest extends Partial<CreateProjectRequest> {
@@ -99,15 +96,19 @@ export interface ProjectPaginationParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-// API Response structure (matches backend)
+// API Response structure (matches actual backend)
 export interface ApiProjectsResponse {
+  success: boolean;
   data: ApiProject[];
   pagination: {
     currentPage: number;
+    totalPages: number;
     totalItems: number;
-    totalPages?: number;
-    limit?: number;
+    limit: number;
+    hasNext: boolean;
+    hasPrev: boolean;
   };
+  total: number;
 }
 
 // Frontend response structure
@@ -242,37 +243,44 @@ export interface CSVExportOptions {
 // Helper function to transform API project to frontend project
 export function transformApiProject(apiProject: ApiProject): Project {
   const now = new Date();
-  const endDate = apiProject.endDate ? new Date(apiProject.endDate) : null;
-  const startDate = new Date(apiProject.startDate);
+  const endDate = apiProject.end_date ? new Date(apiProject.end_date) : null;
+  const startDate = new Date(apiProject.start_date);
+  
+  // Parse numeric values from strings
+  const budget = apiProject.budget ? parseFloat(apiProject.budget) : undefined;
+  const hourlyRate = apiProject.hourly_rate ? parseFloat(apiProject.hourly_rate) : undefined;
+  const actualHours = apiProject.actual_hours ? parseFloat(apiProject.actual_hours) : 0;
   
   // Calculate derived fields
   const daysRemaining = endDate ? Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : undefined;
   const isOverdue = endDate ? now > endDate && apiProject.status === 'active' : false;
-  const budgetSpent = (apiProject.billedHours || 0) * (apiProject.hourlyRate || 0);
-  const isOverBudget = apiProject.budget ? budgetSpent > apiProject.budget : false;
+  const budgetSpent = actualHours * (hourlyRate || 0);
+  const isOverBudget = budget ? budgetSpent > budget : false;
+  const budgetUtilization = budget && budgetSpent > 0 ? (budgetSpent / budget) * 100 : 0;
+  const timeProgress = apiProject.estimated_hours && actualHours > 0 ? (actualHours / apiProject.estimated_hours) * 100 : 0;
 
   return {
     id: apiProject.id,
     name: apiProject.name,
     description: apiProject.description,
-    clientName: apiProject.clientName,
+    clientName: apiProject.client_name,
     status: apiProject.status,
-    startDate: apiProject.startDate,
-    endDate: apiProject.endDate,
-    budget: apiProject.budget,
-    hourlyRate: apiProject.hourlyRate,
-    totalHours: apiProject.totalHours,
-    billedHours: apiProject.billedHours,
-    isActive: apiProject.isActive,
-    teamMembers: apiProject.teamMembers || [],
-    teamMembersCount: apiProject.teamMembers?.length || 0,
-    tags: apiProject.tags || [],
-    notes: apiProject.notes,
-    createdAt: apiProject.createdAt,
-    updatedAt: apiProject.updatedAt,
-    budgetUtilization: apiProject.budgetUtilization,
-    timeProgress: apiProject.timeProgress,
-    estimatedCompletion: apiProject.estimatedCompletion,
+    priority: apiProject.priority,
+    startDate: apiProject.start_date,
+    endDate: apiProject.end_date,
+    budget,
+    hourlyRate,
+    estimatedHours: apiProject.estimated_hours,
+    actualHours,
+    createdAt: apiProject.created_at,
+    updatedAt: apiProject.updated_at,
+    createdBy: apiProject.created_by,
+    totalRoles: parseInt(apiProject.total_roles || '0'),
+    filledRoles: parseInt(apiProject.filled_roles || '0'),
+    assignedEmployees: parseInt(apiProject.assigned_employees || '0'),
+    totalPlannedHours: parseFloat(apiProject.total_planned_hours || '0'),
+    budgetUtilization,
+    timeProgress,
     daysRemaining,
     isOverBudget,
     isOverdue,
@@ -284,17 +292,14 @@ export function transformToApiRequest(project: CreateProjectRequest): any {
   return {
     name: project.name,
     description: project.description,
-    clientName: project.clientName,
+    client_name: project.client_name,
     status: project.status || 'planning',
-    startDate: project.startDate,
-    endDate: project.endDate,
+    priority: project.priority || 'medium',
+    start_date: project.start_date,
+    end_date: project.end_date,
     budget: project.budget,
-    hourlyRate: project.hourlyRate,
-    totalHours: project.totalHours,
-    teamMembers: project.teamMembers || [],
-    tags: project.tags || [],
-    notes: project.notes,
-    isActive: project.isActive !== undefined ? project.isActive : true,
+    hourly_rate: project.hourly_rate,
+    estimated_hours: project.estimated_hours,
   };
 }
 

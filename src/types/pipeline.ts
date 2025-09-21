@@ -3,16 +3,23 @@
 export interface CRMSystemConfig {
   id: string;
   name: string;
-  type: 'salesforce' | 'hubspot' | 'pipedrive' | 'dynamics' | 'custom';
+  type: 'jira' | 'asana' | 'trello' | 'salesforce' | 'hubspot' | 'pipedrive' | 'dynamics' | 'custom';
   apiUrl: string;
   apiVersion?: string;
-  authType: 'oauth' | 'api-key' | 'basic' | 'bearer';
+  authType: 'oauth' | 'api-key' | 'basic' | 'bearer' | 'token';
   credentials: {
     apiKey?: string;
     clientId?: string;
     clientSecret?: string;
     accessToken?: string;
     refreshToken?: string;
+    token?: string;
+    apiToken?: string;
+    userEmail?: string;
+    projectKey?: string;
+    workspaceGid?: string;
+    projectGid?: string;
+    boardId?: string;
   };
   syncSettings: CRMSyncSettings;
   isActive: boolean;
@@ -22,12 +29,13 @@ export interface CRMSystemConfig {
 }
 
 export interface CRMSyncSettings {
-  autoSync: boolean;
+  autoSync?: boolean;
   syncInterval: number; // minutes
-  syncDirection: 'bidirectional' | 'crm-to-system' | 'system-to-crm';
-  fieldMappings: CRMFieldMapping[];
-  filters: CRMSyncFilters;
-  conflictResolution: 'crm-wins' | 'system-wins' | 'manual' | 'timestamp';
+  syncDirection?: 'bidirectional' | 'crm-to-system' | 'system-to-crm';
+  fieldMappings?: CRMFieldMapping[];
+  filters?: CRMSyncFilters;
+  conflictResolution?: 'crm-wins' | 'system-wins' | 'manual' | 'timestamp';
+  entities?: string[]; // Additional field for entity types to sync
 }
 
 export interface CRMFieldMapping {
@@ -200,8 +208,8 @@ export interface PipelineTrend {
 export interface CRMSyncOperation {
   id: string;
   crmSystemId: string;
-  operation: 'sync' | 'import' | 'export' | 'validate';
-  direction: 'bidirectional' | 'to-crm' | 'from-crm';
+  operation: 'sync' | 'import' | 'export' | 'validate' | 'sync_projects';
+  direction: 'bidirectional' | 'to_crm' | 'from_crm' | 'to-crm' | 'from-crm';
   status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
   progress: {
     total: number;
@@ -279,12 +287,12 @@ export interface UpdatePipelineProjectRequest extends Partial<CreatePipelineProj
 
 export interface CRMSyncRequest {
   crmSystemId: string;
-  operation: 'sync' | 'import' | 'export';
-  direction?: 'bidirectional' | 'to-crm' | 'from-crm';
+  operation: 'sync' | 'import' | 'export' | 'sync_projects';
+  direction?: 'bidirectional' | 'to_crm' | 'from_crm' | 'to-crm' | 'from-crm';
   filters?: {
     dateRange?: {
-      start: string;
-      end: string;
+      start: string | Date;
+      end: string | Date;
     };
     stages?: PipelineStage[];
     recordIds?: string[];

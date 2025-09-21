@@ -3,12 +3,15 @@ import { EmployeeService } from '../services/employee.service';
 import { CreateEmployeeRequest, UpdateEmployeeRequest, EmployeeQuery } from '../types/employee.types';
 import { ApiError } from '../utils/api-error';
 import { parseCSV, generateCSV } from '../utils/csv-helper';
+import { WebSocketService } from '../websocket/websocket.service';
 
 export class EmployeeController {
   private employeeService: EmployeeService;
+  private webSocketService: WebSocketService;
 
   constructor() {
     this.employeeService = new EmployeeService();
+    this.webSocketService = WebSocketService.getInstance();
   }
 
   // GET /api/employees
@@ -18,7 +21,7 @@ export class EmployeeController {
         page: parseInt(req.query.page as string) || 1,
         limit: parseInt(req.query.limit as string) || 10,
         search: req.query.search as string,
-        departmentId: req.query.departmentId ? parseInt(req.query.departmentId as string) : undefined,
+        departmentId: req.query.departmentId as string || undefined,
         position: req.query.position as string,
         skills: req.query.skills as string,
         salaryMin: req.query.salaryMin ? parseFloat(req.query.salaryMin as string) : undefined,
@@ -31,7 +34,7 @@ export class EmployeeController {
       const result = await this.employeeService.getEmployees(query);
       
       res.status(200).json(result);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -39,7 +42,7 @@ export class EmployeeController {
   // GET /api/employees/:id
   getEmployeeById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(req.params.id!);
+      const id = req.params.id!;
       const employee = await this.employeeService.getEmployeeById(id);
       
       if (!employee) {
@@ -47,7 +50,7 @@ export class EmployeeController {
       }
       
       res.status(200).json(employee);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -55,7 +58,18 @@ export class EmployeeController {
   // POST /api/employees
   createEmployee = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const employeeData: CreateEmployeeRequest = req.body;
+      const requestData = req.body;
+      
+      // Transform frontend request to backend format
+      const employeeData: CreateEmployeeRequest = {
+        firstName: requestData.firstName,
+        lastName: requestData.lastName,
+        email: requestData.email,
+        position: requestData.position,
+        departmentId: requestData.departmentId,
+        salary: requestData.salary,
+        skills: requestData.skills || []
+      };
       
       // Check for duplicate email
       const existingEmployee = await this.employeeService.getEmployeeByEmail(employeeData.email);
@@ -65,8 +79,20 @@ export class EmployeeController {
       
       const newEmployee = await this.employeeService.createEmployee(employeeData);
       
+      // Emit real-time event for employee creation
+      this.webSocketService.sendNotification({
+        id: `employee-created-${newEmployee.id}-${Date.now()}`,
+        type: 'employee_created',
+        title: 'New Employee Added',
+        message: `${newEmployee.firstName} ${newEmployee.lastName} has been added to the team`,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        priority: 'medium',
+        data: newEmployee
+      });
+      
       res.status(201).json(newEmployee);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -74,7 +100,7 @@ export class EmployeeController {
   // PUT /api/employees/:id
   updateEmployee = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(req.params.id!);
+      const id = req.params.id!;
       const updateData: UpdateEmployeeRequest = req.body;
       
       // Check if employee exists
@@ -93,8 +119,20 @@ export class EmployeeController {
       
       const updatedEmployee = await this.employeeService.updateEmployee(id, updateData);
       
+      // Emit real-time event for employee update
+      this.webSocketService.sendNotification({
+        id: `employee-updated-${updatedEmployee.id}-${Date.now()}`,
+        type: 'employee_updated',
+        title: 'Employee Updated',
+        message: `${updatedEmployee.firstName} ${updatedEmployee.lastName}'s information has been updated`,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        priority: 'low',
+        data: updatedEmployee
+      });
+      
       res.status(200).json(updatedEmployee);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -102,7 +140,7 @@ export class EmployeeController {
   // DELETE /api/employees/:id
   deleteEmployee = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(req.params.id!);
+      const id = req.params.id!;
       
       // Check if employee exists
       const existingEmployee = await this.employeeService.getEmployeeById(id);
@@ -112,8 +150,20 @@ export class EmployeeController {
       
       await this.employeeService.deleteEmployee(id);
       
+      // Emit real-time event for employee deletion
+      this.webSocketService.sendNotification({
+        id: `employee-deleted-${id}-${Date.now()}`,
+        type: 'employee_deleted',
+        title: 'Employee Removed',
+        message: `${existingEmployee.firstName} ${existingEmployee.lastName} has been removed from the team`,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        priority: 'high',
+        data: { employeeId: id, deletedEmployee: existingEmployee }
+      });
+      
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -135,7 +185,7 @@ export class EmployeeController {
       const result = await this.employeeService.bulkImportEmployees(employees);
       
       res.status(200).json(result);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -147,7 +197,7 @@ export class EmployeeController {
         // Export all employees (no pagination)
         limit: 10000,
         search: req.query.search as string,
-        departmentId: req.query.departmentId ? parseInt(req.query.departmentId as string) : undefined,
+        departmentId: req.query.departmentId as string || undefined,
         position: req.query.position as string,
         skills: req.query.skills as string,
         salaryMin: req.query.salaryMin ? parseFloat(req.query.salaryMin as string) : undefined,
@@ -163,7 +213,7 @@ export class EmployeeController {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=employees.csv');
       res.status(200).send(csvContent);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -174,7 +224,7 @@ export class EmployeeController {
       const analytics = await this.employeeService.getEmployeeAnalytics();
       
       res.status(200).json(analytics);
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };

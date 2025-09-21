@@ -1,5 +1,4 @@
-import { ResourceAssignmentService } from './resource-assignment.service';
-import { CapacityEngineService } from './capacity-engine.service';
+import { Pool } from 'pg';
 export interface UtilizationReport {
     overallUtilization: number;
     employeeUtilization: EmployeeUtilization[];
@@ -125,9 +124,8 @@ export interface ImplementationPhase {
     duration: string;
 }
 export declare class ResourceAnalyticsService {
-    private resourceAssignmentService;
-    private capacityEngine;
-    constructor(resourceAssignmentService: ResourceAssignmentService, capacityEngine: CapacityEngineService);
+    private pool;
+    constructor(pool: Pool);
     generateUtilizationReport(startDate: Date, endDate: Date): Promise<UtilizationReport>;
     analyzeSkillGaps(projects: any[], employees: any[]): Promise<SkillGapAnalysis>;
     generateForecast(historicalData: any[], forecastPeriods: number): Promise<ForecastResult>;
@@ -146,8 +144,6 @@ export declare class ResourceAnalyticsService {
     private calculateForecastConfidence;
     private classifyTrend;
     private calculateSkillMatchScore;
-    private findBetterSkillMatch;
-    private calculateOptimalAdjustment;
     private assessOptimizationRisks;
     private createImplementationPlan;
 }

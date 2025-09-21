@@ -1,10 +1,10 @@
 export interface Employee {
-  id?: number;
+  id?: string;
   firstName: string;
   lastName: string;
   email: string;
   position: string;
-  departmentId: number;
+  departmentId: string;
   salary: number;
   hireDate?: string;
   skills?: string[];
@@ -18,7 +18,7 @@ export interface CreateEmployeeRequest {
   lastName: string;
   email: string;
   position: string;
-  departmentId: number;
+  departmentId: string; // UUID
   salary: number;
   skills?: string[];
 }
@@ -28,7 +28,7 @@ export interface UpdateEmployeeRequest {
   lastName?: string;
   email?: string;
   position?: string;
-  departmentId?: number;
+  departmentId?: string; // UUID
   salary?: number;
   skills?: string[];
   isActive?: boolean;
@@ -38,7 +38,7 @@ export interface EmployeeQuery {
   page?: number;
   limit?: number;
   search?: string;
-  departmentId?: number | undefined;
+  departmentId?: string | undefined; // UUID
   position?: string;
   skills?: string;
   salaryMin?: number | undefined;
@@ -61,10 +61,10 @@ export interface PaginatedResponse<T> {
 }
 
 export interface Department {
-  id?: number;
+  id?: string; // UUID
   name: string;
   description?: string;
-  managerId?: number;
+  managerId?: string; // UUID
   createdAt?: string;
   updatedAt?: string;
 }

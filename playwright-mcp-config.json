@@ -1,0 +1,8 @@
+{
+  "name": "playwright",
+  "command": "npx",
+  "args": ["@playwright/mcp"],
+  "env": {
+    "PLAYWRIGHT_BROWSERS_PATH": "/Users/teemulinna/Library/Caches/ms-playwright"
+  }
+}

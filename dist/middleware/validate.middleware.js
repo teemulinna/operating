@@ -1,8 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateEmployeeQuery = exports.validateIdParam = exports.validateCreateDepartment = exports.validateUpdateEmployee = exports.validateCreateEmployee = exports.actualHandleValidationErrors = exports.validateRequest = exports.handleValidationErrors = void 0;
+exports.validateEmployeeQuery = exports.validateIdParam = exports.validateCreateDepartment = exports.validateUpdateEmployee = exports.validateCreateEmployee = exports.actualHandleValidationErrors = exports.validate = exports.validateRequest = exports.handleValidationErrors = void 0;
 const express_validator_1 = require("express-validator");
 const api_error_1 = require("../utils/api-error");
+// UUID validation helper
+const isValidUUID = (value) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(value);
+};
+// Validation helper
 const handleValidationErrors = (req, _res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -11,7 +17,10 @@ const handleValidationErrors = (req, _res, next) => {
     next();
 };
 exports.handleValidationErrors = handleValidationErrors;
+// Export validateRequest for backward compatibility
 exports.validateRequest = exports.handleValidationErrors;
+// Export validate for compatibility with other modules
+exports.validate = exports.handleValidationErrors;
 const actualHandleValidationErrors = (req, _res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -25,6 +34,7 @@ const actualHandleValidationErrors = (req, _res, next) => {
     next();
 };
 exports.actualHandleValidationErrors = actualHandleValidationErrors;
+// Employee validation rules
 exports.validateCreateEmployee = [
     (0, express_validator_1.body)('firstName')
         .trim()
@@ -43,11 +53,22 @@ exports.validateCreateEmployee = [
         .isLength({ min: 2, max: 100 })
         .withMessage('Position must be between 2 and 100 characters'),
     (0, express_validator_1.body)('departmentId')
-        .isInt({ min: 1 })
-        .withMessage('Department ID must be a positive integer'),
+        .isString()
+        .trim()
+        .custom((value) => {
+        if (!isValidUUID(value)) {
+            throw new Error('Department ID must be a valid UUID');
+        }
+        return true;
+    })
+        .withMessage('Department ID must be a valid UUID'),
     (0, express_validator_1.body)('salary')
         .isFloat({ min: 0, max: 10000000 })
         .withMessage('Salary must be a positive number less than 10,000,000'),
+    (0, express_validator_1.body)('defaultHoursPerWeek')
+        .optional()
+        .isInt({ min: 1, max: 100 })
+        .withMessage('Default hours per week must be between 1 and 100'),
     (0, express_validator_1.body)('skills')
         .optional()
         .isArray()
@@ -86,8 +107,15 @@ exports.validateUpdateEmployee = [
         .withMessage('Position must be between 2 and 100 characters'),
     (0, express_validator_1.body)('departmentId')
         .optional()
-        .isInt({ min: 1 })
-        .withMessage('Department ID must be a positive integer'),
+        .isString()
+        .trim()
+        .custom((value) => {
+        if (value && !isValidUUID(value)) {
+            throw new Error('Department ID must be a valid UUID');
+        }
+        return true;
+    })
+        .withMessage('Department ID must be a valid UUID'),
     (0, express_validator_1.body)('salary')
         .optional()
         .isFloat({ min: 0, max: 10000000 })
@@ -111,6 +139,7 @@ exports.validateUpdateEmployee = [
         .withMessage('isActive must be a boolean value'),
     exports.handleValidationErrors
 ];
+// Department validation rules
 exports.validateCreateDepartment = [
     (0, express_validator_1.body)('name')
         .trim()
@@ -123,16 +152,32 @@ exports.validateCreateDepartment = [
         .withMessage('Description must be less than 500 characters'),
     (0, express_validator_1.body)('managerId')
         .optional()
-        .isInt({ min: 1 })
-        .withMessage('Manager ID must be a positive integer'),
+        .isString()
+        .trim()
+        .custom((value) => {
+        if (value && !isValidUUID(value)) {
+            throw new Error('Manager ID must be a valid UUID');
+        }
+        return true;
+    })
+        .withMessage('Manager ID must be a valid UUID'),
     exports.handleValidationErrors
 ];
+// Parameter validation
 exports.validateIdParam = [
     (0, express_validator_1.param)('id')
-        .isInt({ min: 1 })
-        .withMessage('ID must be a positive integer'),
+        .isString()
+        .trim()
+        .custom((value) => {
+        if (!isValidUUID(value)) {
+            throw new Error('ID must be a valid UUID');
+        }
+        return true;
+    })
+        .withMessage('ID must be a valid UUID'),
     exports.handleValidationErrors
 ];
+// Query validation
 exports.validateEmployeeQuery = [
     (0, express_validator_1.query)('page')
         .optional()
@@ -144,8 +189,15 @@ exports.validateEmployeeQuery = [
         .withMessage('Limit must be between 1 and 100'),
     (0, express_validator_1.query)('departmentId')
         .optional()
-        .isInt({ min: 1 })
-        .withMessage('Department ID must be a positive integer'),
+        .isString()
+        .trim()
+        .custom((value) => {
+        if (value && !isValidUUID(value)) {
+            throw new Error('Department ID must be a valid UUID');
+        }
+        return true;
+    })
+        .withMessage('Department ID must be a valid UUID'),
     (0, express_validator_1.query)('salaryMin')
         .optional()
         .isFloat({ min: 0 })
@@ -168,4 +220,3 @@ exports.validateEmployeeQuery = [
         .withMessage('isActive must be a boolean value'),
     exports.handleValidationErrors
 ];
-//# sourceMappingURL=validate.middleware.js.map

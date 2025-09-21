@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 interface AuthenticatedRequest extends Request {
     user?: {
         id: string;
-        email: string;
-        role: string;
+        email?: string;
+        role?: string;
     };
 }
 export declare const authMiddleware: (req: AuthenticatedRequest, _res: Response, next: NextFunction) => void;

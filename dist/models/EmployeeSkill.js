@@ -25,10 +25,10 @@ class EmployeeSkillModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint violation
                 throw new types_1.DatabaseError('Employee already has this skill assigned');
             }
-            if (error.code === '23503') {
+            if (error.code === '23503') { // Foreign key constraint violation
                 throw new types_1.DatabaseError('Invalid employee ID or skill ID');
             }
             throw error;
@@ -200,12 +200,14 @@ class EmployeeSkillModel {
             await client.query('BEGIN');
             const results = [];
             for (const update of skillUpdates) {
+                // Check if employee skill mapping exists
                 const existingQuery = `
           SELECT id FROM employee_skills 
           WHERE employee_id = $1 AND skill_id = $2 AND is_active = true
         `;
                 const existing = await client.query(existingQuery, [employeeId, update.skillId]);
                 if (existing.rows.length > 0) {
+                    // Update existing mapping
                     const updateQuery = `
             UPDATE employee_skills 
             SET proficiency_level = $1, years_of_experience = $2, last_assessed = $3, updated_at = CURRENT_TIMESTAMP
@@ -221,6 +223,7 @@ class EmployeeSkillModel {
                     results.push(this.mapRow(result.rows[0]));
                 }
                 else {
+                    // Create new mapping
                     const createQuery = `
             INSERT INTO employee_skills (employee_id, skill_id, proficiency_level, years_of_experience, last_assessed, is_active)
             VALUES ($1, $2, $3, $4, $5, $6)
@@ -314,4 +317,3 @@ class EmployeeSkillModel {
     }
 }
 exports.EmployeeSkillModel = EmployeeSkillModel;
-//# sourceMappingURL=EmployeeSkill.js.map

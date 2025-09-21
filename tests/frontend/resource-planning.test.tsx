@@ -7,14 +7,9 @@ import { SkillMatrix } from '../../frontend/src/components/resource-planning/Ski
 import { ResourceOptimizer } from '../../frontend/src/components/resource-planning/ResourceOptimizer';
 
 // Mock dependencies
-jest.mock('../../frontend/src/services/projectService', () => ({
+=> ({
   resourcePlanningService: {
-    getCapacityData: jest.fn(),
-    getOptimizationSuggestions: jest.fn(),
-    getConflicts: jest.fn(),
-    getForecasts: jest.fn()
-  }
-}));
+    getCapacityData: undefined;
 
 describe('ResourceCalendar', () => {
   const mockAssignments = [
@@ -60,7 +55,7 @@ describe('ResourceCalendar', () => {
   });
 
   it('should handle drag and drop for assignment rescheduling', async () => {
-    const onAssignmentChange = jest.fn();
+    const onAssignmentChange = undefined;
     render(
       <ResourceCalendar 
         assignments={mockAssignments} 
@@ -186,7 +181,7 @@ describe('SkillMatrix', () => {
   });
 
   it('should filter by skill when skill is clicked', () => {
-    const onSkillFilter = jest.fn();
+    const onSkillFilter = undefined;
     render(
       <SkillMatrix 
         employees={mockEmployees} 
@@ -255,7 +250,7 @@ describe('ResourceOptimizer', () => {
   });
 
   it('should allow accepting recommendations', async () => {
-    const onAcceptRecommendation = jest.fn();
+    const onAcceptRecommendation = undefined;
     render(
       <ResourceOptimizer 
         data={mockOptimizationData}

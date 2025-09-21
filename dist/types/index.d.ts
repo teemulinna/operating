@@ -7,6 +7,7 @@ export interface Employee {
     position: string;
     hireDate: Date;
     isActive: boolean;
+    defaultHours: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -72,19 +73,36 @@ export interface Project {
     isActive?: boolean;
 }
 export interface ResourceAllocation {
-    id: string;
-    projectId: string;
-    employeeId: string;
-    allocatedHours: number;
+    id: number;
+    projectId?: number;
+    project_id?: number;
+    employeeId?: string;
+    employee_id?: string;
+    allocatedHours?: number;
+    allocated_hours?: number;
+    allocationPercentage?: number;
+    allocation_percentage?: number;
     hourlyRate?: number;
-    roleOnProject: string;
-    startDate: Date;
-    endDate: Date;
+    billableRate?: number;
+    billable_rate?: number;
+    roleOnProject?: string;
+    role?: string;
+    startDate?: Date;
+    start_date?: Date;
+    endDate?: Date;
+    end_date?: Date;
     actualHours?: number;
+    actual_hours?: number;
     notes?: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    status?: string;
+    utilizationTarget?: number;
+    utilization_target?: number;
+    isActive?: boolean;
+    is_active?: boolean;
+    createdAt?: Date;
+    created_at?: Date;
+    updatedAt?: Date;
+    updated_at?: Date;
 }
 export interface SkillRequirement {
     id: string;
@@ -137,6 +155,7 @@ export interface CreateEmployeeInput {
     departmentId: string;
     position: string;
     hireDate: Date;
+    defaultHours?: number;
 }
 export interface UpdateEmployeeInput {
     firstName?: string;
@@ -145,7 +164,7 @@ export interface UpdateEmployeeInput {
     departmentId?: string;
     position?: string;
     isActive?: boolean;
-    hourlyRate?: number;
+    defaultHours?: number;
     maxCapacityHours?: number;
 }
 export interface CreateDepartmentInput {
@@ -228,14 +247,19 @@ export interface UpdateProjectInput {
     isActive?: boolean;
 }
 export interface CreateResourceAllocationInput {
-    projectId: string;
+    projectId: number;
     employeeId: string;
-    allocatedHours: number;
+    allocatedHours?: number;
+    allocationPercentage?: number;
     hourlyRate?: number;
-    roleOnProject: string;
+    billableRate?: number;
+    roleOnProject?: string;
+    role?: string;
     startDate: Date;
     endDate: Date;
+    status?: string;
     notes?: string;
+    utilizationTarget?: number;
 }
 export declare enum AllocationStatus {
     TENTATIVE = "tentative",
@@ -277,14 +301,53 @@ export interface UtilizationSummary {
     totalAllocations: number;
     conflictsCount: number;
 }
+export declare enum OverAllocationSeverity {
+    WARNING = "warning",
+    CRITICAL = "critical"
+}
+export interface OverAllocationWarning {
+    employeeId: string;
+    employeeName: string;
+    weekStartDate: Date;
+    weekEndDate: Date;
+    defaultHours: number;
+    allocatedHours: number;
+    overAllocationHours: number;
+    utilizationRate: number;
+    severity: OverAllocationSeverity;
+    message: string;
+    suggestions: string[];
+    affectedAllocations: Array<{
+        allocationId: string;
+        projectName: string;
+        allocatedHours: number;
+    }>;
+}
+export interface OverAllocationSummary {
+    hasOverAllocations: boolean;
+    totalWarnings: number;
+    totalCritical: number;
+    warnings: OverAllocationWarning[];
+    weeklyBreakdown: Array<{
+        weekStartDate: Date;
+        weekEndDate: Date;
+        warningCount: number;
+        criticalCount: number;
+    }>;
+}
 export interface UpdateResourceAllocationInput {
     allocatedHours?: number;
+    allocationPercentage?: number;
     hourlyRate?: number;
+    billableRate?: number;
     roleOnProject?: string;
+    role?: string;
     startDate?: Date;
     endDate?: Date;
     actualHours?: number;
     notes?: string;
+    status?: string;
+    utilizationTarget?: number;
     isActive?: boolean;
 }
 export interface CreateSkillRequirementInput {
@@ -425,6 +488,155 @@ export interface ValidationError {
     field: string;
     message: string;
     value: any;
+}
+export interface SkillMatchCriteria {
+    requiredSkills: Array<{
+        skillId: string;
+        skillName: string;
+        category: SkillCategory;
+        minimumProficiency: ProficiencyLevel;
+        weight: number;
+        isRequired: boolean;
+    }>;
+    projectId?: string;
+    roleTitle?: string;
+    experienceLevel?: 'junior' | 'mid' | 'senior' | 'lead';
+    availabilityHours?: number;
+    startDate?: Date;
+    endDate?: Date;
+}
+export interface EmployeeSkillMatch {
+    employeeId: string;
+    employee: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        position: string;
+        departmentId: string;
+        departmentName?: string;
+    };
+    overallMatchScore: number;
+    skillMatches: Array<{
+        skillId: string;
+        skillName: string;
+        category: SkillCategory;
+        required: boolean;
+        weight: number;
+        hasSkill: boolean;
+        employeeProficiency: ProficiencyLevel | null;
+        requiredProficiency: ProficiencyLevel;
+        proficiencyGap: number;
+        matchScore: number;
+        yearsOfExperience?: number;
+        lastUsed?: Date;
+    }>;
+    strengthAreas: string[];
+    gapAreas: string[];
+    availabilityScore: number;
+    teamFitScore: number;
+    overallRecommendation: 'excellent' | 'good' | 'fair' | 'poor';
+    reasoningNotes: string[];
+}
+export interface TeamChemistryAnalysis {
+    overallChemistryScore: number;
+    strengths: string[];
+    concerns: string[];
+    recommendations: string[];
+    skillComplementarity: {
+        score: number;
+        overlapAreas: string[];
+        gapAreas: string[];
+        redundantSkills: string[];
+        uniqueContributions: Array<{
+            employeeId: string;
+            uniqueSkills: string[];
+        }>;
+    };
+    experienceDiversity: {
+        score: number;
+        seniorityBalance: {
+            junior: number;
+            mid: number;
+            senior: number;
+            lead: number;
+        };
+        domainExpertise: Array<{
+            domain: string;
+            experts: string[];
+            novices: string[];
+        }>;
+    };
+    collaborationHistory: {
+        score: number;
+        successfulCollaborations: Array<{
+            projectName: string;
+            participants: string[];
+            successScore: number;
+            duration: number;
+        }>;
+        potentialConflicts: Array<{
+            members: string[];
+            reason: string;
+            severity: 'low' | 'medium' | 'high';
+        }>;
+    };
+    riskFactors: Array<{
+        type: 'skill_gap' | 'personality_clash' | 'over_qualification' | 'under_qualification' | 'workload_imbalance';
+        severity: 'low' | 'medium' | 'high';
+        description: string;
+        affectedMembers: string[];
+        mitigation: string;
+    }>;
+    predictedPerformance: {
+        velocityScore: number;
+        qualityScore: number;
+        innovationScore: number;
+        stabilityScore: number;
+    };
+}
+export interface ResourceRecommendation {
+    recommendationId: string;
+    projectId?: string;
+    overallScore: number;
+    confidence: 'high' | 'medium' | 'low';
+    recommendedTeam: {
+        members: Array<{
+            employeeId: string;
+            recommendedRole: string;
+            matchScore: number;
+            skillMatch: EmployeeSkillMatch;
+            alternativeRoles?: string[];
+        }>;
+        totalCost?: number;
+        teamChemistry: TeamChemistryAnalysis;
+    };
+    alternatives: Array<{
+        members: Array<{
+            employeeId: string;
+            recommendedRole: string;
+            matchScore: number;
+        }>;
+        overallScore: number;
+        tradeoffs: string[];
+    }>;
+    reasoning: {
+        keyStrengths: string[];
+        potentialConcerns: string[];
+        tradeoffs: string[];
+        riskAssessment: {
+            level: 'low' | 'medium' | 'high';
+            factors: string[];
+            mitigation: string[];
+        };
+    };
+    optimizations: Array<{
+        type: 'skill_training' | 'external_hire' | 'role_adjustment' | 'timeline_adjustment';
+        description: string;
+        impact: number;
+        cost?: number;
+        timeline?: string;
+    }>;
 }
 export declare class DatabaseError extends Error {
     code?: string;

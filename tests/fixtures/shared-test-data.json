@@ -2,227 +2,174 @@
   "users": [
     {
       "id": 1,
-      "name": "Test Admin",
-      "email": "admin@test.com",
+      "name": "John Doe",
+      "email": "john.doe@company.com",
       "role": "admin",
-      "password": "hashed_password_admin",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "departmentId": 1,
+      "createdAt": "2024-01-01T00:00:00Z"
     },
     {
       "id": 2,
-      "name": "Test Manager", 
-      "email": "manager@test.com",
+      "name": "Jane Smith",
+      "email": "jane.smith@company.com",
       "role": "manager",
-      "password": "hashed_password_manager",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "departmentId": 1,
+      "createdAt": "2024-01-01T00:00:00Z"
     },
     {
       "id": 3,
-      "name": "Test User",
-      "email": "user@test.com", 
+      "name": "Mike Johnson",
+      "email": "mike.johnson@company.com",
       "role": "user",
-      "password": "hashed_password_user",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
-    },
-    {
-      "id": 4,
-      "name": "Inactive User",
-      "email": "inactive@test.com",
-      "role": "user",
-      "password": "hashed_password_inactive",
-      "active": false,
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "departmentId": 2,
+      "createdAt": "2024-01-01T00:00:00Z"
     }
   ],
+  "authTokens": {
+    "admin": "admin-token-123",
+    "manager": "manager-token-456",
+    "user": "user-token-789",
+    "invalid": "invalid-token-000"
+  },
   "projects": [
     {
       "id": 1,
-      "name": "Alpha Development",
-      "description": "Primary development project for testing integration",
+      "name": "Test Project Alpha",
+      "description": "First test project",
       "status": "active",
-      "ownerId": 1,
-      "budget": 50000,
-      "startDate": "2024-01-01",
-      "endDate": "2024-12-31",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "ownerId": 2,
+      "startDate": "2024-01-15",
+      "endDate": "2024-06-15",
+      "createdAt": "2024-01-01T00:00:00Z"
     },
     {
       "id": 2,
-      "name": "Beta Research",
-      "description": "Research project for new technologies",
+      "name": "Test Project Beta",
+      "description": "Second test project",
       "status": "planning",
       "ownerId": 2,
-      "budget": 25000,
-      "startDate": "2024-06-01",
-      "endDate": "2024-11-30",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
-    },
-    {
-      "id": 3,
-      "name": "Gamma Maintenance",
-      "description": "Legacy system maintenance",
-      "status": "completed",
-      "ownerId": 1,
-      "budget": 10000,
-      "startDate": "2023-01-01",
-      "endDate": "2023-12-31",
-      "createdAt": "2023-01-01T00:00:00Z",
-      "updatedAt": "2023-12-31T23:59:59Z"
-    },
-    {
-      "id": 4,
-      "name": "Delta Innovation",
-      "description": "Experimental innovation project",
-      "status": "cancelled",
-      "ownerId": 2,
-      "budget": 0,
-      "startDate": "2024-03-01",
-      "endDate": null,
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-03-15T00:00:00Z"
+      "startDate": "2024-02-01",
+      "endDate": "2024-08-01",
+      "createdAt": "2024-01-01T00:00:00Z"
     }
   ],
   "resources": [
     {
       "id": 1,
-      "name": "Development Workstation #1",
+      "name": "Development Server",
       "type": "equipment",
-      "availability": "available", 
       "projectId": 1,
-      "cost": 2500,
-      "specifications": {
-        "cpu": "Intel i7",
-        "memory": "32GB",
-        "storage": "1TB SSD"
-      },
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "availability": "available",
+      "description": "Primary development environment",
+      "createdAt": "2024-01-01T00:00:00Z"
     },
     {
       "id": 2,
-      "name": "Database Server",
+      "name": "Testing Environment",
       "type": "equipment",
-      "availability": "in-use",
       "projectId": 1,
-      "cost": 5000,
-      "specifications": {
-        "cpu": "Intel Xeon",
-        "memory": "64GB", 
-        "storage": "2TB SSD RAID"
-      },
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "availability": "maintenance",
+      "description": "Dedicated testing server",
+      "createdAt": "2024-01-01T00:00:00Z"
     },
     {
       "id": 3,
-      "name": "Development License - IntelliJ",
-      "type": "software",
-      "availability": "available",
+      "name": "Conference Room A",
+      "type": "space",
       "projectId": 2,
-      "cost": 200,
-      "specifications": {
-        "version": "2024.1",
-        "seats": 5,
-        "expiryDate": "2024-12-31"
-      },
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "availability": "available",
+      "description": "Main conference room",
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "departments": [
+    {
+      "id": 1,
+      "name": "Engineering",
+      "description": "Software development team",
+      "managerId": 2,
+      "budget": 500000,
+      "createdAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Marketing",
+      "description": "Marketing and communications",
+      "managerId": null,
+      "budget": 200000,
+      "createdAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Sales",
+      "description": "Sales and business development",
+      "managerId": null,
+      "budget": 300000,
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "employees": [
+    {
+      "id": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@company.com",
+      "phone": "555-1000",
+      "position": "Senior Developer",
+      "departmentId": 1,
+      "salary": 75000,
+      "hireDate": "2023-06-15",
+      "status": "active"
+    },
+    {
+      "id": 2,
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "email": "jane.smith@company.com",
+      "phone": "555-1001",
+      "position": "Engineering Manager",
+      "departmentId": 1,
+      "salary": 95000,
+      "hireDate": "2023-01-10",
+      "status": "active"
+    },
+    {
+      "id": 3,
+      "firstName": "Mike",
+      "lastName": "Johnson",
+      "email": "mike.johnson@company.com",
+      "phone": "555-1002",
+      "position": "Marketing Specialist",
+      "departmentId": 2,
+      "salary": 60000,
+      "hireDate": "2023-09-01",
+      "status": "active"
+    }
+  ],
+  "skills": [
+    {
+      "id": 1,
+      "name": "JavaScript",
+      "category": "Programming",
+      "description": "JavaScript programming language"
+    },
+    {
+      "id": 2,
+      "name": "React",
+      "category": "Framework",
+      "description": "React frontend framework"
+    },
+    {
+      "id": 3,
+      "name": "Node.js",
+      "category": "Runtime",
+      "description": "Node.js runtime environment"
     },
     {
       "id": 4,
-      "name": "Testing Environment",
-      "type": "infrastructure",
-      "availability": "maintenance",
-      "projectId": 1,
-      "cost": 1000,
-      "specifications": {
-        "provider": "AWS",
-        "instances": "3x t3.medium",
-        "region": "us-east-1"
-      },
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-15T00:00:00Z"
-    },
-    {
-      "id": 5,
-      "name": "Meeting Room A",
-      "type": "facility",
-      "availability": "available",
-      "projectId": null,
-      "cost": 0,
-      "specifications": {
-        "capacity": 8,
-        "equipment": ["projector", "whiteboard", "video conference"]
-      },
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
+      "name": "PostgreSQL",
+      "category": "Database",
+      "description": "PostgreSQL database management"
     }
-  ],
-  "projectResources": [
-    { "projectId": 1, "resourceId": 1, "assignedAt": "2024-01-01T00:00:00Z" },
-    { "projectId": 1, "resourceId": 2, "assignedAt": "2024-01-01T00:00:00Z" },
-    { "projectId": 1, "resourceId": 4, "assignedAt": "2024-01-01T00:00:00Z" },
-    { "projectId": 2, "resourceId": 3, "assignedAt": "2024-01-01T00:00:00Z" }
-  ],
-  "errorTestCases": {
-    "invalidUsers": [
-      { "name": "", "email": "invalid", "role": "unknown" },
-      { "name": null, "email": "", "role": "" },
-      { "name": "Test", "email": "duplicate@test.com", "role": "admin" }
-    ],
-    "invalidProjects": [
-      { "name": "", "description": "", "ownerId": -1 },
-      { "name": null, "description": null, "ownerId": 999 },
-      { "name": "Test", "description": "Test", "ownerId": 4, "budget": -1000 }
-    ],
-    "invalidResources": [
-      { "name": "", "type": "invalid", "availability": "unknown", "projectId": -1 },
-      { "name": null, "type": "", "availability": "", "projectId": 999 },
-      { "name": "Test", "type": "equipment", "availability": "available", "projectId": null, "cost": -100 }
-    ]
-  },
-  "authTokens": {
-    "admin": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIn0.test_admin_token",
-    "manager": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6Im1hbmFnZXIifQ.test_manager_token",
-    "user": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6InVzZXIifQ.test_user_token",
-    "invalid": "invalid_token",
-    "expired": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiZXhwIjoxfQ.expired_token"
-  },
-  "performanceBenchmarks": {
-    "database": {
-      "connectionTime": 50,
-      "simpleQuery": 10,
-      "complexQuery": 45,
-      "bulkInsert": 800
-    },
-    "api": {
-      "authEndpoint": 150,
-      "listEndpoints": 100,
-      "createEndpoints": 200,
-      "updateEndpoints": 180
-    },
-    "frontend": {
-      "componentRender": 12,
-      "pageLoad": 1200,
-      "bundleSize": 450000
-    }
-  },
-  "testScenarios": {
-    "happyPath": {
-      "userRegistration": ["register", "verify", "login", "access"],
-      "projectCreation": ["authenticate", "create", "assign_resources", "verify"],
-      "resourceUpdate": ["authenticate", "update_status", "notify", "refresh_ui"]
-    },
-    "errorPath": {
-      "invalidAuth": ["invalid_credentials", "expired_token", "missing_permissions"],
-      "dataValidation": ["empty_fields", "invalid_format", "constraint_violation"],
-      "systemErrors": ["database_down", "service_timeout", "network_error"]
-    }
-  }
+  ]
 }

@@ -1,5 +1,19 @@
 import { PipelineStage, ResourceDemandForecast } from '../types/pipeline';
-import { Scenario } from '../../frontend/src/types/scenario';
+interface Scenario {
+    id: string;
+    name: string;
+    description?: string;
+    type: 'what-if' | 'forecast' | 'template';
+    status: 'draft' | 'active' | 'archived';
+    baseDate: string;
+    forecastPeriodMonths: number;
+    createdBy?: string;
+    metadata: Record<string, any>;
+    isTemplate: boolean;
+    templateCategory?: string;
+    createdAt: string;
+    updatedAt: string;
+}
 export declare class PipelineScenarioIntegrationService {
     private db;
     private pipelineService;
@@ -43,4 +57,5 @@ export declare class PipelineScenarioIntegrationService {
     private compareScenarios;
     private calculateEstimatedHours;
 }
+export {};
 //# sourceMappingURL=pipeline-scenario-integration.service.d.ts.map

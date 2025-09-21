@@ -1,0 +1,1466 @@
+
+> employee-management-api@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/server.ts
+
+[INFO] 22:33:53 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.2)
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+🔓 Authentication disabled for development environment
+Database connected successfully
+🔧 Initializing ExportController with pool from service registration: true
+🔧 Initializing ExportController with pool: true
+✅ ExportController initialized successfully
+✅ ExportController initialization called
+✅ All services initialized and configured
+runMigrations() is deprecated. Use DatabaseMigrator class instead.
+Basic table creation skipped - use proper migrations.
+Database migrations completed
+✅ WebSocket server initialized
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at startServer (/Users/teemulinna/code/operating/src/server.ts:35:12)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[ERROR] 22:33:54 Error: listen EADDRINUSE: address already in use :::3001
+SIGTERM received, shutting down gracefully
+Database disconnected
+✅ All services shut down gracefully
+Server shut down complete
+[INFO] 19:41:38 Restarting: /Users/teemulinna/code/operating/src/app.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+🔓 Rate limiting disabled for development/testing environment
+🔓 Authentication disabled for development environment
+Database connected successfully
+🔧 Initializing ExportController with pool from service registration: true
+🔧 Initializing ExportController with pool: true
+✅ ExportController initialized successfully
+✅ ExportController initialization called
+✅ All services initialized and configured
+runMigrations() is deprecated. Use DatabaseMigrator class instead.
+Basic table creation skipped - use proper migrations.
+Database migrations completed
+✅ WebSocket server initialized
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at startServer (/Users/teemulinna/code/operating/src/server.ts:35:12)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[ERROR] 19:41:38 Error: listen EADDRINUSE: address already in use :::3001
+SIGTERM received, shutting down gracefully
+Database disconnected
+✅ All services shut down gracefully
+Server shut down complete
+[INFO] 19:43:34 Restarting: /Users/teemulinna/code/operating/src/services/employee.service.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+🔓 Rate limiting disabled for development/testing environment
+🔓 Authentication disabled for development environment
+Database connected successfully
+🔧 Initializing ExportController with pool from service registration: true
+🔧 Initializing ExportController with pool: true
+✅ ExportController initialized successfully
+✅ ExportController initialization called
+✅ All services initialized and configured
+runMigrations() is deprecated. Use DatabaseMigrator class instead.
+Basic table creation skipped - use proper migrations.
+Database migrations completed
+✅ WebSocket server initialized
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at startServer (/Users/teemulinna/code/operating/src/server.ts:35:12)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[ERROR] 19:43:35 Error: listen EADDRINUSE: address already in use :::3001
+SIGTERM received, shutting down gracefully
+Database disconnected
+✅ All services shut down gracefully
+Server shut down complete
+[INFO] 19:48:08 Restarting: /Users/teemulinna/code/operating/src/types/index.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+🔓 Rate limiting disabled for development/testing environment
+🔓 Authentication disabled for development environment
+Database connected successfully
+🔧 Initializing ExportController with pool from service registration: true
+🔧 Initializing ExportController with pool: true
+✅ ExportController initialized successfully
+✅ ExportController initialization called
+✅ All services initialized and configured
+runMigrations() is deprecated. Use DatabaseMigrator class instead.
+Basic table creation skipped - use proper migrations.
+Database migrations completed
+✅ WebSocket server initialized
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at startServer (/Users/teemulinna/code/operating/src/server.ts:35:12)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[ERROR] 19:48:09 Error: listen EADDRINUSE: address already in use :::3001
+SIGTERM received, shutting down gracefully
+Database disconnected
+✅ All services shut down gracefully
+Server shut down complete
+[INFO] 19:48:21 Restarting: /Users/teemulinna/code/operating/src/types/index.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+🔓 Rate limiting disabled for development/testing environment
+🔓 Authentication disabled for development environment
+Database connected successfully
+🔧 Initializing ExportController with pool from service registration: true
+🔧 Initializing ExportController with pool: true
+✅ ExportController initialized successfully
+✅ ExportController initialization called
+✅ All services initialized and configured
+runMigrations() is deprecated. Use DatabaseMigrator class instead.
+Basic table creation skipped - use proper migrations.
+Database migrations completed
+✅ WebSocket server initialized
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at startServer (/Users/teemulinna/code/operating/src/server.ts:35:12)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[ERROR] 19:48:21 Error: listen EADDRINUSE: address already in use :::3001
+SIGTERM received, shutting down gracefully
+Database disconnected
+✅ All services shut down gracefully
+Server shut down complete
+[INFO] 19:48:37 Restarting: /Users/teemulinna/code/operating/src/services/allocation-templates.service.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+🔓 Rate limiting disabled for development/testing environment
+🔓 Authentication disabled for development environment
+Database connected successfully
+🔧 Initializing ExportController with pool from service registration: true
+🔧 Initializing ExportController with pool: true
+✅ ExportController initialized successfully
+✅ ExportController initialization called
+✅ All services initialized and configured
+runMigrations() is deprecated. Use DatabaseMigrator class instead.
+Basic table creation skipped - use proper migrations.
+Database migrations completed
+✅ WebSocket server initialized
+🚀 Employee Management API is running!
+📡 Server: http://localhost:3001
+🔌 WebSocket: ws://localhost:3001
+🏥 Health Check: http://localhost:3001/health
+📚 API Docs: http://localhost:3001/api
+🌍 Environment: development
+🕐 Started at: 2025-09-13T16:48:37.706Z
+2025-09-13T16:48:44.339Z - GET /health - IP: ::1
+2025-09-13T16:48:44.341Z - GET /health - Status: 200 - 2ms - 108 bytes
+2025-09-13T16:48:45.345Z - DELETE /api/employees/c90bef43-2aa6-446f-a637-bdfa74b73bff - IP: ::1
+Error occurred: {
+  message: 'Cannot delete employee. This employee has created 9 allocation template(s). Please reassign or delete the templates first.',
+  stack: 'Error: Cannot delete employee. This employee has created 9 allocation template(s). Please reassign or delete the templates first.\n' +
+    '    at EmployeeService.deleteEmployee (/Users/teemulinna/code/operating/src/services/employee.service.ts:311:15)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at EmployeeController.deleteEmployee (/Users/teemulinna/code/operating/src/controllers/employee.controller.ts:151:7)',
+  url: '/api/employees/c90bef43-2aa6-446f-a637-bdfa74b73bff',
+  method: 'DELETE',
+  timestamp: '2025-09-13T16:48:45.356Z'
+}
+2025-09-13T16:48:45.357Z - DELETE /api/employees/c90bef43-2aa6-446f-a637-bdfa74b73bff - Status: 500 - 12ms - 133 bytes
+2025-09-13T20:34:45.195Z - GET /health - IP: ::1
+2025-09-13T20:34:45.196Z - GET /health - Status: 200 - 1ms - 112 bytes
+2025-09-13T20:34:45.199Z - GET /api/allocations - IP: ::1
+2025-09-13T20:34:45.203Z - GET / - Status: 200 - 4ms - 133 bytes
+2025-09-13T20:34:45.205Z - GET /api/projects - IP: ::1
+2025-09-13T20:34:45.239Z - GET / - Status: 200 - 34ms - 140 bytes
+2025-09-13T20:34:45.240Z - GET /api/employees - IP: ::1
+2025-09-13T20:34:45.248Z - GET / - Status: 200 - 8ms - 927 bytes
+2025-09-13T20:34:45.249Z - DELETE /api/employees/c90bef43-2aa6-446f-a637-bdfa74b73bff - IP: ::1
+Error occurred: {
+  message: 'Cannot delete employee. This employee has created 9 allocation template(s). Please reassign or delete the templates first.',
+  stack: 'Error: Cannot delete employee. This employee has created 9 allocation template(s). Please reassign or delete the templates first.\n' +
+    '    at EmployeeService.deleteEmployee (/Users/teemulinna/code/operating/src/services/employee.service.ts:311:15)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at EmployeeController.deleteEmployee (/Users/teemulinna/code/operating/src/controllers/employee.controller.ts:151:7)',
+  url: '/api/employees/c90bef43-2aa6-446f-a637-bdfa74b73bff',
+  method: 'DELETE',
+  timestamp: '2025-09-13T20:34:45.252Z'
+}
+2025-09-13T20:34:45.253Z - DELETE /api/employees/c90bef43-2aa6-446f-a637-bdfa74b73bff - Status: 500 - 4ms - 133 bytes
+2025-09-13T20:34:45.253Z - DELETE /api/employees/53a397e3-e155-456d-8f60-6eb99caf4b04 - IP: ::1
+2025-09-13T20:34:45.290Z - DELETE /53a397e3-e155-456d-8f60-6eb99caf4b04 - Status: 204 - 37ms - 0 bytes
+2025-09-13T20:34:48.432Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-13T20:34:48.438Z - GET /stats - Status: 200 - 6ms - 283 bytes
+2025-09-13T20:34:48.439Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-13T20:34:48.446Z - GET /stats - Status: 200 - 7ms - 283 bytes
+2025-09-13T20:34:48.657Z - GET /api/employees - IP: ::1
+2025-09-13T20:34:48.664Z - GET / - Status: 200 - 7ms - 530 bytes
+2025-09-13T20:34:48.665Z - GET /api/employees - IP: ::1
+2025-09-13T20:34:48.666Z - GET / - Status: 304 - 1ms - 0 bytes
+2025-09-13T20:34:54.963Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-13T20:34:54.965Z - GET /stats - Status: 200 - 2ms - 283 bytes
+2025-09-13T20:34:54.966Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-13T20:34:54.972Z - GET /stats - Status: 200 - 6ms - 283 bytes
+2025-09-13T20:34:55.200Z - GET /api/employees - IP: ::1
+2025-09-13T20:34:55.208Z - GET / - Status: 200 - 8ms - 530 bytes
+2025-09-13T20:34:55.208Z - GET /api/employees - IP: ::1
+2025-09-13T20:34:55.210Z - GET / - Status: 304 - 2ms - 0 bytes
+2025-09-13T20:35:01.512Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-13T20:35:01.514Z - GET /stats - Status: 200 - 2ms - 283 bytes
+2025-09-13T20:35:01.515Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-13T20:35:01.520Z - GET /stats - Status: 200 - 5ms - 283 bytes
+2025-09-13T20:35:01.684Z - GET /api/employees - IP: ::1
+2025-09-13T20:35:01.691Z - GET / - Status: 200 - 7ms - 530 bytes
+2025-09-13T20:35:01.692Z - GET /api/employees - IP: ::1
+2025-09-13T20:35:01.693Z - GET / - Status: 304 - 1ms - 0 bytes
+2025-09-13T20:35:10.933Z - GET /api/employees - IP: ::1
+2025-09-13T20:35:10.935Z - GET / - Status: 200 - 2ms - 530 bytes
+2025-09-14T16:05:06.668Z - GET /api/health - IP: ::1
+2025-09-14T16:05:06.671Z - GET / - Status: 404 - 3ms - 390 bytes
+2025-09-14T16:05:25.125Z - GET /api/health - IP: ::1
+2025-09-14T16:05:25.129Z - GET / - Status: 404 - 4ms - 390 bytes
+2025-09-14T16:05:43.147Z - GET /api/employees - IP: ::1
+Slow request: GET / took 1801ms
+2025-09-14T16:05:44.955Z - GET / - Status: 200 - 1808ms - 530 bytes
+Database query error: Error: Connection terminated due to connection timeout
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at DatabaseService.query (/Users/teemulinna/code/operating/src/database/database.service.ts:234:22)
+    at NotificationService.processEscalations (/Users/teemulinna/code/operating/src/services/notification.service.ts:850:20)
+    at Timeout._onTimeout (/Users/teemulinna/code/operating/src/services/notification.service.ts:841:9) {
+  [cause]: Error: Connection terminated unexpectedly
+      at Connection.<anonymous> (/Users/teemulinna/code/operating/node_modules/pg/lib/client.js:136:73)
+      at Object.onceWrapper (node:events:622:28)
+      at Connection.emit (node:events:508:28)
+      at Socket.<anonymous> (/Users/teemulinna/code/operating/node_modules/pg/lib/connection.js:62:12)
+      at Socket.emit (node:events:508:28)
+      at TCP.<anonymous> (node:net:346:12)
+}
+Error processing escalations: Error: Connection terminated due to connection timeout
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at DatabaseService.query (/Users/teemulinna/code/operating/src/database/database.service.ts:234:22)
+    at NotificationService.processEscalations (/Users/teemulinna/code/operating/src/services/notification.service.ts:850:20)
+    at Timeout._onTimeout (/Users/teemulinna/code/operating/src/services/notification.service.ts:841:9) {
+  [cause]: Error: Connection terminated unexpectedly
+      at Connection.<anonymous> (/Users/teemulinna/code/operating/node_modules/pg/lib/client.js:136:73)
+      at Object.onceWrapper (node:events:622:28)
+      at Connection.emit (node:events:508:28)
+      at Socket.<anonymous> (/Users/teemulinna/code/operating/node_modules/pg/lib/connection.js:62:12)
+      at Socket.emit (node:events:508:28)
+      at TCP.<anonymous> (node:net:346:12)
+}
+2025-09-14T16:57:51.096Z - GET /api/projects - IP: ::1
+2025-09-14T16:57:51.107Z - GET / - Status: 200 - 11ms - 140 bytes
+2025-09-14T16:57:58.316Z - GET /api/employees - IP: ::1
+2025-09-14T16:57:58.319Z - GET /api/employees - IP: ::1
+2025-09-14T16:57:58.334Z - GET / - Status: 200 - 18ms - 530 bytes
+2025-09-14T16:57:58.334Z - GET / - Status: 200 - 15ms - 530 bytes
+2025-09-14T16:57:59.453Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-14T16:57:59.460Z - GET /stats - Status: 200 - 7ms - 283 bytes
+2025-09-14T16:58:01.579Z - GET /api/allocations - IP: ::1
+2025-09-14T16:58:01.580Z - GET /api/allocations - IP: ::1
+2025-09-14T16:58:01.582Z - GET /api/projects - IP: ::1
+2025-09-14T16:58:01.583Z - GET / - Status: 200 - 4ms - 133 bytes
+2025-09-14T16:58:01.584Z - GET /api/employees - IP: ::1
+2025-09-14T16:58:01.585Z - GET /api/projects - IP: ::1
+2025-09-14T16:58:01.586Z - GET /api/employees - IP: ::1
+2025-09-14T16:58:01.589Z - GET / - Status: 304 - 5ms - 0 bytes
+2025-09-14T16:58:01.592Z - GET / - Status: 200 - 12ms - 133 bytes
+2025-09-14T16:58:01.595Z - GET / - Status: 304 - 11ms - 0 bytes
+2025-09-14T16:58:01.596Z - GET / - Status: 304 - 10ms - 0 bytes
+2025-09-14T16:58:01.599Z - GET / - Status: 304 - 17ms - 0 bytes
+2025-09-14T16:58:02.395Z - GET /api/projects - IP: ::1
+2025-09-14T16:58:02.397Z - GET / - Status: 304 - 2ms - 0 bytes
+2025-09-14T16:58:03.724Z - GET /api/projects - IP: ::1
+2025-09-14T16:58:03.725Z - GET /api/employees - IP: ::1
+2025-09-14T16:58:03.725Z - GET /api/allocations - IP: ::1
+2025-09-14T16:58:03.730Z - GET / - Status: 304 - 5ms - 0 bytes
+2025-09-14T16:58:03.730Z - GET / - Status: 304 - 6ms - 0 bytes
+2025-09-14T16:58:03.730Z - GET / - Status: 304 - 5ms - 0 bytes
+2025-09-14T16:58:04.593Z - GET /api/employees - IP: ::1
+2025-09-14T16:58:04.594Z - GET /api/projects - IP: ::1
+2025-09-14T16:58:04.594Z - GET /api/allocations - IP: ::1
+2025-09-14T16:58:04.595Z - GET /api/employees - IP: ::1
+2025-09-14T16:58:04.595Z - GET /api/projects - IP: ::1
+2025-09-14T16:58:04.595Z - GET /api/allocations - IP: ::1
+2025-09-14T16:58:04.601Z - GET / - Status: 304 - 7ms - 0 bytes
+2025-09-14T16:58:04.601Z - GET / - Status: 304 - 6ms - 0 bytes
+2025-09-14T16:58:04.602Z - GET / - Status: 304 - 8ms - 0 bytes
+2025-09-14T16:58:04.602Z - GET / - Status: 304 - 9ms - 0 bytes
+2025-09-14T16:58:04.603Z - GET / - Status: 304 - 8ms - 0 bytes
+2025-09-14T16:58:04.607Z - GET / - Status: 304 - 12ms - 0 bytes
+2025-09-14T17:02:11.391Z - GET /api/employees - IP: ::1
+2025-09-14T17:02:11.398Z - GET / - Status: 200 - 7ms - 530 bytes
+2025-09-14T17:02:53.774Z - GET /api/projects - IP: ::1
+2025-09-14T17:02:53.778Z - GET / - Status: 200 - 4ms - 140 bytes
+2025-09-14T17:02:58.448Z - GET /api/departments - IP: ::1
+2025-09-14T17:02:58.451Z - GET / - Status: 200 - 3ms - 2797 bytes
+2025-09-14T17:09:16.104Z - GET /api/employees - IP: ::1
+2025-09-14T17:09:16.113Z - GET / - Status: 200 - 9ms - 530 bytes
+2025-09-14T17:09:28.589Z - GET /api/projects - IP: ::1
+2025-09-14T17:09:28.594Z - GET / - Status: 200 - 5ms - 140 bytes
+2025-09-14T17:09:29.529Z - GET /api/allocations - IP: ::1
+2025-09-14T17:09:29.530Z - GET / - Status: 200 - 1ms - 133 bytes
+2025-09-14T17:09:30.498Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-14T17:09:30.499Z - GET /stats - Status: 200 - 1ms - 283 bytes
+2025-09-14T17:12:23.527Z - GET /health - IP: ::1
+2025-09-14T17:12:23.527Z - GET /health - Status: 200 - 0ms - 112 bytes
+2025-09-14T17:12:40.031Z - GET /api/auth/verify - IP: ::1
+2025-09-14T17:12:40.031Z - GET / - Status: 404 - 0ms - 395 bytes
+2025-09-14T17:12:50.524Z - GET /api/departments - IP: ::1
+2025-09-14T17:12:50.529Z - GET / - Status: 200 - 5ms - 2797 bytes
+2025-09-14T17:12:58.031Z - GET /api/analytics/utilization - IP: ::1
+2025-09-14T17:12:58.032Z - GET / - Status: 404 - 1ms - 405 bytes
+2025-09-14T17:13:09.050Z - GET /api/analytics - IP: ::1
+2025-09-14T17:13:09.050Z - GET / - Status: 404 - 0ms - 393 bytes
+2025-09-14T17:13:34.157Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-14T17:13:34.159Z - GET /stats - Status: 200 - 2ms - 283 bytes
+2025-09-14T17:13:34.980Z - GET /api/analytics/team-utilization - IP: ::1
+Error fetching team utilization data: error: column e.default_hours does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at AnalyticsService.getTeamUtilizationData (/Users/teemulinna/code/operating/src/services/analytics.service.ts:124:20)
+    at getTeamUtilization (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:22:22) {
+  length: 114,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '359',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error occurred: {
+  message: 'Failed to fetch team utilization data',
+  stack: 'ApiError: Failed to fetch team utilization data\n' +
+    '    at getTeamUtilization (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:26:13)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  url: '/api/analytics/team-utilization',
+  method: 'GET',
+  timestamp: '2025-09-14T17:13:34.994Z'
+}
+2025-09-14T17:13:34.994Z - GET /api/analytics/team-utilization - Status: 500 - 14ms - 129 bytes
+2025-09-14T17:13:35.864Z - GET /api/analytics/dashboard-summary - IP: ::1
+Error fetching dashboard summary: error: column e.default_hours does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at AnalyticsService.getResourceAllocationMetrics (/Users/teemulinna/code/operating/src/services/analytics.service.ts:276:27)
+    at async Promise.all (index 0)
+    at getDashboardSummary (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:343:67) {
+  length: 114,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '223',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error occurred: {
+  message: 'Failed to fetch dashboard summary',
+  stack: 'ApiError: Failed to fetch dashboard summary\n' +
+    '    at getDashboardSummary (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:379:13)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  url: '/api/analytics/dashboard-summary',
+  method: 'GET',
+  timestamp: '2025-09-14T17:13:35.869Z'
+}
+2025-09-14T17:13:35.869Z - GET /api/analytics/dashboard-summary - Status: 500 - 5ms - 126 bytes
+2025-09-14T17:13:36.792Z - GET /api/departments/1 - IP: ::1
+Error occurred: {
+  message: 'Validation failed',
+  stack: 'ApiError: Validation failed\n' +
+    '    at handleValidationErrors (/Users/teemulinna/code/operating/src/middleware/validate.middleware.ts:15:11)\n' +
+    '    at Layer.handle [as handle_request] (/Users/teemulinna/code/operating/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at next (/Users/teemulinna/code/operating/node_modules/express/lib/router/route.js:149:13)\n' +
+    '    at middleware (/Users/teemulinna/code/operating/node_modules/express-validator/lib/middlewares/check.js:16:13)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  url: '/api/departments/1',
+  method: 'GET',
+  timestamp: '2025-09-14T17:13:36.795Z'
+}
+2025-09-14T17:13:36.795Z - GET /api/departments/1 - Status: 400 - 3ms - 201 bytes
+2025-09-14T17:13:54.077Z - GET /api/departments/e85e5cfe-1970-4ea8-98c8-4a59b7587a52 - IP: ::1
+Database query error: error: invalid input syntax for type uuid: "NaN"
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at DatabaseService.query (/Users/teemulinna/code/operating/src/database/database.service.ts:234:22)
+    at DepartmentService.getDepartmentById (/Users/teemulinna/code/operating/src/services/department.service.ts:57:20)
+    at DepartmentController.getDepartmentById (/Users/teemulinna/code/operating/src/controllers/department.controller.ts:26:26) {
+  length: 135,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'uuid.c',
+  line: '137',
+  routine: 'string_to_uuid'
+}
+Error occurred: {
+  message: 'invalid input syntax for type uuid: "NaN"',
+  stack: 'error: invalid input syntax for type uuid: "NaN"\n' +
+    '    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at DatabaseService.query (/Users/teemulinna/code/operating/src/database/database.service.ts:234:22)\n' +
+    '    at DepartmentService.getDepartmentById (/Users/teemulinna/code/operating/src/services/department.service.ts:57:20)\n' +
+    '    at DepartmentController.getDepartmentById (/Users/teemulinna/code/operating/src/controllers/department.controller.ts:26:26)',
+  url: '/api/departments/e85e5cfe-1970-4ea8-98c8-4a59b7587a52',
+  method: 'GET',
+  timestamp: '2025-09-14T17:13:54.090Z'
+}
+2025-09-14T17:13:54.090Z - GET /api/departments/e85e5cfe-1970-4ea8-98c8-4a59b7587a52 - Status: 500 - 13ms - 135 bytes
+2025-09-14T17:13:55.110Z - POST /api/departments - IP: ::1
+2025-09-14T17:13:55.150Z - POST / - Status: 201 - 40ms - 192 bytes
+2025-09-14T17:13:56.257Z - GET /api/employees - IP: ::1
+2025-09-14T17:13:56.260Z - GET / - Status: 200 - 3ms - 530 bytes
+2025-09-14T17:13:57.179Z - GET /api/projects - IP: ::1
+2025-09-14T17:13:57.184Z - GET / - Status: 200 - 5ms - 140 bytes
+2025-09-14T17:14:10.930Z - GET /api/skills - IP: ::1
+2025-09-14T17:14:10.938Z - GET / - Status: 200 - 8ms - 19725 bytes
+2025-09-14T17:14:11.739Z - GET /api/allocations - IP: ::1
+2025-09-14T17:14:11.741Z - GET / - Status: 200 - 2ms - 133 bytes
+2025-09-14T17:15:29.210Z - GET /api - IP: ::1
+2025-09-14T17:15:29.211Z - GET /api - Status: 200 - 1ms - 1410 bytes
+2025-09-14T17:47:40.980Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-14T17:47:40.983Z - GET /stats - Status: 200 - 3ms - 283 bytes
+2025-09-14T17:47:40.984Z - GET /api/analytics/stats - IP: ::1
+Error fetching comprehensive dashboard stats: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22) {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '1013',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3657',
+  routine: 'errorMissingColumn'
+}
+Error details: column "default_hours" does not exist
+Error stack: error: column "default_hours" does not exist
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at getDashboardStats (/Users/teemulinna/code/operating/src/controllers/analytics.controller.ts:276:22)
+2025-09-14T17:47:40.989Z - GET /stats - Status: 200 - 5ms - 283 bytes
+2025-09-14T17:48:02.273Z - GET /api/employees - IP: ::1
+2025-09-14T17:48:02.273Z - GET /api/departments - IP: ::1
+2025-09-14T17:48:02.294Z - GET / - Status: 200 - 21ms - 530 bytes
+2025-09-14T17:48:02.295Z - GET /api/employees - IP: ::1
+2025-09-14T17:48:02.296Z - GET / - Status: 200 - 23ms - 0 bytes
+2025-09-14T17:48:02.296Z - GET /api/departments - IP: ::1
+2025-09-14T17:48:02.297Z - GET / - Status: 304 - 2ms - 0 bytes
+2025-09-14T17:48:02.297Z - GET / - Status: 304 - 1ms - 0 bytes
+2025-09-14T17:49:06.684Z - GET /api/projects - IP: ::1
+2025-09-14T17:49:06.696Z - GET / - Status: 200 - 12ms - 140 bytes
+2025-09-14T17:49:07.901Z - GET /api/projects - IP: ::1
+2025-09-14T17:49:07.901Z - GET /api/employees - IP: ::1
+2025-09-14T17:49:07.902Z - GET /api/allocations - IP: ::1
+2025-09-14T17:49:07.903Z - GET / - Status: 304 - 2ms - 0 bytes
+2025-09-14T17:49:07.903Z - GET /api/projects - IP: ::1
+2025-09-14T17:49:07.904Z - GET / - Status: 304 - 1ms - 0 bytes
+2025-09-14T17:49:07.908Z - GET / - Status: 200 - 6ms - 133 bytes
+2025-09-14T17:49:07.908Z - GET /api/allocations - IP: ::1
+2025-09-14T17:49:07.909Z - GET / - Status: 304 - 1ms - 0 bytes
+2025-09-14T17:49:07.911Z - GET / - Status: 304 - 10ms - 0 bytes
+2025-09-14T17:49:07.911Z - GET /api/employees - IP: ::1
+2025-09-14T17:49:07.912Z - GET / - Status: 304 - 1ms - 0 bytes
+2025-09-14T17:49:09.144Z - GET /api/projects?status=active - IP: ::1
+2025-09-14T17:49:09.144Z - GET /api/employees?status=active - IP: ::1
+2025-09-14T17:49:09.148Z - GET /?status=active - Status: 200 - 4ms - 530 bytes
+2025-09-14T17:49:09.148Z - GET /?status=active - Status: 200 - 4ms - 140 bytes
+2025-09-14T17:49:09.151Z - GET /api/allocations/calendar?startDate=2025-09-14&endDate=2025-10-14 - IP: ::1
+Database query error: error: invalid input syntax for type uuid: "calendar"
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at DatabaseService.query (/Users/teemulinna/code/operating/src/database/database.service.ts:234:22)
+    at WorkingAllocationModel.findById (/Users/teemulinna/code/operating/src/models/working-allocation.model.ts:141:20)
+    at /Users/teemulinna/code/operating/src/routes/allocation.routes.ts:321:20 {
+  length: 140,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'uuid.c',
+  line: '137',
+  routine: 'string_to_uuid'
+}
+Error occurred: {
+  message: 'invalid input syntax for type uuid: "calendar"',
+  stack: 'error: invalid input syntax for type uuid: "calendar"\n' +
+    '    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at DatabaseService.query (/Users/teemulinna/code/operating/src/database/database.service.ts:234:22)\n' +
+    '    at WorkingAllocationModel.findById (/Users/teemulinna/code/operating/src/models/working-allocation.model.ts:141:20)\n' +
+    '    at /Users/teemulinna/code/operating/src/routes/allocation.routes.ts:321:20',
+  url: '/api/allocations/calendar?startDate=2025-09-14&endDate=2025-10-14',
+  method: 'GET',
+  timestamp: '2025-09-14T17:49:09.157Z'
+}
+2025-09-14T17:49:09.158Z - GET /api/allocations/calendar?startDate=2025-09-14&endDate=2025-10-14 - Status: 500 - 7ms - 107 bytes
+2025-09-14T17:49:09.158Z - GET /api/allocations/calendar?startDate=2025-09-14&endDate=2025-10-14 - IP: ::1
+Database query error: error: invalid input syntax for type uuid: "calendar"
+    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at DatabaseService.query (/Users/teemulinna/code/operating/src/database/database.service.ts:234:22)
+    at WorkingAllocationModel.findById (/Users/teemulinna/code/operating/src/models/working-allocation.model.ts:141:20)
+    at /Users/teemulinna/code/operating/src/routes/allocation.routes.ts:321:20 {
+  length: 140,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'uuid.c',
+  line: '137',
+  routine: 'string_to_uuid'
+}
+Error occurred: {
+  message: 'invalid input syntax for type uuid: "calendar"',
+  stack: 'error: invalid input syntax for type uuid: "calendar"\n' +
+    '    at /Users/teemulinna/code/operating/node_modules/pg-pool/index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at DatabaseService.query (/Users/teemulinna/code/operating/src/database/database.service.ts:234:22)\n' +
+    '    at WorkingAllocationModel.findById (/Users/teemulinna/code/operating/src/models/working-allocation.model.ts:141:20)\n' +
+    '    at /Users/teemulinna/code/operating/src/routes/allocation.routes.ts:321:20',
+  url: '/api/allocations/calendar?startDate=2025-09-14&endDate=2025-10-14',
+  method: 'GET',
+  timestamp: '2025-09-14T17:49:09.159Z'
+}
+2025-09-14T17:49:09.159Z - GET /api/allocations/calendar?startDate=2025-09-14&endDate=2025-10-14 - Status: 500 - 1ms - 107 bytes
+2025-09-14T17:49:31.715Z - GET /api/employees - IP: ::1
+2025-09-14T17:49:31.716Z - GET /api/projects - IP: ::1
+2025-09-14T17:49:31.716Z - GET /api/allocations - IP: ::1
+2025-09-14T17:49:31.719Z - GET / - Status: 304 - 4ms - 0 bytes
+2025-09-14T17:49:31.719Z - GET /api/employees - IP: ::1
+2025-09-14T17:49:31.720Z - GET / - Status: 304 - 1ms - 0 bytes
+2025-09-14T17:49:31.725Z - GET / - Status: 304 - 9ms - 0 bytes
+2025-09-14T17:49:31.725Z - GET /api/allocations - IP: ::1
+2025-09-14T17:49:31.737Z - GET / - Status: 304 - 12ms - 0 bytes
+2025-09-14T17:49:31.737Z - GET / - Status: 304 - 21ms - 0 bytes
+2025-09-14T17:49:31.739Z - GET /api/projects - IP: ::1
+2025-09-14T17:49:31.740Z - GET / - Status: 304 - 1ms - 0 bytes
+2025-09-14T17:49:54.923Z - GET /api/allocations/export/csv? - IP: ::1
+2025-09-14T17:49:54.984Z - GET /csv? - Status: 200 - 61ms - 63 bytes
+2025-09-14T17:50:03.591Z - GET /health - IP: ::1
+2025-09-14T17:50:03.591Z - GET /health - Status: 200 - 0ms - 112 bytes
+2025-09-14T17:50:03.605Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.615Z - GET / - Status: 200 - 10ms - 530 bytes
+2025-09-14T17:50:03.623Z - GET /api/employees?page=1&limit=2 - IP: ::1
+2025-09-14T17:50:03.629Z - GET /?page=1&limit=2 - Status: 200 - 6ms - 529 bytes
+2025-09-14T17:50:03.633Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:03.637Z - GET / - Status: 200 - 4ms - 140 bytes
+2025-09-14T17:50:03.639Z - GET /api/departments - IP: ::1
+2025-09-14T17:50:03.644Z - GET / - Status: 200 - 5ms - 0 bytes
+2025-09-14T17:50:03.651Z - GET /api/employees/invalid-uuid - IP: ::1
+Error occurred: {
+  message: 'Validation failed',
+  stack: 'ApiError: Validation failed\n' +
+    '    at handleValidationErrors (/Users/teemulinna/code/operating/src/middleware/validate.middleware.ts:15:11)\n' +
+    '    at Layer.handle [as handle_request] (/Users/teemulinna/code/operating/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at next (/Users/teemulinna/code/operating/node_modules/express/lib/router/route.js:149:13)\n' +
+    '    at middleware (/Users/teemulinna/code/operating/node_modules/express-validator/lib/middlewares/check.js:16:13)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  url: '/api/employees/invalid-uuid',
+  method: 'GET',
+  timestamp: '2025-09-14T17:50:03.651Z'
+}
+2025-09-14T17:50:03.652Z - GET /api/employees/invalid-uuid - Status: 400 - 1ms - 221 bytes
+2025-09-14T17:50:03.659Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.660Z - GET /api/departments - IP: ::1
+2025-09-14T17:50:03.695Z - GET / - Status: 200 - 36ms - 530 bytes
+2025-09-14T17:50:03.707Z - GET / - Status: 200 - 47ms - 0 bytes
+2025-09-14T17:50:03.714Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.722Z - GET / - Status: 200 - 8ms - 530 bytes
+2025-09-14T17:50:03.728Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.728Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.729Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.729Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.730Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.731Z - GET / - Status: 200 - 3ms - 530 bytes
+2025-09-14T17:50:03.731Z - GET / - Status: 200 - 3ms - 530 bytes
+2025-09-14T17:50:03.744Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.744Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:03.744Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:03.748Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.748Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:03.748Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:03.756Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:03.757Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:03.757Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.757Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:03.758Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.758Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:03.758Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.758Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:03.759Z - GET / - Status: 200 - 15ms - 133 bytes
+2025-09-14T17:50:03.766Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:03.767Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.767Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:03.767Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:03.769Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.769Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:03.769Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:03.791Z - GET / - Status: 200 - 47ms - 530 bytes
+2025-09-14T17:50:03.794Z - GET / - Status: 200 - 25ms - 530 bytes
+2025-09-14T17:50:03.795Z - GET / - Status: 200 - 29ms - 133 bytes
+2025-09-14T17:50:03.796Z - GET / - Status: 200 - 27ms - 133 bytes
+2025-09-14T17:50:03.799Z - GET / - Status: 200 - 30ms - 140 bytes
+2025-09-14T17:50:03.799Z - GET / - Status: 200 - 70ms - 530 bytes
+2025-09-14T17:50:03.801Z - GET / - Status: 200 - 71ms - 530 bytes
+2025-09-14T17:50:03.802Z - GET / - Status: 200 - 73ms - 530 bytes
+2025-09-14T17:50:03.810Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:03.814Z - GET / - Status: 200 - 66ms - 140 bytes
+2025-09-14T17:50:03.814Z - GET / - Status: 200 - 66ms - 530 bytes
+2025-09-14T17:50:03.816Z - GET / - Status: 200 - 6ms - 530 bytes
+2025-09-14T17:50:03.816Z - GET / - Status: 200 - 68ms - 133 bytes
+2025-09-14T17:50:03.819Z - GET / - Status: 200 - 62ms - 530 bytes
+2025-09-14T17:50:03.820Z - GET / - Status: 200 - 64ms - 140 bytes
+2025-09-14T17:50:03.820Z - GET / - Status: 200 - 76ms - 140 bytes
+2025-09-14T17:50:03.824Z - GET / - Status: 200 - 67ms - 133 bytes
+2025-09-14T17:50:03.828Z - GET / - Status: 200 - 70ms - 530 bytes
+2025-09-14T17:50:03.828Z - GET / - Status: 200 - 70ms - 133 bytes
+2025-09-14T17:50:03.834Z - GET / - Status: 200 - 76ms - 530 bytes
+2025-09-14T17:50:03.836Z - GET / - Status: 200 - 78ms - 140 bytes
+2025-09-14T17:50:03.839Z - GET /api/departments - IP: ::1
+2025-09-14T17:50:03.840Z - GET / - Status: 200 - 83ms - 140 bytes
+2025-09-14T17:50:03.841Z - GET / - Status: 200 - 74ms - 133 bytes
+2025-09-14T17:50:03.842Z - GET / - Status: 200 - 75ms - 530 bytes
+2025-09-14T17:50:03.843Z - GET / - Status: 200 - 76ms - 140 bytes
+2025-09-14T17:50:03.844Z - GET / - Status: 200 - 5ms - 0 bytes
+2025-09-14T17:50:04.773Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:04.776Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:04.777Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:04.781Z - GET / - Status: 200 - 8ms - 530 bytes
+2025-09-14T17:50:04.781Z - GET / - Status: 200 - 5ms - 133 bytes
+2025-09-14T17:50:04.785Z - GET / - Status: 200 - 8ms - 140 bytes
+2025-09-14T17:50:05.776Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.776Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.778Z - GET / - Status: 200 - 2ms - 530 bytes
+2025-09-14T17:50:05.778Z - GET / - Status: 200 - 2ms - 140 bytes
+2025-09-14T17:50:05.779Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.779Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.779Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.779Z - GET / - Status: 200 - 0ms - 133 bytes
+2025-09-14T17:50:05.780Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.780Z - GET / - Status: 200 - 1ms - 140 bytes
+2025-09-14T17:50:05.782Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.782Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.782Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.783Z - GET / - Status: 200 - 1ms - 133 bytes
+2025-09-14T17:50:05.783Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.783Z - GET / - Status: 200 - 1ms - 140 bytes
+2025-09-14T17:50:05.785Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.785Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.786Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.786Z - GET / - Status: 200 - 1ms - 133 bytes
+2025-09-14T17:50:05.786Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.786Z - GET / - Status: 200 - 0ms - 140 bytes
+2025-09-14T17:50:05.789Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.789Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.789Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.790Z - GET / - Status: 200 - 1ms - 133 bytes
+2025-09-14T17:50:05.790Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.790Z - GET / - Status: 200 - 1ms - 140 bytes
+2025-09-14T17:50:05.793Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.793Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.793Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.794Z - GET / - Status: 200 - 1ms - 133 bytes
+2025-09-14T17:50:05.794Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.794Z - GET / - Status: 200 - 1ms - 140 bytes
+2025-09-14T17:50:05.796Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.796Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.796Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.796Z - GET / - Status: 200 - 0ms - 133 bytes
+2025-09-14T17:50:05.797Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.797Z - GET / - Status: 200 - 1ms - 140 bytes
+2025-09-14T17:50:05.800Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.800Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.800Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.801Z - GET / - Status: 200 - 1ms - 133 bytes
+2025-09-14T17:50:05.801Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.801Z - GET / - Status: 200 - 1ms - 140 bytes
+2025-09-14T17:50:05.803Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.803Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.803Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.804Z - GET / - Status: 200 - 1ms - 133 bytes
+2025-09-14T17:50:05.804Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.804Z - GET / - Status: 200 - 1ms - 140 bytes
+2025-09-14T17:50:05.809Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.809Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.809Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.809Z - GET / - Status: 200 - 0ms - 133 bytes
+2025-09-14T17:50:05.810Z - GET / - Status: 200 - 1ms - 530 bytes
+2025-09-14T17:50:05.810Z - GET / - Status: 200 - 1ms - 140 bytes
+2025-09-14T17:50:05.811Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.811Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.811Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.811Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.811Z - GET /api/employees - IP: ::1
+2025-09-14T17:50:05.811Z - GET /api/projects - IP: ::1
+2025-09-14T17:50:05.811Z - GET /api/allocations - IP: ::1
+2025-09-14T17:50:05.813Z - GET / - Status: 200 - 2ms - 530 bytes
+2025-09-14T17:50:05.813Z - GET / - Status: 200 - 2ms - 133 bytes
+2025-09-14T17:50:05.813Z - GET / - Status: 200 - 2ms - 140 bytes
+2025-09-14T17:50:05.813Z - GET / - Status: 200 - 2ms - 133 bytes
+2025-09-14T17:50:05.813Z - GET / - Status: 200 - 2ms - 133 bytes
+2025-09-14T17:50:05.815Z - GET / - Status: 200 - 4ms - 530 bytes
+2025-09-14T17:50:05.816Z - GET / - Status: 200 - 5ms - 140 bytes
+[INFO] 21:01:30 Reinitializing TS compilation
+[INFO] 21:01:30 Restarting: /Users/teemulinna/code/operating/tsconfig.json has been modified
+SIGTERM received, shutting down gracefully
+Database disconnected
+✅ All services shut down gracefully
+Server shut down complete
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+🔓 Rate limiting disabled for development/testing environment
+🔓 Authentication disabled for development environment
+Database connected successfully
+🔧 Initializing ExportController with pool from service registration: true
+🔧 Initializing ExportController with pool: true
+✅ ExportController initialized successfully
+✅ ExportController initialization called
+✅ All services initialized and configured
+runMigrations() is deprecated. Use DatabaseMigrator class instead.
+Basic table creation skipped - use proper migrations.
+Database migrations completed
+✅ WebSocket server initialized
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at startServer (/Users/teemulinna/code/operating/src/server.ts:35:12)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[ERROR] 21:01:31 Error: listen EADDRINUSE: address already in use :::3001
+SIGTERM received, shutting down gracefully
+Database disconnected
+✅ All services shut down gracefully
+Server shut down complete
+[INFO] 21:02:11 Restarting: /Users/teemulinna/code/operating/src/services/employee.service.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+🔓 Rate limiting disabled for development/testing environment
+🔓 Authentication disabled for development environment
+Database connected successfully
+🔧 Initializing ExportController with pool from service registration: true
+🔧 Initializing ExportController with pool: true
+✅ ExportController initialized successfully
+✅ ExportController initialization called
+✅ All services initialized and configured
+runMigrations() is deprecated. Use DatabaseMigrator class instead.
+Basic table creation skipped - use proper migrations.
+Database migrations completed
+✅ WebSocket server initialized
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at startServer (/Users/teemulinna/code/operating/src/server.ts:35:12)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[ERROR] 21:02:11 Error: listen EADDRINUSE: address already in use :::3001
+SIGTERM received, shutting down gracefully
+Database disconnected
+✅ All services shut down gracefully
+Server shut down complete
+[INFO] 21:08:50 Restarting: /Users/teemulinna/code/operating/src/models/index.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/services/dependency.service.ts
+- /Users/teemulinna/code/operating/src/container/service-registration.ts
+- /Users/teemulinna/code/operating/src/middleware/service-injection.middleware.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:08:51 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/services/dependency.service.ts
+- /Users/teemulinna/code/operating/src/container/service-registration.ts
+- /Users/teemulinna/code/operating/src/middleware/service-injection.middleware.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:10:19 Restarting: /Users/teemulinna/code/operating/src/app.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:10:20 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:15:28 Restarting: /Users/teemulinna/code/operating/src/app.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:15:28 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:24:31 Restarting: /Users/teemulinna/code/operating/src/app.ts has been modified
+[INFO] 21:24:31 Restarting: /Users/teemulinna/code/operating/src/app.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:24:32 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:28:01 Restarting: /Users/teemulinna/code/operating/src/app.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:28:01 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:29:00 Restarting: /Users/teemulinna/code/operating/src/app.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:29:01 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:29:47 Restarting: /Users/teemulinna/code/operating/src/controllers/analytics.controller.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:29:47 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:30:03 Restarting: /Users/teemulinna/code/operating/src/controllers/analytics.controller.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:30:04 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:30:22 Restarting: /Users/teemulinna/code/operating/src/controllers/analytics.controller.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:30:22 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+[INFO] 21:30:38 Restarting: /Users/teemulinna/code/operating/src/controllers/analytics.controller.ts has been modified
+Email credentials not configured. Email notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+VAPID keys not configured. Push notifications will be logged only.
+Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/teemulinna/code/operating/src/models/ProjectTask.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1738:14)
+    at Module._compile (/Users/teemulinna/code/operating/node_modules/source-map-support/source-map-support.js:521:25)
+    at Module.m._compile (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:69:33)
+    at node:internal/modules/cjs/loader:1871:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/hb/3lm_cnfn07dg2_38hxcw4t_h0000gn/T/ts-node-dev-hook-732903786509085.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/teemulinna/code/operating/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 21:30:38 Error: Cannot find module 'sequelize'
+Require stack:
+- /Users/teemulinna/code/operating/src/models/ProjectTask.ts
+- /Users/teemulinna/code/operating/src/controllers/project-tasks.controller.ts
+- /Users/teemulinna/code/operating/src/routes/project-tasks.routes.ts
+- /Users/teemulinna/code/operating/src/app.ts
+- /Users/teemulinna/code/operating/src/server.ts

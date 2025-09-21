@@ -47,15 +47,41 @@ export class DatabaseMigrator {
   }
 
   private async createMigrationsTable(): Promise<void> {
-    const query = `
-      CREATE TABLE IF NOT EXISTS migrations (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL UNIQUE,
-        executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
+    const client = await this.pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      const query = `
+        CREATE TABLE IF NOT EXISTS migrations (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL UNIQUE,
+          executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          checksum VARCHAR(64),
+          execution_time_ms INTEGER
+        )
+      `;
 
-    await this.pool.query(query);
+      await client.query(query);
+      
+      // Ensure proper permissions
+      await client.query(`
+        GRANT ALL PRIVILEGES ON TABLE migrations TO CURRENT_USER;
+      `);
+      
+      await client.query(`
+        GRANT USAGE, SELECT ON SEQUENCE migrations_id_seq TO CURRENT_USER;
+      `);
+      
+      await client.query('COMMIT');
+      
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('Failed to create migrations table:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   private async getExecutedMigrations(): Promise<string[]> {
@@ -125,9 +151,64 @@ export class DatabaseMigrator {
     }
   }
 
-  async rollback(_targetMigration?: string): Promise<void> {
-    console.warn('Rollback functionality not implemented yet');
-    console.warn('Please create rollback migrations manually if needed');
+  async rollback(targetMigration?: string): Promise<void> {
+    if (!targetMigration) {
+      console.warn('No target migration specified. Rolling back last migration.');
+      
+      const executedMigrations = await this.getExecutedMigrations();
+      if (executedMigrations.length === 0) {
+        console.log('No migrations to rollback');
+        return;
+      }
+      
+      targetMigration = executedMigrations[executedMigrations.length - 1];
+    }
+
+    try {
+      console.log(`Rolling back migration: ${targetMigration}`);
+      
+      // Execute rollback SQL if exists
+      const rollbackFile = `rollback_${targetMigration}.sql`;
+      const rollbackPath = join(this.migrationsDir, rollbackFile);
+      
+      const fs = require('fs');
+      if (fs.existsSync(rollbackPath)) {
+        const rollbackSQL = readFileSync(rollbackPath, 'utf8');
+        
+        const client = await this.pool.connect();
+        try {
+          await client.query('BEGIN');
+          await client.query(rollbackSQL);
+          
+          // Remove from migrations table
+          await client.query(
+            'DELETE FROM migrations WHERE name = $1',
+            [targetMigration]
+          );
+          
+          await client.query('COMMIT');
+          console.log(`Migration ${targetMigration} rolled back successfully`);
+        } catch (error) {
+          await client.query('ROLLBACK');
+          throw error;
+        } finally {
+          client.release();
+        }
+      } else {
+        console.warn(`Rollback file not found: ${rollbackFile}`);
+        console.warn('Manual rollback required');
+        
+        // Just remove from migrations table as fallback
+        await this.pool.query(
+          'DELETE FROM migrations WHERE name = $1',
+          [targetMigration]
+        );
+        console.log(`Removed ${targetMigration} from migrations table`);
+      }
+    } catch (error) {
+      console.error(`Failed to rollback migration ${targetMigration}:`, error);
+      throw error;
+    }
   }
 
   async getStatus(): Promise<void> {

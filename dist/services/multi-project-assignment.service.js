@@ -437,6 +437,48 @@ class MultiProjectAssignmentService {
             throw new api_error_1.ApiError(409, `Allocation conflict: Total allocation would be ${existingAllocation + newAllocation}% (exceeds 100%)`);
         }
     }
+    async optimizeMultiProjectAssignments(options) {
+        const { employees, projects, constraints } = options;
+        const assignments = [];
+        for (const project of projects) {
+            const suitableEmployees = employees
+                .filter(emp => this.calculateSkillMatch(emp.skills, project.requiredSkills) >= constraints.minSkillMatch)
+                .sort((a, b) => {
+                const skillMatchA = this.calculateSkillMatch(a.skills, project.requiredSkills);
+                const skillMatchB = this.calculateSkillMatch(b.skills, project.requiredSkills);
+                return skillMatchB - skillMatchA;
+            });
+            for (const employee of suitableEmployees.slice(0, Math.min(3, suitableEmployees.length))) {
+                const currentAssignments = assignments.filter(a => a.employeeId === employee.id);
+                if (currentAssignments.length < constraints.maxProjectsPerEmployee) {
+                    const allocation = Math.min(employee.availability * 100 / (currentAssignments.length + 1), 80);
+                    assignments.push({
+                        employeeId: employee.id,
+                        projectId: project.id,
+                        allocation,
+                        skillMatch: this.calculateSkillMatch(employee.skills, project.requiredSkills)
+                    });
+                }
+            }
+        }
+        const employeeUtilization = new Map();
+        assignments.forEach(assignment => {
+            const current = employeeUtilization.get(assignment.employeeId) || 0;
+            employeeUtilization.set(assignment.employeeId, current + assignment.allocation);
+        });
+        const totalUtilization = Array.from(employeeUtilization.values())
+            .reduce((sum, util) => sum + Math.min(util, 100), 0) / employees.length;
+        return {
+            assignments,
+            totalUtilization: totalUtilization / 100
+        };
+    }
+    calculateSkillMatch(employeeSkills, requiredSkills) {
+        if (requiredSkills.length === 0)
+            return 1.0;
+        const matchingSkills = requiredSkills.filter(skill => employeeSkills.includes(skill));
+        return matchingSkills.length / requiredSkills.length;
+    }
 }
 exports.MultiProjectAssignmentService = MultiProjectAssignmentService;
 //# sourceMappingURL=multi-project-assignment.service.js.map

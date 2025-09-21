@@ -1,53 +1,257 @@
-export const testData = {
-  departments: [
-    { id: 1, name: 'Engineering', description: 'Software development team' },
-    { id: 2, name: 'Design', description: 'User experience and design team' },
-    { id: 3, name: 'Marketing', description: 'Marketing and communications team' }
-  ],
-  employees: [
-    {
-      id: 1,
-      firstName: 'Alice',
-      lastName: 'Johnson',
-      email: 'alice@company.com',
-      position: 'Senior Software Engineer',
-      departmentId: 1,
-      salary: 95000,
-      hireDate: '2022-01-15',
-      skills: ['JavaScript', 'React', 'Node.js', 'PostgreSQL']
-    },
-    {
-      id: 2,
-      firstName: 'Bob',
-      lastName: 'Smith',
-      email: 'bob@company.com',
-      position: 'UX Designer',
-      departmentId: 2,
-      salary: 75000,
-      hireDate: '2022-03-20',
-      skills: ['Figma', 'Adobe XD', 'Prototyping', 'User Research']
-    },
-    {
-      id: 3,
-      firstName: 'Charlie',
-      lastName: 'Brown',
-      email: 'charlie@company.com',
-      position: 'Marketing Manager',
-      departmentId: 3,
-      salary: 80000,
-      hireDate: '2021-11-10',
-      skills: ['Digital Marketing', 'SEO', 'Analytics', 'Content Strategy']
-    },
-    {
-      id: 4,
-      firstName: 'Diana',
-      lastName: 'Wilson',
-      email: 'existing@company.com',
-      position: 'Frontend Developer',
-      departmentId: 1,
-      salary: 70000,
-      hireDate: '2023-02-01',
-      skills: ['Vue.js', 'CSS', 'JavaScript', 'TypeScript']
-    }
-  ]
+// Test data fixtures for e2e tests
+
+export const mockPersons = [
+  {
+    id: 1,
+    name: 'John Doe',
+    age: 30,
+    occupation: 'Software Engineer',
+    email: 'john.doe@example.com',
+    phone: '+1-555-0100',
+    address: '123 Main St, Anytown, USA',
+    department: 'Engineering',
+    skills: ['JavaScript', 'TypeScript', 'React', 'Node.js']
+  },
+  {
+    id: 2,
+    name: 'Jane Smith',
+    age: 28,
+    occupation: 'Product Manager',
+    email: 'jane.smith@example.com',
+    phone: '+1-555-0101',
+    address: '456 Oak Ave, Somewhere, USA',
+    department: 'Product',
+    skills: ['Product Strategy', 'Agile', 'User Research']
+  },
+  {
+    id: 3,
+    name: 'Bob Johnson',
+    age: 35,
+    occupation: 'UX Designer',
+    email: 'bob.johnson@example.com',
+    phone: '+1-555-0102',
+    address: '789 Pine Rd, Elsewhere, USA',
+    department: 'Design',
+    skills: ['Figma', 'Sketch', 'User Experience', 'Prototyping']
+  },
+  {
+    id: 4,
+    name: 'Alice Williams',
+    age: 32,
+    occupation: 'Data Scientist',
+    email: 'alice.williams@example.com',
+    phone: '+1-555-0103',
+    address: '321 Elm St, Anywhere, USA',
+    department: 'Data',
+    skills: ['Python', 'Machine Learning', 'SQL', 'Statistics']
+  },
+  {
+    id: 5,
+    name: 'Charlie Brown',
+    age: 29,
+    occupation: 'DevOps Engineer',
+    email: 'charlie.brown@example.com',
+    phone: '+1-555-0104',
+    address: '654 Maple Dr, Nowhere, USA',
+    department: 'Infrastructure',
+    skills: ['Docker', 'Kubernetes', 'AWS', 'CI/CD']
+  }
+];
+
+export const invalidPersonData = {
+  missingName: {
+    age: 25,
+    occupation: 'Developer',
+    email: 'test@example.com'
+  },
+  invalidAge: {
+    name: 'Test User',
+    age: -5,
+    occupation: 'Developer',
+    email: 'test@example.com'
+  },
+  invalidEmail: {
+    name: 'Test User',
+    age: 25,
+    occupation: 'Developer',
+    email: 'not-an-email'
+  },
+  emptyFields: {
+    name: '',
+    age: '',
+    occupation: '',
+    email: ''
+  }
+};
+
+export const testProjects = [
+  {
+    id: 1,
+    name: 'Project Alpha',
+    description: 'Web application modernization',
+    startDate: '2024-01-01',
+    endDate: '2024-06-30',
+    status: 'active',
+    budget: 100000,
+    requiredSkills: ['React', 'Node.js', 'PostgreSQL']
+  },
+  {
+    id: 2,
+    name: 'Project Beta',
+    description: 'Mobile app development',
+    startDate: '2024-02-01',
+    endDate: '2024-08-31',
+    status: 'planning',
+    budget: 150000,
+    requiredSkills: ['React Native', 'TypeScript', 'GraphQL']
+  },
+  {
+    id: 3,
+    name: 'Project Gamma',
+    description: 'Data pipeline implementation',
+    startDate: '2024-03-01',
+    endDate: '2024-09-30',
+    status: 'active',
+    budget: 80000,
+    requiredSkills: ['Python', 'Apache Spark', 'AWS']
+  }
+];
+
+export const testAllocations = [
+  {
+    employeeId: 1,
+    projectId: 1,
+    role: 'Frontend Developer',
+    allocation: 80,
+    startDate: '2024-01-01',
+    endDate: '2024-03-31'
+  },
+  {
+    employeeId: 2,
+    projectId: 1,
+    role: 'Product Owner',
+    allocation: 50,
+    startDate: '2024-01-01',
+    endDate: '2024-06-30'
+  },
+  {
+    employeeId: 3,
+    projectId: 2,
+    role: 'UI/UX Designer',
+    allocation: 100,
+    startDate: '2024-02-01',
+    endDate: '2024-04-30'
+  },
+  {
+    employeeId: 4,
+    projectId: 3,
+    role: 'Data Engineer',
+    allocation: 100,
+    startDate: '2024-03-01',
+    endDate: '2024-09-30'
+  },
+  {
+    employeeId: 5,
+    projectId: 1,
+    role: 'DevOps Engineer',
+    allocation: 30,
+    startDate: '2024-01-01',
+    endDate: '2024-06-30'
+  }
+];
+
+export const testSkills = [
+  { name: 'JavaScript', category: 'Programming', level: 'Expert' },
+  { name: 'TypeScript', category: 'Programming', level: 'Advanced' },
+  { name: 'React', category: 'Framework', level: 'Expert' },
+  { name: 'Node.js', category: 'Runtime', level: 'Advanced' },
+  { name: 'Python', category: 'Programming', level: 'Expert' },
+  { name: 'SQL', category: 'Database', level: 'Advanced' },
+  { name: 'Docker', category: 'DevOps', level: 'Intermediate' },
+  { name: 'Kubernetes', category: 'DevOps', level: 'Intermediate' },
+  { name: 'AWS', category: 'Cloud', level: 'Advanced' },
+  { name: 'Agile', category: 'Methodology', level: 'Expert' }
+];
+
+export const testDepartments = [
+  { id: 1, name: 'Engineering', manager: 'John Manager', budget: 500000 },
+  { id: 2, name: 'Product', manager: 'Jane Leader', budget: 300000 },
+  { id: 3, name: 'Design', manager: 'Bob Director', budget: 200000 },
+  { id: 4, name: 'Data', manager: 'Alice Chief', budget: 400000 },
+  { id: 5, name: 'Infrastructure', manager: 'Charlie Head', budget: 350000 }
+];
+
+// CSV test data
+export const validCSVData = `name,age,occupation,email,department
+John Doe,30,Software Engineer,john@example.com,Engineering
+Jane Smith,28,Product Manager,jane@example.com,Product
+Bob Johnson,35,UX Designer,bob@example.com,Design`;
+
+export const invalidCSVData = `name,age,occupation
+Missing Email,30,Developer
+Invalid Age,not-a-number,Designer,invalid@example.com
+,25,Empty Name,empty@example.com`;
+
+// Accessibility test selectors
+export const testSelectors = {
+  // Navigation
+  navbar: '[data-testid="navbar"]',
+  sidebar: '[data-testid="sidebar"]',
+  mainContent: '[data-testid="main-content"]',
+
+  // Forms
+  addPersonBtn: '[data-testid="add-person-btn"]',
+  personForm: '[data-testid="person-form"]',
+  nameInput: '[data-testid="name-input"]',
+  ageInput: '[data-testid="age-input"]',
+  occupationInput: '[data-testid="occupation-input"]',
+  emailInput: '[data-testid="email-input"]',
+  phoneInput: '[data-testid="phone-input"]',
+  addressInput: '[data-testid="address-input"]',
+  savePersonBtn: '[data-testid="save-person-btn"]',
+  cancelBtn: '[data-testid="cancel-btn"]',
+
+  // Lists and tables
+  personList: '[data-testid="person-list"]',
+  personCard: '[data-testid="person-card"]',
+  editBtn: '[data-testid="edit-btn"]',
+  deleteBtn: '[data-testid="delete-btn"]',
+
+  // Messages
+  successMessage: '[data-testid="success-message"]',
+  errorMessage: '[data-testid="error-message"]',
+  loadingSpinner: '[data-testid="loading-spinner"]',
+
+  // Filters and search
+  searchInput: '[data-testid="search-input"]',
+  departmentFilter: '[data-testid="department-filter"]',
+  skillFilter: '[data-testid="skill-filter"]',
+
+  // Pagination
+  prevPageBtn: '[data-testid="prev-page"]',
+  nextPageBtn: '[data-testid="next-page"]',
+  pageInfo: '[data-testid="page-info"]'
+};
+
+// Performance test thresholds
+export const performanceThresholds = {
+  pageLoad: 3000, // 3 seconds
+  apiResponse: 500, // 500ms
+  formSubmission: 1000, // 1 second
+  searchResponse: 300, // 300ms
+  firstContentfulPaint: 1500, // 1.5 seconds
+  timeToInteractive: 3500 // 3.5 seconds
+};
+
+export default {
+  mockPersons,
+  invalidPersonData,
+  testProjects,
+  testAllocations,
+  testSkills,
+  testDepartments,
+  validCSVData,
+  invalidCSVData,
+  testSelectors,
+  performanceThresholds
 };

@@ -1,11 +1,17 @@
 import { DatabaseService } from '../database/database.service';
+import { DatabaseFactory } from '../database/database-factory';
 import { Department } from '../types/employee.types';
 
 export class DepartmentService {
   private db: DatabaseService;
 
-  constructor() {
-    this.db = DatabaseService.getInstance();
+  constructor(db?: DatabaseService) {
+    this.db = db || DatabaseService.getInstance();
+  }
+
+  static async create(): Promise<DepartmentService> {
+    const db = await DatabaseFactory.getDatabaseService();
+    return new DepartmentService(db);
   }
 
   async getDepartments(): Promise<Department[]> {

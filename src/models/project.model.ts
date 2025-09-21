@@ -1,4 +1,4 @@
-import { Pool, QueryResult } from 'pg';
+import { Pool } from 'pg';
 import { 
   Project, 
   CreateProjectInput, 
@@ -309,7 +309,7 @@ export class ProjectModel {
    * Map database row to Project object
    */
   private static mapRow(row: any): Project {
-    return {
+    const project: Project = {
       id: row.id.toString(),
       name: row.name,
       description: row.description,
@@ -317,12 +317,20 @@ export class ProjectModel {
       status: row.status,
       startDate: row.start_date,
       endDate: row.end_date,
-      budget: row.budget ? parseFloat(row.budget) : undefined,
-      hourlyRate: row.hourly_rate ? parseFloat(row.hourly_rate) : undefined,
       createdBy: row.created_by,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
+
+    // Only set optional properties if they have values
+    if (row.budget !== null && row.budget !== undefined) {
+      project.budget = parseFloat(row.budget);
+    }
+    if (row.hourly_rate !== null && row.hourly_rate !== undefined) {
+      project.hourlyRate = parseFloat(row.hourly_rate);
+    }
+
+    return project;
   }
 
   /**

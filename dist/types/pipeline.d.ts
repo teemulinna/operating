@@ -1,16 +1,23 @@
 export interface CRMSystemConfig {
     id: string;
     name: string;
-    type: 'salesforce' | 'hubspot' | 'pipedrive' | 'dynamics' | 'custom';
+    type: 'jira' | 'asana' | 'trello' | 'salesforce' | 'hubspot' | 'pipedrive' | 'dynamics' | 'custom';
     apiUrl: string;
     apiVersion?: string;
-    authType: 'oauth' | 'api-key' | 'basic' | 'bearer';
+    authType: 'oauth' | 'api-key' | 'basic' | 'bearer' | 'token';
     credentials: {
         apiKey?: string;
         clientId?: string;
         clientSecret?: string;
         accessToken?: string;
         refreshToken?: string;
+        token?: string;
+        apiToken?: string;
+        userEmail?: string;
+        projectKey?: string;
+        workspaceGid?: string;
+        projectGid?: string;
+        boardId?: string;
     };
     syncSettings: CRMSyncSettings;
     isActive: boolean;

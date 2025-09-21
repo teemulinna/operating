@@ -1,5 +1,12 @@
 import { Pool } from 'pg';
-import { SkillCategory } from '../types';
+
+export enum SkillCategory {
+  TECHNICAL = 'technical',
+  SOFT = 'soft',
+  LANGUAGE = 'language',
+  CERTIFICATION = 'certification',
+  DOMAIN = 'domain'
+}
 
 export class DatabaseSeeder {
   private pool: Pool;
@@ -10,11 +17,9 @@ export class DatabaseSeeder {
 
   async seedAll(): Promise<void> {
     console.log('Starting database seeding...');
-    
     try {
       await this.seedDepartments();
       await this.seedSkills();
-      
       console.log('Database seeding completed successfully');
     } catch (error) {
       console.error('Database seeding failed:', error);
@@ -24,7 +29,6 @@ export class DatabaseSeeder {
 
   async seedDepartments(): Promise<void> {
     console.log('Seeding departments...');
-
     const departments = [
       {
         name: 'Engineering',
@@ -70,8 +74,8 @@ export class DatabaseSeeder {
 
     for (const dept of departments) {
       await this.pool.query(
-        `INSERT INTO departments (name, description, is_active) 
-         VALUES ($1, $2, $3) 
+        `INSERT INTO departments (name, description, is_active)
+         VALUES ($1, $2, $3)
          ON CONFLICT (name) DO NOTHING`,
         [dept.name, dept.description, true]
       );
@@ -82,9 +86,7 @@ export class DatabaseSeeder {
 
   async seedSkills(): Promise<void> {
     console.log('Seeding skills...');
-
     const skills = [
-      // Technical Skills
       { name: 'JavaScript', category: SkillCategory.TECHNICAL, description: 'Programming language for web development' },
       { name: 'TypeScript', category: SkillCategory.TECHNICAL, description: 'Typed superset of JavaScript' },
       { name: 'Node.js', category: SkillCategory.TECHNICAL, description: 'JavaScript runtime for server-side development' },
@@ -126,8 +128,6 @@ export class DatabaseSeeder {
       { name: 'Machine Learning', category: SkillCategory.TECHNICAL, description: 'AI and ML algorithms' },
       { name: 'TensorFlow', category: SkillCategory.TECHNICAL, description: 'Machine learning framework' },
       { name: 'PyTorch', category: SkillCategory.TECHNICAL, description: 'Machine learning framework' },
-
-      // Soft Skills
       { name: 'Leadership', category: SkillCategory.SOFT, description: 'Ability to guide and inspire teams' },
       { name: 'Communication', category: SkillCategory.SOFT, description: 'Effective verbal and written communication' },
       { name: 'Team Collaboration', category: SkillCategory.SOFT, description: 'Working effectively with others' },
@@ -141,8 +141,6 @@ export class DatabaseSeeder {
       { name: 'Presentation Skills', category: SkillCategory.SOFT, description: 'Effective public speaking' },
       { name: 'Negotiation', category: SkillCategory.SOFT, description: 'Reaching mutually beneficial agreements' },
       { name: 'Customer Service', category: SkillCategory.SOFT, description: 'Meeting customer needs effectively' },
-
-      // Languages
       { name: 'English', category: SkillCategory.LANGUAGE, description: 'English language proficiency' },
       { name: 'Spanish', category: SkillCategory.LANGUAGE, description: 'Spanish language proficiency' },
       { name: 'French', category: SkillCategory.LANGUAGE, description: 'French language proficiency' },
@@ -150,16 +148,12 @@ export class DatabaseSeeder {
       { name: 'Mandarin', category: SkillCategory.LANGUAGE, description: 'Mandarin Chinese proficiency' },
       { name: 'Japanese', category: SkillCategory.LANGUAGE, description: 'Japanese language proficiency' },
       { name: 'Korean', category: SkillCategory.LANGUAGE, description: 'Korean language proficiency' },
-
-      // Certifications
       { name: 'AWS Certified Solutions Architect', category: SkillCategory.CERTIFICATION, description: 'AWS cloud architecture certification' },
       { name: 'Google Cloud Professional', category: SkillCategory.CERTIFICATION, description: 'Google Cloud Platform certification' },
       { name: 'Microsoft Azure Fundamentals', category: SkillCategory.CERTIFICATION, description: 'Azure cloud certification' },
       { name: 'PMP', category: SkillCategory.CERTIFICATION, description: 'Project Management Professional' },
       { name: 'Scrum Master', category: SkillCategory.CERTIFICATION, description: 'Agile Scrum methodology certification' },
       { name: 'CISSP', category: SkillCategory.CERTIFICATION, description: 'Information security certification' },
-
-      // Domain Skills
       { name: 'E-commerce', category: SkillCategory.DOMAIN, description: 'Online retail and marketplace expertise' },
       { name: 'FinTech', category: SkillCategory.DOMAIN, description: 'Financial technology domain knowledge' },
       { name: 'Healthcare', category: SkillCategory.DOMAIN, description: 'Healthcare industry expertise' },
@@ -176,8 +170,8 @@ export class DatabaseSeeder {
 
     for (const skill of skills) {
       await this.pool.query(
-        `INSERT INTO skills (name, description, category, is_active) 
-         VALUES ($1, $2, $3, $4) 
+        `INSERT INTO skills (name, description, category, is_active)
+         VALUES ($1, $2, $3, $4)
          ON CONFLICT (name) DO NOTHING`,
         [skill.name, skill.description, skill.category, true]
       );
@@ -188,10 +182,9 @@ export class DatabaseSeeder {
 
   async clearData(): Promise<void> {
     console.log('Clearing existing seed data...');
-
     const tables = [
       'capacity_history',
-      'employee_skills', 
+      'employee_skills',
       'employees',
       'skills',
       'departments'

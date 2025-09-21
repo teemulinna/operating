@@ -1,3 +1,4 @@
+import { BaseService } from './base.service';
 import { apiClient } from './api';
 import type { 
   Project,
@@ -19,7 +20,10 @@ import type {
 } from '@/types/project';
 import { transformApiProject, transformToApiRequest } from '@/types/project';
 
-export class ProjectService {
+export class ProjectService extends BaseService {
+  constructor() {
+    super('/projects');
+  }
   /**
    * Get all projects with optional filtering and pagination
    */
@@ -53,18 +57,21 @@ export class ProjectService {
     if (pagination.sortBy) params.append('sortBy', pagination.sortBy);
     if (pagination.sortOrder) params.append('sortOrder', pagination.sortOrder);
 
-    const response = await apiClient.get<ApiProjectsResponse>(`/projects?${params.toString()}`);
+    const service = new ProjectService();
+    const response = await service.request<ApiProjectsResponse>({
+      method: 'GET',
+      url: `${service.resourcePath}?${params.toString()}`
+    });
     
     // Transform API response to match frontend expectations
-    const apiData = response.data;
-    const transformedProjects = apiData.data?.map((proj: ApiProject) => transformApiProject(proj)) || [];
+    const transformedProjects = response.data?.map((proj: ApiProject) => transformApiProject(proj)) || [];
 
     return {
       projects: transformedProjects,
-      total: apiData.pagination?.totalItems || 0,
-      page: apiData.pagination?.currentPage || 1,
-      limit: apiData.pagination?.limit || 10,
-      totalPages: apiData.pagination?.totalPages || Math.ceil((apiData.pagination?.totalItems || 0) / (apiData.pagination?.limit || 10)),
+      total: response.pagination?.totalItems || 0,
+      page: response.pagination?.currentPage || 1,
+      limit: response.pagination?.limit || 10,
+      totalPages: response.pagination?.totalPages || Math.ceil((response.pagination?.totalItems || 0) / (response.pagination?.limit || 10)),
     };
   }
 
@@ -72,8 +79,12 @@ export class ProjectService {
    * Get a single project by ID
    */
   static async getProject(id: string): Promise<Project> {
-    const response = await apiClient.get<{ data: ApiProject }>(`/projects/${id}`);
-    return transformApiProject(response.data.data);
+    const service = new ProjectService();
+    const response = await service.request<{ data: ApiProject }>({
+      method: 'GET',
+      url: `${service.resourcePath}/${id}`
+    });
+    return transformApiProject(response.data);
   }
 
   /**

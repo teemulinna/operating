@@ -5,6 +5,110 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom animations for enhanced UI */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f3f4f6 0px, #e5e7eb 40px, #f3f4f6 80px);
+  background-size: 200px;
+  animation: shimmer 2s infinite linear;
+}
+
+/* Enhanced focus styles */
+.focus-visible:focus-visible {
+  outline: 2px solid theme('colors.blue.500');
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: theme('colors.gray.100');
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: theme('colors.gray.300');
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.gray.400');
+}
+
+/* Backdrop blur fallback for older browsers */
+@supports not (backdrop-filter: blur(12px)) {
+  .backdrop-blur-sm {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break-after {
+    break-after: page;
+  }
+  
+  .print-break-before {
+    break-before: page;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .bg-gray-50 {
+    background-color: white;
+  }
+  
+  .text-gray-500 {
+    color: theme('colors.gray.700');
+  }
+  
+  .border-gray-200 {
+    border-color: theme('colors.gray.400');
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-spin,
+  .animate-shimmer {
+    animation: none;
+  }
+  
+  .transition-all,
+  .transition-colors,
+  .transition-transform {
+    transition: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: theme('colors.gray.900');
+    --color-foreground: theme('colors.gray.100');
+    --color-card: theme('colors.gray.800');
+    --color-border: theme('colors.gray.700');
+  }
+}
+
 @layer base {
   :root {
     /* Enhanced Color Palette */
@@ -435,6 +539,131 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Theme transition styles */
+.theme-transitioning,
+.theme-transitioning * {
+  transition: background-color 150ms ease-out, 
+              border-color 150ms ease-out, 
+              color 150ms ease-out !important;
+}
+
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition: background-color 150ms ease-out, 
+              border-color 150ms ease-out, 
+              color 150ms ease-out !important;
+}
+
+/* Enhanced Gantt chart styles */
+.gantt-task {
+  @apply cursor-pointer transition-all duration-200;
+}
+
+.gantt-task:hover {
+  @apply shadow-lg scale-105;
+}
+
+.gantt-task.dragging {
+  @apply shadow-xl z-50;
+}
+
+/* Heat map cell styles */
+.heatmap-cell {
+  @apply transition-all duration-200 hover:scale-110 hover:z-10;
+}
+
+/* Timeline control styles */
+.timeline-controls {
+  @apply flex items-center space-x-2 p-4 bg-card rounded-lg border;
+}
+
+/* Enhanced search results */
+.search-result-item {
+  @apply transition-all duration-200 hover:bg-accent/50;
+}
+
+.search-result-item.selected {
+  @apply bg-primary/10 border-l-4 border-l-primary;
+}
+
+/* Resource pool card styles */
+.resource-card {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+.resource-card.overallocated {
+  @apply border-l-4 border-l-red-500;
+}
+
+.resource-card.optimal {
+  @apply border-l-4 border-l-green-500;
+}
+
+.resource-card.available {
+  @apply border-l-4 border-l-blue-500;
+}
+
+/* Keyboard shortcut display */
+kbd {
+  @apply inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-muted border border-border rounded shadow-sm;
+}
+
+/* Enhanced focus styles for accessibility */
+.enhanced-focus:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+}
+
+/* Responsive table styles */
+.responsive-table {
+  @apply w-full overflow-x-auto;
+}
+
+.responsive-table table {
+  @apply min-w-full;
+}
+
+@media (max-width: 768px) {
+  .responsive-table-mobile {
+    @apply block;
+  }
+  
+  .responsive-table-mobile thead {
+    @apply hidden;
+  }
+  
+  .responsive-table-mobile tr {
+    @apply block border border-border rounded-lg mb-4 p-4;
+  }
+  
+  .responsive-table-mobile td {
+    @apply block text-right border-none py-2;
+  }
+  
+  .responsive-table-mobile td:before {
+    content: attr(data-label) ":";
+    @apply float-left font-medium text-muted-foreground;
+  }
+}
+
+/* Loading spinner animations */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Improved tooltip styles */
+.tooltip {
+  @apply px-3 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg shadow-lg;
+}
+
+.tooltip-arrow {
+  @apply absolute w-2 h-2 bg-primary transform rotate-45;
 }
 
 /* Print styles */

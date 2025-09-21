@@ -6,6 +6,9 @@ class ProjectModel {
     static initialize(pool) {
         ProjectModel.pool = pool;
     }
+    /**
+     * Create a new project
+     */
     static async create(input) {
         try {
             const query = `
@@ -38,15 +41,18 @@ class ProjectModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint violation
                 throw new types_1.DatabaseError(`Project with name '${input.name}' already exists`);
             }
-            if (error.code === '23514') {
+            if (error.code === '23514') { // Check constraint violation
                 throw new types_1.DatabaseError('Invalid project data: ' + error.message);
             }
             throw error;
         }
     }
+    /**
+     * Find project by ID
+     */
     static async findById(id) {
         const query = `
       SELECT * FROM projects 
@@ -55,6 +61,9 @@ class ProjectModel {
         const result = await ProjectModel.pool.query(query, [id]);
         return result.rows.length > 0 ? this.mapRow(result.rows[0]) : null;
     }
+    /**
+     * Find project by name
+     */
     static async findByName(name) {
         const query = `
       SELECT * FROM projects 
@@ -63,9 +72,13 @@ class ProjectModel {
         const result = await ProjectModel.pool.query(query, [name]);
         return result.rows.length > 0 ? this.mapRow(result.rows[0]) : null;
     }
+    /**
+     * Find all projects with filtering, pagination, and sorting
+     */
     static async findAll(filters = {}, page = 1, limit = 50, sortBy = 'created_at', sortOrder = 'DESC') {
         let whereConditions = [];
         const values = [];
+        // Build WHERE conditions
         if (filters.status) {
             values.push(filters.status);
             whereConditions.push(`status = $${values.length}`);
@@ -92,9 +105,11 @@ class ProjectModel {
         }
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
         const offset = (page - 1) * limit;
+        // Validate sort column to prevent SQL injection
         const allowedSortColumns = ['name', 'status', 'start_date', 'end_date', 'created_at', 'budget', 'client_name'];
         const validSortBy = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at';
         const validSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+        // Get total count
         const countQuery = `
       SELECT COUNT(*) as total
       FROM projects
@@ -102,6 +117,7 @@ class ProjectModel {
     `;
         const countResult = await ProjectModel.pool.query(countQuery, values);
         const total = parseInt(countResult.rows[0].total);
+        // Get paginated results
         values.push(limit, offset);
         const dataQuery = `
       SELECT *
@@ -121,9 +137,13 @@ class ProjectModel {
             totalPages
         };
     }
+    /**
+     * Update project
+     */
     static async update(id, updates) {
         const updateFields = [];
         const values = [];
+        // Build dynamic UPDATE query
         if (updates.name !== undefined) {
             values.push(updates.name);
             updateFields.push(`name = $${values.length}`);
@@ -174,15 +194,18 @@ class ProjectModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint violation
                 throw new types_1.DatabaseError(`Project with name '${updates.name}' already exists`);
             }
-            if (error.code === '23514') {
+            if (error.code === '23514') { // Check constraint violation
                 throw new types_1.DatabaseError('Invalid project data: ' + error.message);
             }
             throw error;
         }
     }
+    /**
+     * Delete project (hard delete - in production you might want soft delete)
+     */
     static async delete(id) {
         const query = `
       DELETE FROM projects 
@@ -195,6 +218,9 @@ class ProjectModel {
         }
         return this.mapRow(result.rows[0]);
     }
+    /**
+     * Get project statistics
+     */
     static async getProjectStatistics() {
         const query = `
       SELECT 
@@ -223,8 +249,11 @@ class ProjectModel {
             averageHourlyRate: parseFloat(row.average_hourly_rate) || 0
         };
     }
+    /**
+     * Map database row to Project object
+     */
     static mapRow(row) {
-        return {
+        const project = {
             id: row.id.toString(),
             name: row.name,
             description: row.description,
@@ -232,13 +261,22 @@ class ProjectModel {
             status: row.status,
             startDate: row.start_date,
             endDate: row.end_date,
-            budget: row.budget ? parseFloat(row.budget) : undefined,
-            hourlyRate: row.hourly_rate ? parseFloat(row.hourly_rate) : undefined,
             createdBy: row.created_by,
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
+        // Only set optional properties if they have values
+        if (row.budget !== null && row.budget !== undefined) {
+            project.budget = parseFloat(row.budget);
+        }
+        if (row.hourly_rate !== null && row.hourly_rate !== undefined) {
+            project.hourlyRate = parseFloat(row.hourly_rate);
+        }
+        return project;
     }
+    /**
+     * Search projects by name (for autocomplete, etc.)
+     */
     static async searchByName(searchTerm, limit = 10) {
         const query = `
       SELECT * FROM projects
@@ -249,6 +287,9 @@ class ProjectModel {
         const result = await ProjectModel.pool.query(query, [`%${searchTerm}%`, limit]);
         return result.rows.map(row => this.mapRow(row));
     }
+    /**
+     * Get projects by date range
+     */
     static async getProjectsInDateRange(startDate, endDate) {
         const query = `
       SELECT * FROM projects
@@ -260,6 +301,9 @@ class ProjectModel {
         const result = await ProjectModel.pool.query(query, [startDate, endDate]);
         return result.rows.map(row => this.mapRow(row));
     }
+    /**
+     * Get projects grouped by status
+     */
     static async getProjectsGroupedByStatus() {
         const query = `
       SELECT * FROM projects
@@ -278,4 +322,3 @@ class ProjectModel {
     }
 }
 exports.ProjectModel = ProjectModel;
-//# sourceMappingURL=project.model.js.map

@@ -13,7 +13,7 @@ import {
 } from '../types/analytics';
 
 class AnalyticsService {
-  private baseUrl = '/api/analytics';
+  private baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') + '/analytics';
 
   /**
    * Get team utilization data

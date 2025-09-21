@@ -16,8 +16,15 @@ const validateAllocationCreation = [
   body('projectId')
     .notEmpty()
     .withMessage('Project ID is required')
-    .isString()
-    .withMessage('Project ID must be a string'),
+    .custom((value) => {
+      // Accept both string and number, convert to string for validation
+      const stringValue = String(value);
+      if (!stringValue || stringValue === 'null' || stringValue === 'undefined') {
+        throw new Error('Project ID cannot be empty');
+      }
+      return true;
+    })
+    .withMessage('Project ID is required'),
   body('allocatedHours')
     .isFloat({ min: 0.1, max: 1000 })
     .withMessage('Allocated hours must be between 0.1 and 1000'),
@@ -240,7 +247,7 @@ router.get('/conflicts',
   query('startDate').isISO8601().withMessage('Start date must be valid ISO 8601').toDate(),
   query('endDate').isISO8601().withMessage('End date must be valid ISO 8601').toDate(),
   query('excludeAllocationId').optional().isString(),
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     const validationError = checkValidationErrors(req, res);
     if (validationError) return validationError;
 
@@ -255,7 +262,7 @@ router.get('/conflicts',
       excludeAllocationId as string
     );
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Conflict check completed',
       data: conflictReport
@@ -300,7 +307,7 @@ router.get('/utilization',
 router.get('/:id',
   validateId,
   query('includeDetails').optional().isBoolean().toBoolean(),
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     const validationError = checkValidationErrors(req, res);
     if (validationError) return validationError;
 
@@ -321,7 +328,7 @@ router.get('/:id',
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Allocation retrieved successfully',
       data: allocation
@@ -353,7 +360,7 @@ router.post('/',
     try {
       const allocation = await AllocationService.createAllocation(input, force);
       
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: 'Allocation created successfully',
         data: allocation
@@ -396,7 +403,7 @@ router.put('/:id',
     try {
       const allocation = await AllocationService.updateAllocation(id, updates);
       
-      res.json({
+      return res.json({
         success: true,
         message: 'Allocation updated successfully',
         data: allocation
@@ -424,7 +431,7 @@ router.delete('/:id',
     const { id } = req.params;
     const allocation = await AllocationService.deleteAllocation(id);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Allocation cancelled successfully',
       data: allocation
@@ -442,7 +449,7 @@ router.post('/:id/confirm',
     const { id } = req.params;
     const allocation = await AllocationService.confirmAllocation(id);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Allocation confirmed successfully',
       data: allocation
@@ -463,7 +470,7 @@ router.post('/:id/complete',
     
     const allocation = await AllocationService.completeAllocation(id, actualHours);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Allocation completed successfully',
       data: allocation
@@ -481,7 +488,7 @@ router.post('/:id/cancel',
     const { id } = req.params;
     const allocation = await AllocationService.cancelAllocation(id);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Allocation cancelled successfully',
       data: allocation
@@ -510,7 +517,7 @@ router.post('/validate-capacity',
       excludeAllocationId
     );
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Capacity validation completed',
       data: validation

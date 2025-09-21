@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { Project, CreateProjectInput, UpdateProjectInput, ProjectWithDetails, ProjectStatus, ProjectFilters, PaginatedResponse } from '../types';
 export declare class ProjectModel {
     private static pool;
+    private static db;
     static initialize(pool: Pool): void;
     static create(input: CreateProjectInput): Promise<Project>;
     static findById(id: string): Promise<Project | null>;

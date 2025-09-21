@@ -342,7 +342,7 @@ export class EmployeeSkillModel {
     }));
   }
 
-  static async getTopSkillsForEmployee(employeeId: string, limit: number = 5): Promise<Array<{
+  static async getTopSkillsForEmployee(employeeId: string = 5): Promise<Array<{
     skill: Skill;
     proficiencyLevel: ProficiencyLevel;
     yearsOfExperience: number;

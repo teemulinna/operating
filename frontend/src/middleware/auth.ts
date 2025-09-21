@@ -5,20 +5,55 @@ import { User, AuthRequest } from '../types';
 import { AppError, catchAsync } from './errorHandler';
 import { logger } from '../utils/logger';
 
-// Mock user store (replace with actual database model)
-const users: User[] = [
-  {
-    id: '1',
-    email: 'admin@company.com',
-    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj31fK.1HQK6', // hashed: password123
-    role: 'admin',
-    createdAt: new Date(),
-    updatedAt: new Date()
+const API_BASE_URL = 'http://localhost:3001/api';
+
+// Connect to real backend for user data
+const fetchUserById = async (id: string): Promise<User | null> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/user/${id}`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    logger.error('Failed to fetch user by ID:', error);
+    return null;
   }
-];
+};
+
+const fetchUserByEmail = async (email: string): Promise<User | null> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/user/email/${encodeURIComponent(email)}`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    logger.error('Failed to fetch user by email:', error);
+    return null;
+  }
+};
+
+const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User | null> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    logger.error('Failed to create user:', error);
+    return null;
+  }
+};
 
 export const signToken = (id: string): string => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback-secret', {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+  return jwt.sign({ id }, secret, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 };
@@ -43,10 +78,14 @@ export const authenticate = catchAsync(async (req: AuthRequest, res: Response, n
   }
 
   // Verify token
-  const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { id: string; iat: number };
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    return next(new AppError('Server configuration error', 500));
+  }
+  const decoded = jwt.verify(token, secret) as { id: string; iat: number };
 
-  // Check if user still exists
-  const currentUser = users.find(user => user.id === decoded.id);
+  // Check if user still exists in backend
+  const currentUser = await fetchUserById(decoded.id);
   if (!currentUser) {
     return next(new AppError('The user belonging to this token does no longer exist.', 401));
   }
@@ -73,8 +112,8 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
     return next(new AppError('Please provide email and password!', 400));
   }
 
-  // Check if user exists && password is correct
-  const user = users.find(u => u.email === email);
+  // Check if user exists && password is correct via backend
+  const user = await fetchUserByEmail(email);
   if (!user || !(await comparePassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
@@ -105,8 +144,8 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
 export const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const { email, password, role = 'employee' } = req.body;
 
-  // Check if user already exists
-  const existingUser = users.find(u => u.email === email);
+  // Check if user already exists in backend
+  const existingUser = await fetchUserByEmail(email);
   if (existingUser) {
     return next(new AppError('User with this email already exists', 400));
   }
@@ -114,17 +153,16 @@ export const register = catchAsync(async (req: Request, res: Response, next: Nex
   // Hash password
   const hashedPassword = await hashPassword(password);
 
-  // Create new user
-  const newUser: User = {
-    id: String(users.length + 1),
+  // Create new user via backend
+  const newUser = await createUser({
     email,
     password: hashedPassword,
-    role: role as 'admin' | 'hr' | 'manager' | 'employee',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
+    role: role as 'admin' | 'hr' | 'manager' | 'employee'
+  });
 
-  users.push(newUser);
+  if (!newUser) {
+    return next(new AppError('Failed to create user', 500));
+  }
 
   // Generate token
   const token = signToken(newUser.id);

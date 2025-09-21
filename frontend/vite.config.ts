@@ -22,6 +22,13 @@ export default defineConfig(({ command, mode }) => {
         host: 'localhost',
       },
       cors: true,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
     preview: {
       port: parseInt(env.VITE_PORT) || 3000,

@@ -8,6 +8,7 @@ const validate_middleware_1 = require("../middleware/validate.middleware");
 const router = (0, express_1.Router)();
 exports.projectRoutes = router;
 const projectController = new project_controller_1.ProjectController();
+// Project validation rules
 const createProjectValidation = [
     (0, express_validator_1.body)('name')
         .isString()
@@ -100,13 +101,17 @@ const resourceAssignmentValidation = [
         .isIn(['tentative', 'probable', 'confirmed'])
         .withMessage('Invalid confidence level')
 ];
+// Apply authentication middleware to all routes
+// router.use(authMiddleware); // Temporarily disabled for development
+// Project CRUD routes
 router.post('/', createProjectValidation, validate_middleware_1.handleValidationErrors, projectController.createProject);
 router.get('/', projectController.getProjects);
 router.get('/:id', (0, express_validator_1.param)('id').isNumeric().withMessage('Project ID must be a number'), projectController.getProjectById);
 router.put('/:id', (0, express_validator_1.param)('id').isNumeric().withMessage('Project ID must be a number'), updateProjectValidation, validate_middleware_1.handleValidationErrors, projectController.updateProject);
 router.delete('/:id', (0, express_validator_1.param)('id').isNumeric().withMessage('Project ID must be a number'), projectController.deleteProject);
+// Project roles routes
 router.post('/:id/roles', (0, express_validator_1.param)('id').isNumeric().withMessage('Project ID must be a number'), projectRoleValidation, validate_middleware_1.handleValidationErrors, projectController.addProjectRole);
 router.get('/:id/roles', (0, express_validator_1.param)('id').isNumeric().withMessage('Project ID must be a number'), projectController.getProjectRoles);
+// Resource assignment routes
 router.post('/:id/assignments', (0, express_validator_1.param)('id').isNumeric().withMessage('Project ID must be a number'), resourceAssignmentValidation, validate_middleware_1.handleValidationErrors, projectController.assignEmployeeToProject);
 router.get('/:id/assignments', (0, express_validator_1.param)('id').isNumeric().withMessage('Project ID must be a number'), projectController.getProjectAssignments);
-//# sourceMappingURL=project.routes.js.map

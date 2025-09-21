@@ -1,13 +1,16 @@
-import { chromium, FullConfig } from '@playwright/test';
+import { FullConfig } from '@playwright/test';
 import { execSync } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
+import { TestDatabaseUtils } from './fixtures/testDataFactory';
+
+const API_BASE_URL = 'http://localhost:3001';
 
 async function globalSetup(config: FullConfig) {
   console.log('🚀 Starting global test setup...');
   
-  // Setup test database
-  await setupTestDatabase();
+  // Setup test environment
+  await setupTestEnvironment();
   
   // Install browsers if needed
   await installBrowsers();
@@ -18,50 +21,29 @@ async function globalSetup(config: FullConfig) {
   console.log('✅ Global setup completed');
 }
 
-async function setupTestDatabase() {
-  console.log('📊 Setting up test database...');
+async function setupTestEnvironment() {
+  console.log('🔧 Setting up test environment...');
   
   try {
-    // Check if backend is available
-    const backendPath = path.join(process.cwd(), '../backend');
-    const backendExists = await fs.access(backendPath).then(() => true).catch(() => false);
+    // Wait for API to be available
+    console.log('⏳ Waiting for API to be available...');
+    await TestDatabaseUtils.waitForAPI(API_BASE_URL, 60); // Wait up to 60 seconds
+    console.log('✅ API is available');
     
-    if (backendExists) {
-      // Run database migrations and seed test data
-      const originalCwd = process.cwd();
-      process.chdir(backendPath);
-      
-      // Set test environment
-      process.env.NODE_ENV = 'test';
-      process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://localhost:5432/employee_management_test';
-      
-      // Run migrations
-      try {
-        execSync('npm run db:migrate', { stdio: 'inherit' });
-        console.log('📊 Database migrations completed');
-      } catch (error) {
-        console.warn('⚠️ Database migrations failed, continuing without migrations');
-      }
-      
-      // Seed test data
-      try {
-        execSync('npm run db:seed:test', { stdio: 'inherit' });
-        console.log('📊 Test data seeded');
-      } catch (error) {
-        console.warn('⚠️ Test data seeding failed, continuing without seed data');
-      }
-      
-      // Return to frontend directory
-      process.chdir(originalCwd);
-    } else {
-      // Fallback: create basic test data structure for integration tests
-      console.log('📊 Backend not found, setting up minimal test environment');
-    }
+    // Clean database to start with a fresh state
+    console.log('🧹 Cleaning database for test setup...');
+    await TestDatabaseUtils.cleanDatabase(API_BASE_URL);
+    console.log('✅ Database cleaned');
     
-    console.log('📊 Test database ready');
+    // Set test environment variables
+    process.env.NODE_ENV = 'test';
+    process.env.PLAYWRIGHT_TEST = 'true';
+    process.env.VITE_NODE_ENV = 'test';
+    
+    console.log('🔧 Test environment ready');
   } catch (error) {
-    console.warn('⚠️ Database setup failed:', error.message);
-    console.log('📊 Continuing without database setup');
+    console.warn('⚠️ Test environment setup failed:', error.message);
+    console.log('🔧 Continuing with limited functionality');
   }
 }
 

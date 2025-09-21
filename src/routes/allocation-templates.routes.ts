@@ -7,7 +7,12 @@ const templatesService = new AllocationTemplatesService();
 
 // Helper function to get user ID from request (assuming auth middleware)
 const getUserId = (req: Request): string => {
-  return req.headers['user-id'] as string || 'default-user'; // Placeholder for auth
+  const userId = req.headers['user-id'] as string;
+  if (userId) {
+    return userId;
+  }
+  // Generate a consistent default UUID for development/testing
+  return '550e8400-e29b-41d4-a716-446655440000'; // Standard nil UUID variant
 };
 
 /**
@@ -83,13 +88,13 @@ router.get('/', async (req: Request, res: Response) => {
     };
 
     const result = await templatesService.getTemplates(filters, userId, pagination);
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error('Error in GET /allocation-templates:', error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -145,7 +150,7 @@ router.get('/', async (req: Request, res: Response) => {
  *       409:
  *         description: Template name already exists
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response): Promise<Response> => {
   try {
     const userId = getUserId(req);
     const templateData = req.body;
@@ -160,13 +165,70 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const result = await templatesService.createTemplate(templateData, userId);
-    res.status(201).json(result);
+    return res.status(201).json(result);
   } catch (error) {
     console.error('Error in POST /allocation-templates:', error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+});
+
+/**
+ * @swagger
+ * /api/allocation-templates/popular:
+ *   get:
+ *     summary: Get popular allocation templates
+ *     tags: [Allocation Templates]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of templates to return
+ *     responses:
+ *       200:
+ *         description: Popular templates retrieved successfully
+ */
+router.get('/popular', async (req: Request, res: Response) => {
+  try {
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    
+    const result = await templatesService.getPopularTemplates(limit);
+    return res.json(result);
+  } catch (error) {
+    console.error('Error in GET /allocation-templates/popular:', error);
+    if (error instanceof ApiError) {
+      return res.status(error.statusCode).json({ error: error.message });
+    } else {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+});
+
+/**
+ * @swagger
+ * /api/allocation-templates/categories:
+ *   get:
+ *     summary: Get template categories with statistics
+ *     tags: [Allocation Templates]
+ *     responses:
+ *       200:
+ *         description: Categories retrieved successfully
+ */
+router.get('/categories', async (req: Request, res: Response) => {
+  try {
+    const result = await templatesService.getTemplateCategories();
+    return res.json(result);
+  } catch (error) {
+    console.error('Error in GET /allocation-templates/categories:', error);
+    if (error instanceof ApiError) {
+      return res.status(error.statusCode).json({ error: error.message });
+    } else {
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -196,13 +258,13 @@ router.get('/:id', async (req: Request, res: Response) => {
     const templateId = req.params.id;
 
     const result = await templatesService.getTemplateById(templateId, userId);
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error(`Error in GET /allocation-templates/${req.params.id}:`, error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -241,13 +303,13 @@ router.put('/:id', async (req: Request, res: Response) => {
     const updateData = req.body;
 
     const result = await templatesService.updateTemplate(templateId, updateData, userId);
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error(`Error in PUT /allocation-templates/${req.params.id}:`, error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -279,13 +341,13 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const templateId = req.params.id;
 
     await templatesService.deleteTemplate(templateId, userId);
-    res.status(204).send();
+    return res.status(204).send();
   } catch (error) {
     console.error(`Error in DELETE /allocation-templates/${req.params.id}:`, error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -344,7 +406,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
  *       201:
  *         description: Role added successfully
  */
-router.post('/:id/roles', async (req: Request, res: Response) => {
+router.post('/:id/roles', async (req: Request, res: Response): Promise<Response> => {
   try {
     const userId = getUserId(req);
     const templateId = req.params.id;
@@ -360,13 +422,13 @@ router.post('/:id/roles', async (req: Request, res: Response) => {
     }
 
     const result = await templatesService.addTemplateRole(templateId, roleData, userId);
-    res.status(201).json(result);
+    return res.status(201).json(result);
   } catch (error) {
     console.error(`Error in POST /allocation-templates/${req.params.id}/roles:`, error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -435,13 +497,13 @@ router.post('/:id/apply', async (req: Request, res: Response) => {
     }
 
     const result = await templatesService.applyTemplateToProject(templateId, options, userId);
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error(`Error in POST /allocation-templates/${req.params.id}/apply:`, error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -488,13 +550,13 @@ router.post('/:id/clone', async (req: Request, res: Response) => {
     }
 
     const result = await templatesService.cloneTemplate(templateId, name, userId);
-    res.status(201).json(result);
+    return res.status(201).json(result);
   } catch (error) {
     console.error(`Error in POST /allocation-templates/${req.params.id}/clone:`, error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });
@@ -549,70 +611,13 @@ router.post('/:id/rate', async (req: Request, res: Response) => {
     }
 
     await templatesService.rateTemplate(templateId, project_id, rating, feedback, userId);
-    res.json({ message: 'Rating submitted successfully' });
+    return res.json({ message: 'Rating submitted successfully' });
   } catch (error) {
     console.error(`Error in POST /allocation-templates/${req.params.id}/rate:`, error);
     if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
+      return res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-});
-
-/**
- * @swagger
- * /api/allocation-templates/popular:
- *   get:
- *     summary: Get popular allocation templates
- *     tags: [Allocation Templates]
- *     parameters:
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Number of templates to return
- *     responses:
- *       200:
- *         description: Popular templates retrieved successfully
- */
-router.get('/popular', async (req: Request, res: Response) => {
-  try {
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
-    
-    const result = await templatesService.getPopularTemplates(limit);
-    res.json(result);
-  } catch (error) {
-    console.error('Error in GET /allocation-templates/popular:', error);
-    if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-});
-
-/**
- * @swagger
- * /api/allocation-templates/categories:
- *   get:
- *     summary: Get template categories with statistics
- *     tags: [Allocation Templates]
- *     responses:
- *       200:
- *         description: Categories retrieved successfully
- */
-router.get('/categories', async (req: Request, res: Response) => {
-  try {
-    const result = await templatesService.getTemplateCategories();
-    res.json(result);
-  } catch (error) {
-    console.error('Error in GET /allocation-templates/categories:', error);
-    if (error instanceof ApiError) {
-      res.status(error.statusCode).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 });

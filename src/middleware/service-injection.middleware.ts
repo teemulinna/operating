@@ -9,7 +9,7 @@ import { DatabaseService } from '../database/database.service';
 import { DepartmentService } from '../services/department.service';
 import { EmployeeService } from '../services/employee.service';
 import { SkillService } from '../services/skill.service';
-import { AllocationService } from '../services/allocation.service';
+import { AllocationServiceWrapper } from '../services/allocation-service-wrapper';
 
 /**
  * Extended Request interface with injected services
@@ -20,19 +20,25 @@ export interface RequestWithServices extends Request {
     department: DepartmentService;
     employee: EmployeeService;
     skill: SkillService;
-    allocation: AllocationService;
+    allocation: AllocationServiceWrapper;
   };
 }
 
 /**
  * Middleware to inject services into request context
  */
-export const serviceInjectionMiddleware = (
+export const serviceInjectionMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    // In test environment, ensure services are initialized
+    if (process.env.NODE_ENV === 'test') {
+      const { initializeAppServices } = await import('../app');
+      await initializeAppServices();
+    }
+
     // Inject services into request
     (req as RequestWithServices).services = {
       database: Services.database(),
@@ -45,12 +51,26 @@ export const serviceInjectionMiddleware = (
     next();
   } catch (error) {
     console.error('Service injection failed:', error);
-    res.status(503).json({
-      error: 'Service unavailable',
-      message: 'Unable to initialize services',
-      timestamp: new Date().toISOString(),
-      path: req.path
-    });
+    console.error('Error details:', error);
+
+    // In test environment, provide more detailed error information
+    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+      res.status(503).json({
+        error: 'Service unavailable',
+        message: 'Unable to initialize services',
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+    } else {
+      res.status(503).json({
+        error: 'Service unavailable',
+        message: 'Unable to initialize services',
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+    }
   }
 };
 

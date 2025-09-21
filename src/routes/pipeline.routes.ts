@@ -1,5 +1,5 @@
 // Pipeline Management Routes with CRM Integration
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { body, param, query } from 'express-validator';
 import { handleValidationErrors } from '../middleware/validate.middleware';
 import { PipelineManagementService } from '../services/pipeline-management.service';
@@ -121,9 +121,9 @@ router.post(
       });
     } catch (error) {
       console.error('Error creating pipeline project:', error);
-      res.status(error.statusCode || 500).json({
+      res.status((error as any).statusCode || 500).json({
         success: false,
-        message: error.message || 'Failed to create pipeline project'
+        message: (error as any).message || 'Failed to create pipeline project'
       });
     }
   }
@@ -173,16 +173,22 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const project = await pipelineService.getPipelineProject(req.params.id);
-      res.json({
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message: 'Pipeline project not found'
+        });
+      }
+      return res.json({
         success: true,
         data: project,
         message: 'Pipeline project retrieved successfully'
       });
     } catch (error) {
       console.error('Error fetching pipeline project:', error);
-      res.status(error.statusCode || 500).json({
+      return res.status((error as any).statusCode || 500).json({
         success: false,
-        message: error.message || 'Failed to fetch pipeline project'
+        message: (error as any).message || 'Failed to fetch pipeline project'
       });
     }
   }
@@ -206,9 +212,9 @@ router.put(
       });
     } catch (error) {
       console.error('Error updating pipeline project:', error);
-      res.status(error.statusCode || 500).json({
+      res.status((error as any).statusCode || 500).json({
         success: false,
-        message: error.message || 'Failed to update pipeline project'
+        message: (error as any).message || 'Failed to update pipeline project'
       });
     }
   }
@@ -227,9 +233,9 @@ router.delete(
       });
     } catch (error) {
       console.error('Error deleting pipeline project:', error);
-      res.status(error.statusCode || 500).json({
+      res.status((error as any).statusCode || 500).json({
         success: false,
-        message: error.message || 'Failed to delete pipeline project'
+        message: (error as any).message || 'Failed to delete pipeline project'
       });
     }
   }
@@ -275,9 +281,9 @@ router.post(
       });
     } catch (error) {
       console.error('Error creating CRM system:', error);
-      res.status(error.statusCode || 500).json({
+      res.status((error as any).statusCode || 500).json({
         success: false,
-        message: error.message || 'Failed to create CRM system'
+        message: (error as any).message || 'Failed to create CRM system'
       });
     }
   }
@@ -316,9 +322,9 @@ router.put(
       });
     } catch (error) {
       console.error('Error updating CRM system:', error);
-      res.status(error.statusCode || 500).json({
+      res.status((error as any).statusCode || 500).json({
         success: false,
-        message: error.message || 'Failed to update CRM system'
+        message: (error as any).message || 'Failed to update CRM system'
       });
     }
   }
@@ -339,9 +345,9 @@ router.post(
       });
     } catch (error) {
       console.error('Error starting CRM sync:', error);
-      res.status(error.statusCode || 500).json({
+      res.status((error as any).statusCode || 500).json({
         success: false,
-        message: error.message || 'Failed to start CRM synchronization'
+        message: (error as any).message || 'Failed to start CRM synchronization'
       });
     }
   }
@@ -381,14 +387,14 @@ router.get(
         });
       }
 
-      res.json({
+      return res.json({
         success: true,
         data: operation,
         message: 'Sync operation retrieved successfully'
       });
     } catch (error) {
       console.error('Error fetching sync operation:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: 'Failed to fetch sync operation'
       });
@@ -457,9 +463,9 @@ router.post(
       });
     } catch (error) {
       console.error('Error resolving sync conflict:', error);
-      res.status(error.statusCode || 500).json({
+      res.status((error as any).statusCode || 500).json({
         success: false,
-        message: error.message || 'Failed to resolve sync conflict'
+        message: (error as any).message || 'Failed to resolve sync conflict'
       });
     }
   }

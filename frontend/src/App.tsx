@@ -1,288 +1,194 @@
-import React, { useState, Suspense } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { ErrorBoundary } from 'react-error-boundary'
-import { EmployeeList } from '@/components/employees/EmployeeList'
-import { EmployeeFormEnhanced } from '@/components/employees/EmployeeFormEnhanced'
-import { Toaster } from '@/components/ui/toaster'
-import { CSVImport } from '@/components/employees/CSVImport'
-import { ProjectList } from '@/components/projects/ProjectList'
-import { ProjectStatsWidget } from '@/components/dashboard/ProjectStatsWidget'
-import { EnhancedDashboard } from '@/components/dashboard/EnhancedDashboard'
-import { WebSocketProvider } from '@/contexts/WebSocketContext'
-import { useCSVExport, useEmployees } from '@/hooks/useEmployees'
-import { SkipToMainContent, GlobalErrorBoundary } from '@/components/ui/accessibility-enhancements'
-import { MobileNavigation } from '@/components/ui/mobile-navigation'
-import { EnhancedErrorHandler, useErrorHandler } from '@/components/ui/enhanced-error-handler'
-import { LoadingSkeletons } from '@/components/ui/LoadingSkeletons'
-import { LazyLoadOnVisible } from '@/components/ui/performance-optimizations'
-import type { Employee } from '@/types/employee'
-import './index.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ToastProvider } from './components/ui/toast-provider';
+import ErrorBoundary from './components/error/ErrorBoundary';
+import { EmployeeManagement } from './features/employees';
+import { AllocationManagement } from './features/allocations/AllocationManagement';
+import { ProjectManagement } from './features/projects/ProjectManagement';
+import { AllocationsPage } from './components/pages/AllocationsPage';
+import { ReportsPage } from './components/pages/ReportsPage';
+import { PlanningPage } from './components/pages/PlanningPage';
+import { TeamDashboard } from './components/pages/TeamDashboard';
+// Weekly Schedule imports
+import WeeklyScheduleGrid from './components/schedule/WeeklyScheduleGrid';
+import EnhancedSchedulePage from './pages/EnhancedSchedulePage';
+import ResourceAllocationForm from './components/allocations/ResourceAllocationForm';
+import { apiService } from './services/api';
 
-// Lazy load heavy components
-const ResourceAllocationDashboard = React.lazy(() => 
-  import('@/components/dashboard/ResourceAllocationDashboard').then(module => ({
-    default: module.ResourceAllocationDashboard
-  }))
-);
-
-const EnhancedResourcePlanner = React.lazy(() =>
-  import('@/components/resource-planning/EnhancedResourcePlanner').then(module => ({
-    default: module.EnhancedResourcePlanner
-  }))
-);
-
-// Create a client instance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: (failureCount, error: any) => {
-        // Don't retry on 4xx errors (except 408)
-        if (error?.response?.status >= 400 && error?.response?.status < 500 && error?.response?.status !== 408) {
-          return false
-        }
-        return failureCount < 3
-      },
     },
   },
-})
+});
 
-// Extended view modes to include all sections
-type ViewMode = 'employees' | 'create' | 'edit' | 'import' | 'resources' | 'projects' | 'dashboard'
+// Simple Dashboard Component with proper test IDs and real data
+function Dashboard() {
+  const [stats, setStats] = React.useState({
+    employeeCount: 0,
+    projectCount: 0,
+    utilizationRate: 0,
+    allocationCount: 0
+  });
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
-function AppContent() {
-  const [currentView, setCurrentView] = useState<ViewMode>('dashboard')
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
-  const csvExport = useCSVExport()
-  const { data: employeesData } = useEmployees()
-  const employees = employeesData?.employees || []
-  const { error, clearError, handleError } = useErrorHandler()
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await apiService.getDashboardStats();
+        setStats(data);
+      } catch (err) {
+        console.error('Failed to fetch dashboard stats:', err);
+        setError('Failed to load dashboard statistics');
+        // Keep showing zeros on error instead of breaking the UI
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Mock dashboard data - in real app, this would come from API
-  const dashboardData = {
-    employees: employees,
-    projects: [],
-    capacityData: [],
-    recentActivity: [],
-    metrics: {
-      totalEmployees: employees.length,
-      activeProjects: 0,
-      avgUtilization: 0.75,
-      criticalIssues: 0,
-      completedTasks: 0,
-      pendingTasks: 0
-    }
-  }
-
-  const handleEmployeeSelect = (employee: Employee) => {
-    setSelectedEmployee(employee)
-    // Could navigate to detail view or show modal
-    console.log('Employee selected:', employee)
-  }
-
-  const handleEmployeeCreate = () => {
-    setSelectedEmployee(null)
-    setCurrentView('create')
-  }
-
-  const handleEmployeeEdit = (employee: Employee) => {
-    setSelectedEmployee(employee)
-    setCurrentView('edit')
-  }
-
-  const handleCSVImport = () => {
-    setCurrentView('import')
-  }
-
-  const handleCSVExport = async () => {
-    try {
-      const blob = await csvExport.mutateAsync({})
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `employees_${new Date().toISOString().split('T')[0]}.csv`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Export failed:', error)
-    }
-  }
-
-  const handleFormSuccess = (employee: Employee) => {
-    console.log('Employee saved:', employee)
-    setCurrentView('employees')
-    setSelectedEmployee(null)
-  }
-
-  const handleFormCancel = () => {
-    setCurrentView('employees')
-    setSelectedEmployee(null)
-  }
-
-  const handleImportSuccess = (result: { imported: number; errors: string[] }) => {
-    console.log('Import completed:', result)
-    // Could show toast notification
-    setTimeout(() => {
-      setCurrentView('employees')
-    }, 2000)
-  }
-
-  const handleImportCancel = () => {
-    setCurrentView('employees')
-  }
-
-  const currentUser = {
-    name: 'Admin User',
-    role: 'System Administrator',
-    avatar: undefined
-  };
+    fetchStats();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background" data-testid="app-loaded">
-      <SkipToMainContent />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-testid="dashboard-page">
+      <h1 className="text-2xl font-bold text-gray-900 mb-4" data-testid="dashboard-title">Dashboard</h1>
+      <p className="text-gray-600" data-testid="dashboard-subtitle">ResourceForge - Intelligent Resource Planning & Capacity Management</p>
       
-      {/* Mobile Navigation */}
-      <MobileNavigation
-        currentView={currentView}
-        onNavigate={setCurrentView}
-        notifications={3}
-        user={currentUser}
-      />
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6" data-testid="dashboard-error">
+          {error}
+        </div>
+      )}
 
-      <div className="lg:pl-0">
-        {/* Desktop Header */}
-        <header className="hidden lg:block sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200 safe-area-top">
-          <div className="container mx-auto px-6 h-16">
-            <div className="flex items-center justify-between h-full">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Resource Planning System
-                </h1>
-              </div>
-              
-              {/* Desktop Navigation */}
-              <nav className="flex space-x-1" data-testid="desktop-navigation">
-                {[
-                  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-                  { id: 'employees', label: 'Employees', icon: '👥' },
-                  { id: 'projects', label: 'Projects', icon: '📋' },
-                  { id: 'resources', label: 'Resources', icon: '🔧' }
-                ].map(item => (
-                  <button
-                    key={item.id}
-                    onClick={() => setCurrentView(item.id as ViewMode)}
-                    data-testid={`${item.id}-tab`}
-                    className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
-                      currentView === item.id || (item.id === 'employees' && ['create', 'edit', 'import'].includes(currentView))
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  >
-                    <span className="mr-2">{item.icon}</span>
-                    {item.label}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main id="main-content" className="pb-20 lg:pb-8">
-          {/* Global Error Display */}
-          {error && (
-            <div className="container mx-auto px-4 py-4">
-              <EnhancedErrorHandler
-                error={error}
-                onClose={clearError}
-                onRetry={clearError}
-              />
-            </div>
-          )}
-
-          {/* Dashboard View */}
-          {currentView === 'dashboard' && (
-            <LazyLoadOnVisible
-              fallback={<LoadingSkeletons.Dashboard />}
-              className="container mx-auto"
-            >
-              <EnhancedDashboard 
-                data={dashboardData}
-                onNavigate={setCurrentView}
-              />
-            </LazyLoadOnVisible>
-          )}
-
-          {/* Employee Views */}
-          {currentView === 'employees' && (
-            <div className="container mx-auto px-4 py-6">
-              <EmployeeList
-                onEmployeeSelect={handleEmployeeSelect}
-                onEmployeeCreate={handleEmployeeCreate}
-                onEmployeeEdit={handleEmployeeEdit}
-                onCSVImport={handleCSVImport}
-                onCSVExport={handleCSVExport}
-              />
-            </div>
-          )}
-
-          {/* Projects View */}
-          {currentView === 'projects' && (
-            <div className="container mx-auto px-4 py-6">
-              <ProjectList />
-            </div>
-          )}
-
-          {/* Resources View */}
-          {currentView === 'resources' && (
-            <div data-testid="resource-planner">
-              <Suspense fallback={<LoadingSkeletons.Dashboard includeResourceCards />}>
-                <ResourceAllocationDashboard />
-              </Suspense>
-            </div>
-          )}
-
-          {/* Employee Form Views */}
-          {(currentView === 'create' || currentView === 'edit') && (
-            <div className="container mx-auto px-4 py-6">
-              <EmployeeFormEnhanced
-                employee={selectedEmployee ?? undefined}
-                onSuccess={handleFormSuccess}
-                onCancel={handleFormCancel}
-              />
-            </div>
-          )}
-
-          {/* CSV Import View */}
-          {currentView === 'import' && (
-            <div className="container mx-auto px-4 py-6">
-              <CSVImport
-                onSuccess={handleImportSuccess}
-                onCancel={handleImportCancel}
-              />
-            </div>
-          )}
-        </main>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8" data-testid="dashboard-stats">
+        <div className="bg-white p-6 rounded-lg shadow" data-testid="employees-stat">
+          <h3 className="text-lg font-medium text-gray-900">Employees</h3>
+          <p className="text-3xl font-bold text-blue-600" data-testid="employees-count">
+            {loading ? '...' : stats.employeeCount}
+          </p>
+          <p className="text-sm text-gray-500">Total team members</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow" data-testid="projects-stat">
+          <h3 className="text-lg font-medium text-gray-900">Projects</h3>
+          <p className="text-3xl font-bold text-green-600" data-testid="projects-count">
+            {loading ? '...' : stats.projectCount}
+          </p>
+          <p className="text-sm text-gray-500">Active projects</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow" data-testid="utilization-stat">
+          <h3 className="text-lg font-medium text-gray-900">Utilization</h3>
+          <p className="text-3xl font-bold text-orange-600" data-testid="utilization-percent">
+            {loading ? '...' : `${stats.utilizationRate}%`}
+          </p>
+          <p className="text-sm text-gray-500">Team capacity</p>
+        </div>
       </div>
     </div>
-  )
+  );
+}
+
+// Weekly Schedule Page with PRD-compliant grid
+function SchedulePage() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-testid="schedule-page">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6" data-testid="schedule-title">Resource Schedule</h1>
+      <WeeklyScheduleGrid />
+    </div>
+  );
+}
+
+// Enhanced Schedule Page with over-allocation warnings
+function EnhancedSchedulePageWrapper() {
+  return <EnhancedSchedulePage />;
+}
+
+// Navigation Component with test IDs
+function Navigation() {
+  return (
+    <nav className="bg-white shadow" data-testid="main-navigation">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <h1 className="text-xl font-bold text-gray-900" data-testid="app-title">ResourceForge</h1>
+            </div>
+            <div className="ml-6 flex space-x-8">
+              <a href="/" className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-dashboard">
+                Dashboard
+              </a>
+              <a href="/employees" className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-employees">
+                Employees
+              </a>
+              <a href="/projects" className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-projects">
+                Projects
+              </a>
+              <a href="/allocations" className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-allocations">
+                Allocations
+              </a>
+              <a href="/schedule" className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-schedule">
+                Schedule
+              </a>
+              <a href="/enhanced-schedule" className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-enhanced-schedule">
+                Enhanced Schedule
+              </a>
+              <a href="/reports" className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-reports">
+                Reports
+              </a>
+              <a href="/planning" className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-planning">
+                Planning
+              </a>
+              <a href="/team-dashboard" className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300" data-testid="nav-team-dashboard">
+                Team
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
 }
 
 function App() {
   return (
-    <GlobalErrorBoundary>
+    <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <WebSocketProvider url={import.meta.env.VITE_API_URL || 'http://localhost:3001'}>
-          <AppContent />
-          <Toaster />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </WebSocketProvider>
+        <ToastProvider>
+          <Router>
+            <div className="min-h-screen bg-gray-50" data-testid="app-container">
+              <Navigation />
+              <main data-testid="main-content">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/employees" element={<EmployeeManagement />} />
+                  <Route path="/projects" element={<ProjectManagement />} />
+                  <Route path="/allocations" element={<AllocationManagement />} />
+                  <Route path="/schedule" element={<SchedulePage />} />
+                  <Route path="/enhanced-schedule" element={<EnhancedSchedulePageWrapper />} />
+                  <Route path="/reports" element={<ReportsPage />} />
+                  <Route path="/planning" element={<PlanningPage />} />
+                  <Route path="/team-dashboard" element={<TeamDashboard />} />
+                  <Route path="/allocations/new" element={
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                      <ResourceAllocationForm onSubmit={() => console.log('Allocation created')} />
+                    </div>
+                  } />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </main>
+            </div>
+          </Router>
+        </ToastProvider>
       </QueryClientProvider>
-    </GlobalErrorBoundary>
-  )
+    </ErrorBoundary>
+  );
 }
 
-export default App
+export default App;

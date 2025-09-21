@@ -5,10 +5,10 @@ import { EmployeeService } from '../services/employee.service';
 import { CapacityHistoryModel } from '../models/CapacityHistory';
 
 export class ResourceController {
-  private employeeService: EmployeeService;
+  // private employeeService: EmployeeService; // TODO: Use if needed
 
   constructor() {
-    this.employeeService = new EmployeeService();
+    // this.employeeService = new EmployeeService(); // TODO: Use if needed
   }
 
   /**
@@ -20,17 +20,20 @@ export class ResourceController {
     // Get employees
     const employeeService = new EmployeeService();
     const employeesResult = await employeeService.getEmployees({
-      departmentId: departmentId ? parseInt(departmentId as string) : undefined,
+      departmentId: departmentId as string || undefined,
       limit: 1000,
       page: 1
     });
 
     // Get capacity data
-    const capacityData = await CapacityHistoryModel.findAll({
-      employeeId: undefined,
-      dateFrom: startDate ? new Date(startDate as string) : undefined,
-      dateTo: endDate ? new Date(endDate as string) : undefined
-    });
+    const capacityFilters: any = {};
+    if (startDate) {
+      capacityFilters.dateFrom = new Date(startDate as string);
+    }
+    if (endDate) {
+      capacityFilters.dateTo = new Date(endDate as string);
+    }
+    const capacityData = await CapacityHistoryModel.findAll(capacityFilters);
 
     // Calculate resource utilization metrics
     const resourceMetrics = ResourceController.calculateResourceMetrics(employeesResult.data, capacityData);
@@ -77,7 +80,7 @@ export class ResourceController {
    * Create resource allocation
    */
   static createAllocation = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
-    const { employeeId, projectId, allocatedHours, startDate, endDate } = req.body;
+    const { employeeId, projectId, allocatedHours, startDate } = req.body;
 
     if (!employeeId || !projectId || !allocatedHours) {
       throw new ApiError(400, 'Employee ID, Project ID, and allocated hours are required');
@@ -85,7 +88,7 @@ export class ResourceController {
 
     // Check if employee exists
     const employeeService = new EmployeeService();
-    const employee = await employeeService.getEmployeeById(parseInt(employeeId));
+    const employee = await employeeService.getEmployeeById(employeeId);
     if (!employee) {
       throw new ApiError(404, 'Employee not found');
     }
@@ -172,7 +175,7 @@ export class ResourceController {
 
     const employeeService = new EmployeeService();
     const employeesResult = await employeeService.getEmployees({
-      departmentId: departmentId ? parseInt(departmentId as string) : undefined,
+      departmentId: departmentId as string || undefined,
       limit: 1000,
       page: 1
     });
@@ -373,8 +376,9 @@ export class ResourceController {
     }, {} as any);
 
     // Check for over-allocation
-    Object.entries(employeeCapacity).forEach(([employeeId, capacity]: [string, any[]]) => {
-      const avgUtilization = capacity.reduce((sum, cap) => sum + cap.utilizationRate, 0) / capacity.length;
+    Object.entries(employeeCapacity).forEach(([employeeId, capacity]: [string, any]) => {
+      const capacityArray = capacity as any[];
+      const avgUtilization = capacityArray.reduce((sum, cap) => sum + cap.utilizationRate, 0) / capacityArray.length;
       
       if (avgUtilization > 1.0) {
         conflicts.push({
@@ -408,12 +412,15 @@ export class ResourceController {
     }, {} as any);
 
     return Object.entries(dateGroups)
-      .map(([date, dayCapacity]: [string, any[]]) => ({
-        date,
-        utilization: dayCapacity.reduce((sum, cap) => sum + cap.utilizationRate, 0) / dayCapacity.length,
-        capacity: dayCapacity.reduce((sum, cap) => sum + cap.availableHours, 0),
-        allocated: dayCapacity.reduce((sum, cap) => sum + cap.allocatedHours, 0)
-      }))
+      .map(([date, dayCapacity]: [string, any]) => {
+        const dayCapacityArray = dayCapacity as any[];
+        return {
+          date,
+          utilization: dayCapacityArray.reduce((sum, cap) => sum + cap.utilizationRate, 0) / dayCapacityArray.length,
+          capacity: dayCapacityArray.reduce((sum, cap) => sum + cap.availableHours, 0),
+          allocated: dayCapacityArray.reduce((sum, cap) => sum + cap.allocatedHours, 0)
+        };
+      })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 

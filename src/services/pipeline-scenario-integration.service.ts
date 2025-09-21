@@ -141,7 +141,7 @@ export class PipelineScenarioIntegrationService {
     forecastPeriodMonths?: number;
   }): Promise<Scenario> {
     try {
-      const client = this.db.getClient();
+      const client = await this.db.getClient();
       
       try {
         await client.query('BEGIN');
@@ -184,7 +184,9 @@ export class PipelineScenarioIntegrationService {
 
         // Create scenario allocations for each project
         for (const project of projects) {
-          await this.createScenarioAllocationsFromProject(scenario.id, project, conversionRates);
+          if (project) {
+            await this.createScenarioAllocationsFromProject(scenario.id, project, conversionRates);
+          }
         }
 
         // Create pipeline-scenario link
@@ -211,7 +213,11 @@ export class PipelineScenarioIntegrationService {
   async syncProjectToScenarios(projectId: string, scenarioIds?: string[]): Promise<void> {
     try {
       const project = await this.pipelineService.getPipelineProject(projectId);
-      
+
+      if (!project) {
+        throw new ApiError(404, `Pipeline project ${projectId} not found`);
+      }
+
       // Get scenarios to sync to
       let scenarios: Scenario[];
       if (scenarioIds) {
@@ -392,7 +398,7 @@ export class PipelineScenarioIntegrationService {
 
       // Create allocation for each matched employee
       for (const employee of employeesResult.rows) {
-        const allocationType: AllocationType = 
+        const allocationType: 'tentative' | 'probable' | 'confirmed' = 
           adjustedProbability > 0.7 ? 'confirmed' :
           adjustedProbability > 0.4 ? 'probable' : 'tentative';
 
@@ -609,8 +615,8 @@ export class PipelineScenarioIntegrationService {
         sum + ((alloc.estimatedHours || 0) * (alloc.hourlyRate || 75)), 0
       );
 
-      comparison.totalResourceDemand[scenarioId] = totalHours;
-      comparison.costAnalysis[scenarioId] = totalCost;
+      (comparison.totalResourceDemand as any)[scenarioId] = totalHours;
+      (comparison.costAnalysis as any)[scenarioId] = totalCost;
     }
 
     return comparison;

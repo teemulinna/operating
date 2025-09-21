@@ -70,5 +70,7 @@ export declare class MultiProjectAssignmentService {
     private validateAssignmentData;
     private validateProjectsAndRoles;
     private validateNoConflicts;
+    optimizeMultiProjectAssignments(options: AssignmentOptions): Promise<AssignmentResult>;
+    private calculateSkillMatch;
 }
 //# sourceMappingURL=multi-project-assignment.service.d.ts.map

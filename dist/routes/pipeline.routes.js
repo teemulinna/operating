@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.pipelineRoutes = void 0;
+// Pipeline Management Routes with CRM Integration
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const validate_middleware_1 = require("../middleware/validate.middleware");
@@ -10,6 +11,7 @@ const router = (0, express_1.Router)();
 exports.pipelineRoutes = router;
 const pipelineService = new pipeline_management_service_1.PipelineManagementService();
 const crmService = new crm_integration_service_1.CRMIntegrationService();
+// Validation rules
 const createPipelineProjectValidation = [
     (0, express_validator_1.body)('name')
         .isString()
@@ -102,6 +104,7 @@ const crmSystemValidation = [
         .isIn(['crm-wins', 'system-wins', 'manual', 'timestamp'])
         .withMessage('Invalid conflict resolution strategy')
 ];
+// Pipeline Project Routes
 router.post('/projects', createPipelineProjectValidation, validate_middleware_1.handleValidationErrors, async (req, res) => {
     try {
         const project = await pipelineService.createPipelineProject(req.body);
@@ -158,7 +161,13 @@ router.get('/projects', async (req, res) => {
 router.get('/projects/:id', (0, express_validator_1.param)('id').isUUID().withMessage('Project ID must be a valid UUID'), validate_middleware_1.handleValidationErrors, async (req, res) => {
     try {
         const project = await pipelineService.getPipelineProject(req.params.id);
-        res.json({
+        if (!project) {
+            return res.status(404).json({
+                success: false,
+                message: 'Pipeline project not found'
+            });
+        }
+        return res.json({
             success: true,
             data: project,
             message: 'Pipeline project retrieved successfully'
@@ -166,7 +175,7 @@ router.get('/projects/:id', (0, express_validator_1.param)('id').isUUID().withMe
     }
     catch (error) {
         console.error('Error fetching pipeline project:', error);
-        res.status(error.statusCode || 500).json({
+        return res.status(error.statusCode || 500).json({
             success: false,
             message: error.message || 'Failed to fetch pipeline project'
         });
@@ -208,6 +217,7 @@ router.delete('/projects/:id', (0, express_validator_1.param)('id').isUUID().wit
         });
     }
 });
+// Pipeline Analytics Routes
 router.get('/analytics', async (req, res) => {
     try {
         const filters = {
@@ -231,6 +241,7 @@ router.get('/analytics', async (req, res) => {
         });
     }
 });
+// CRM System Management Routes
 router.post('/crm-systems', crmSystemValidation, validate_middleware_1.handleValidationErrors, async (req, res) => {
     try {
         const crmSystem = await crmService.createCRMSystem(req.body);
@@ -283,6 +294,7 @@ router.put('/crm-systems/:id', (0, express_validator_1.param)('id').isUUID().wit
         });
     }
 });
+// CRM Synchronization Routes
 router.post('/crm-sync', crmSyncValidation, validate_middleware_1.handleValidationErrors, async (req, res) => {
     try {
         const syncOperation = await crmService.startSync(req.body);
@@ -328,7 +340,7 @@ router.get('/crm-sync/operations/:id', (0, express_validator_1.param)('id').isUU
                 message: 'Sync operation not found'
             });
         }
-        res.json({
+        return res.json({
             success: true,
             data: operation,
             message: 'Sync operation retrieved successfully'
@@ -336,7 +348,7 @@ router.get('/crm-sync/operations/:id', (0, express_validator_1.param)('id').isUU
     }
     catch (error) {
         console.error('Error fetching sync operation:', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: 'Failed to fetch sync operation'
         });
@@ -359,6 +371,7 @@ router.post('/crm-systems/:id/test-connection', (0, express_validator_1.param)('
         });
     }
 });
+// CRM Conflict Resolution Routes
 router.get('/crm-sync/conflicts', async (req, res) => {
     try {
         const crmSystemId = req.query.crmSystemId;
@@ -395,6 +408,7 @@ router.post('/crm-sync/conflicts/:id/resolve', (0, express_validator_1.param)('i
         });
     }
 });
+// Individual Project CRM Sync Routes
 router.post('/projects/:projectId/sync-to-crm/:crmSystemId', (0, express_validator_1.param)('projectId').isUUID().withMessage('Project ID must be a valid UUID'), (0, express_validator_1.param)('crmSystemId').isUUID().withMessage('CRM system ID must be a valid UUID'), validate_middleware_1.handleValidationErrors, async (req, res) => {
     try {
         const result = await crmService.syncProjectToCRM(req.params.projectId, req.params.crmSystemId);
@@ -429,4 +443,3 @@ router.post('/crm/:crmSystemId/projects/:crmId/sync-from-crm', (0, express_valid
         });
     }
 });
-//# sourceMappingURL=pipeline.routes.js.map

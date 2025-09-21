@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 export declare class EmployeeController {
     private employeeService;
+    private webSocketService;
     constructor();
     getEmployees: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     getEmployeeById: (req: Request, res: Response, next: NextFunction) => Promise<void>;

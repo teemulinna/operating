@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/180</span>
+                <span class='fraction'>0/187</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/70</span>
+                <span class='fraction'>0/75</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/175</span>
+                <span class='fraction'>0/182</span>
             </div>
         
             
@@ -625,7 +625,17 @@
 <a name='L560'></a><a href='#L560'>560</a>
 <a name='L561'></a><a href='#L561'>561</a>
 <a name='L562'></a><a href='#L562'>562</a>
-<a name='L563'></a><a href='#L563'>563</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L563'></a><a href='#L563'>563</a>
+<a name='L564'></a><a href='#L564'>564</a>
+<a name='L565'></a><a href='#L565'>565</a>
+<a name='L566'></a><a href='#L566'>566</a>
+<a name='L567'></a><a href='#L567'>567</a>
+<a name='L568'></a><a href='#L568'>568</a>
+<a name='L569'></a><a href='#L569'>569</a>
+<a name='L570'></a><a href='#L570'>570</a>
+<a name='L571'></a><a href='#L571'>571</a>
+<a name='L572'></a><a href='#L572'>572</a>
+<a name='L573'></a><a href='#L573'>573</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1185,7 +1195,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Pool } from 'pg';
 <span class="cstat-no" title="statement not covered" >import { </span>
@@ -1733,21 +1753,31 @@ export interface CapacityMetrics {
   }
 &nbsp;
   private <span class="fstat-no" title="function not covered" >static </span>mapRow(row: any): ResourceAllocation {
-<span class="cstat-no" title="statement not covered" >    return {</span>
+    const allocation: ResourceAllocation = <span class="cstat-no" title="statement not covered" >{</span>
       id: row.id,
       projectId: row.project_id,
       employeeId: row.employee_id,
       allocatedHours: parseFloat(row.allocated_hours) || 0,
-      actualHours: row.actual_hours ? parseFloat(row.actual_hours) : undefined,
-      hourlyRate: row.hourly_rate ? parseFloat(row.hourly_rate) : undefined,
       roleOnProject: row.role,
       startDate: row.start_date,
       endDate: row.end_date,
-      notes: row.notes,
       isActive: row.status === 'confirmed',
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
+&nbsp;
+    // Only set optional properties if they have values
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (row.actual_hours !== null &amp;&amp; row.actual_hours !== undefined) {</span>
+<span class="cstat-no" title="statement not covered" >      allocation.actualHours = parseFloat(row.actual_hours);</span>
+    }
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (row.hourly_rate !== null &amp;&amp; row.hourly_rate !== undefined) {</span>
+<span class="cstat-no" title="statement not covered" >      allocation.hourlyRate = parseFloat(row.hourly_rate);</span>
+    }
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (row.notes !== null &amp;&amp; row.notes !== undefined) {</span>
+<span class="cstat-no" title="statement not covered" >      allocation.notes = row.notes;</span>
+    }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    return allocation;</span>
   }
 }</pre></td></tr></table></pre>
 
@@ -1756,7 +1786,7 @@ export interface CapacityMetrics {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-06T22:18:59.228Z
+                at 2025-09-20T16:44:39.550Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

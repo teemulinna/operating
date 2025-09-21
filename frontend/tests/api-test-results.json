@@ -1,0 +1,317 @@
+{
+  "timestamp": "2025-09-07T13:58:47.569Z",
+  "summary": {
+    "total": 8,
+    "passed": 7,
+    "failed": 1,
+    "errors": 0
+  },
+  "tests": [
+    {
+      "name": "Health Check",
+      "success": true,
+      "message": "Health endpoint working",
+      "duration": 8,
+      "details": {
+        "statusCode": 200,
+        "status": "healthy",
+        "uptime": 628.807100334
+      },
+      "timestamp": "2025-09-07T13:58:47.579Z"
+    },
+    {
+      "name": "API Documentation",
+      "success": {
+        "employees": "/api/employees",
+        "departments": "/api/departments",
+        "skills": "/api/skills",
+        "capacity": "/api/capacity",
+        "resources": "/api/resources",
+        "projects": "/api/projects",
+        "allocations": "/api/allocations",
+        "allocation_templates": "/api/allocation-templates",
+        "analytics": "/api/analytics",
+        "pipeline": "/api/pipeline",
+        "scenarios": "/api/scenarios",
+        "notifications": "/api/notifications",
+        "ml_optimization": "/api/ml-optimization",
+        "optimization": "/api/optimization",
+        "skill_matching": "/api/matching"
+      },
+      "message": "API documentation accessible",
+      "duration": 1,
+      "details": {
+        "statusCode": 200,
+        "endpoints": [
+          "employees",
+          "departments",
+          "skills",
+          "capacity",
+          "resources",
+          "projects",
+          "allocations",
+          "allocation_templates",
+          "analytics",
+          "pipeline",
+          "scenarios",
+          "notifications",
+          "ml_optimization",
+          "optimization",
+          "skill_matching"
+        ],
+        "features": 23
+      },
+      "timestamp": "2025-09-07T13:58:47.580Z"
+    },
+    {
+      "name": "Basic Data Endpoints",
+      "success": true,
+      "message": "4/5 basic endpoints working",
+      "duration": 83,
+      "details": {
+        "results": [
+          {
+            "name": "Employees",
+            "success": true,
+            "statusCode": 200,
+            "hasData": true
+          },
+          {
+            "name": "Projects",
+            "success": true,
+            "statusCode": 200,
+            "hasData": true
+          },
+          {
+            "name": "Departments",
+            "success": true,
+            "statusCode": 200,
+            "hasData": true
+          },
+          {
+            "name": "Skills",
+            "success": false,
+            "statusCode": 404,
+            "hasData": true
+          },
+          {
+            "name": "Allocations",
+            "success": true,
+            "statusCode": 200,
+            "hasData": true
+          }
+        ]
+      },
+      "timestamp": "2025-09-07T13:58:47.663Z"
+    },
+    {
+      "name": "Skills Matching",
+      "success": false,
+      "message": "Skills matching endpoint returned 500",
+      "duration": 9,
+      "details": {
+        "statusCode": 500,
+        "endpoint": "/api/skills/match",
+        "responseType": "object",
+        "hasMatches": 0,
+        "fallback": null
+      },
+      "timestamp": "2025-09-07T13:58:47.672Z"
+    },
+    {
+      "name": "Skills Endpoints",
+      "success": true,
+      "message": "Skills endpoints: 1 working, 4 available, 4 total",
+      "duration": 18,
+      "details": {
+        "results": [
+          {
+            "name": "Organization Skills Stats",
+            "success": false,
+            "statusCode": 500,
+            "available": true,
+            "message": "Failed to retrieve organization skill statistics"
+          },
+          {
+            "name": "Project Skill Gaps",
+            "success": true,
+            "statusCode": 200,
+            "available": true,
+            "message": "Skill gap analysis completed successfully"
+          },
+          {
+            "name": "Skills Recommendations",
+            "success": false,
+            "statusCode": 400,
+            "available": true,
+            "message": "No roles defined for this project"
+          },
+          {
+            "name": "Bulk Skills Matching",
+            "success": false,
+            "statusCode": 400,
+            "available": true,
+            "message": "Validation failed"
+          }
+        ]
+      },
+      "timestamp": "2025-09-07T13:58:47.690Z"
+    },
+    {
+      "name": "Optimization Endpoints",
+      "success": true,
+      "message": "Optimization endpoints: 2 working, 6 available, 6 total",
+      "duration": 3593,
+      "details": {
+        "results": [
+          {
+            "name": "Optimization Analysis",
+            "success": false,
+            "statusCode": 500,
+            "available": true,
+            "message": "Failed to analyze allocations",
+            "hasData": false
+          },
+          {
+            "name": "Optimization Suggestions",
+            "success": false,
+            "statusCode": 500,
+            "available": true,
+            "message": "Failed to generate optimization suggestions",
+            "hasData": false
+          },
+          {
+            "name": "Conflict Resolution",
+            "success": false,
+            "statusCode": 400,
+            "available": true,
+            "message": "No message",
+            "hasData": false
+          },
+          {
+            "name": "General Suggestions",
+            "success": true,
+            "statusCode": 200,
+            "available": true,
+            "message": "Optimization suggestions generated successfully",
+            "hasData": true
+          },
+          {
+            "name": "Resource Balancing",
+            "success": false,
+            "statusCode": 500,
+            "available": true,
+            "message": "Failed to optimize resource allocation",
+            "hasData": false
+          },
+          {
+            "name": "Optimization Metrics",
+            "success": true,
+            "statusCode": 200,
+            "available": true,
+            "message": "Optimization metrics generated successfully",
+            "hasData": true
+          }
+        ]
+      },
+      "timestamp": "2025-09-07T13:58:51.283Z"
+    },
+    {
+      "name": "Forecasting Endpoints",
+      "success": true,
+      "message": "Forecasting endpoints: 1 working, 1 available, 5 total",
+      "duration": 3,
+      "details": {
+        "results": [
+          {
+            "name": "Capacity Forecasting",
+            "success": false,
+            "statusCode": 404,
+            "available": false,
+            "message": "The requested route /api/forecasting/capacity?timeHorizon=90&aggregation=daily does not exist",
+            "hasData": false
+          },
+          {
+            "name": "Demand Forecasting",
+            "success": true,
+            "statusCode": 200,
+            "available": true,
+            "message": "Demand forecast retrieved successfully",
+            "hasData": true
+          },
+          {
+            "name": "Scenario Creation",
+            "success": false,
+            "statusCode": 404,
+            "available": false,
+            "message": "The requested route /api/forecasting/scenario does not exist",
+            "hasData": false
+          },
+          {
+            "name": "Forecasting Insights",
+            "success": false,
+            "statusCode": 404,
+            "available": false,
+            "message": "The requested route /api/forecasting/insights?category=utilization&timeRange=30 does not exist",
+            "hasData": false
+          },
+          {
+            "name": "Pattern Training",
+            "success": false,
+            "statusCode": 404,
+            "available": false,
+            "message": "The requested route /api/forecasting/patterns/train does not exist",
+            "hasData": false
+          }
+        ]
+      },
+      "timestamp": "2025-09-07T13:58:51.286Z"
+    },
+    {
+      "name": "Alternative Endpoints",
+      "success": true,
+      "message": "Fallback endpoints: 2 working, 5 available, 5 total",
+      "duration": 20,
+      "details": {
+        "results": [
+          {
+            "name": "Team Utilization Analytics",
+            "success": false,
+            "statusCode": 500,
+            "available": true,
+            "hasData": true
+          },
+          {
+            "name": "Capacity Trends Analytics",
+            "success": false,
+            "statusCode": 500,
+            "available": true,
+            "hasData": true
+          },
+          {
+            "name": "Reporting Configurations",
+            "success": false,
+            "statusCode": 500,
+            "available": true,
+            "hasData": true
+          },
+          {
+            "name": "Allocation Templates",
+            "success": true,
+            "statusCode": 200,
+            "available": true,
+            "hasData": true
+          },
+          {
+            "name": "Pipeline Projects",
+            "success": true,
+            "statusCode": 200,
+            "available": true,
+            "hasData": true
+          }
+        ]
+      },
+      "timestamp": "2025-09-07T13:58:51.306Z"
+    }
+  ]
+}

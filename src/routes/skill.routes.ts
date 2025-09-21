@@ -6,10 +6,16 @@ import { requireRole } from '../middleware/auth.middleware';
 const router = express.Router();
 const skillController = new SkillController();
 
-// GET /api/skills - Get all unique skills
+// GET /api/skills - Get all skills with optional filters
 router.get(
   '/',
   skillController.getSkills
+);
+
+// POST /api/skills - Create a new skill
+router.post(
+  '/',
+  skillController.createSkill
 );
 
 // GET /api/skills/popular - Get popular skills
@@ -21,13 +27,34 @@ router.get(
 // GET /api/skills/analytics - Get skill analytics
 router.get(
   '/analytics',
-  requireRole(['admin', 'hr']),
   skillController.getSkillAnalytics
 );
 
-// GET /api/skills/:skill/employees - Get employees with specific skill
+// GET /api/skills/:id - Get skill by ID
 router.get(
-  '/:skill/employees',
+  '/:id',
+  validateIdParam,
+  skillController.getSkillById
+);
+
+// PUT /api/skills/:id - Update skill
+router.put(
+  '/:id',
+  validateIdParam,
+  skillController.updateSkill
+);
+
+// DELETE /api/skills/:id - Delete skill
+router.delete(
+  '/:id',
+  validateIdParam,
+  skillController.deleteSkill
+);
+
+// GET /api/skills/:id/employees - Get employees with specific skill
+router.get(
+  '/:id/employees',
+  validateIdParam,
   skillController.getEmployeesBySkill
 );
 

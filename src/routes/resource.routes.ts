@@ -2,6 +2,12 @@ import { Router } from 'express';
 import { body, query, param } from 'express-validator';
 import { ResourceController } from '../controllers/resource.controller';
 
+// UUID validation helper
+const isValidUUID = (value: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(value);
+};
+
 const router = Router();
 
 /**
@@ -12,7 +18,12 @@ const router = Router();
 router.get(
   '/allocation',
   [
-    query('departmentId').optional().isInt({ min: 1 }).withMessage('Department ID must be a positive integer'),
+    query('departmentId').optional().isString().custom((value) => {
+      if (value && !isValidUUID(value)) {
+        throw new Error('Department ID must be a valid UUID');
+      }
+      return true;
+    }).withMessage('Department ID must be a valid UUID'),
     query('startDate').optional().isISO8601().withMessage('Start date must be a valid ISO date'),
     query('endDate').optional().isISO8601().withMessage('End date must be a valid ISO date')
   ],
@@ -40,7 +51,12 @@ router.get(
 router.post(
   '/allocation',
   [
-    body('employeeId').isInt({ min: 1 }).withMessage('Employee ID is required and must be a positive integer'),
+    body('employeeId').isString().custom((value) => {
+      if (!isValidUUID(value)) {
+        throw new Error('Employee ID is required and must be a valid UUID');
+      }
+      return true;
+    }).withMessage('Employee ID is required and must be a valid UUID'),
     body('projectId').isString().notEmpty().withMessage('Project ID is required'),
     body('allocatedHours').isFloat({ min: 0, max: 168 }).withMessage('Allocated hours must be between 0 and 168'),
     body('startDate').optional().isISO8601().withMessage('Start date must be a valid ISO date'),
@@ -88,7 +104,12 @@ router.get(
   '/analytics',
   [
     query('period').optional().isIn(['7d', '30d', '90d']).withMessage('Invalid period'),
-    query('departmentId').optional().isInt({ min: 1 }).withMessage('Department ID must be a positive integer')
+    query('departmentId').optional().isString().custom((value) => {
+      if (value && !isValidUUID(value)) {
+        throw new Error('Department ID must be a valid UUID');
+      }
+      return true;
+    }).withMessage('Department ID must be a valid UUID')
   ],
   ResourceController.getResourceAnalytics
 );

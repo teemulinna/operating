@@ -4,6 +4,7 @@ exports.scenarioRoutes = void 0;
 const express_1 = require("express");
 const router = (0, express_1.Router)();
 exports.scenarioRoutes = router;
+// Scenario CRUD
 router.get('/scenarios', async (req, res) => {
     res.json({
         success: true,
@@ -38,6 +39,7 @@ router.delete('/scenarios/:id', async (req, res) => {
         message: 'Scenario deleted successfully'
     });
 });
+// Scenario comparisons
 router.post('/scenarios/compare', async (req, res) => {
     res.json({
         success: true,
@@ -45,6 +47,7 @@ router.post('/scenarios/compare', async (req, res) => {
         message: 'Scenarios compared successfully'
     });
 });
+// Forecasting
 router.get('/forecasting/demand', async (req, res) => {
     res.json({
         success: true,
@@ -59,4 +62,3 @@ router.post('/forecasting/predict', async (req, res) => {
         message: 'Predictions generated successfully'
     });
 });
-//# sourceMappingURL=scenario.routes.js.map

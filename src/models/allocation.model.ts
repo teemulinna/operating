@@ -544,20 +544,30 @@ export class AllocationModel {
   }
 
   private static mapRow(row: any): ResourceAllocation {
-    return {
+    const allocation: ResourceAllocation = {
       id: row.id,
       projectId: row.project_id,
       employeeId: row.employee_id,
       allocatedHours: parseFloat(row.allocated_hours) || 0,
-      actualHours: row.actual_hours ? parseFloat(row.actual_hours) : undefined,
-      hourlyRate: row.hourly_rate ? parseFloat(row.hourly_rate) : undefined,
       roleOnProject: row.role,
       startDate: row.start_date,
       endDate: row.end_date,
-      notes: row.notes,
       isActive: row.status === 'confirmed',
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
+
+    // Only set optional properties if they have values
+    if (row.actual_hours !== null && row.actual_hours !== undefined) {
+      allocation.actualHours = parseFloat(row.actual_hours);
+    }
+    if (row.hourly_rate !== null && row.hourly_rate !== undefined) {
+      allocation.hourlyRate = parseFloat(row.hourly_rate);
+    }
+    if (row.notes !== null && row.notes !== undefined) {
+      allocation.notes = row.notes;
+    }
+
+    return allocation;
   }
 }

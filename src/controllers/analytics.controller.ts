@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AnalyticsService } from '../services/analytics.service';
 import { AnalyticsFilters, ExportOptions } from '../types/analytics.types';
 import { ApiError } from '../utils/api-error';
+import { DatabaseService } from '../database/database.service';
 
 export class AnalyticsController {
   
@@ -10,17 +11,24 @@ export class AnalyticsController {
    */
   static async getTeamUtilization(req: Request, res: Response): Promise<void> {
     try {
-      const filters: AnalyticsFilters = {
-        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
-        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
-        departmentIds: req.query.departmentIds ? 
-          (req.query.departmentIds as string).split(',').filter(Boolean) : undefined,
-        aggregationPeriod: (req.query.aggregationPeriod as 'daily' | 'weekly' | 'monthly' | 'quarterly') || 'weekly'
-      };
+      const filters: AnalyticsFilters = {};
+      
+      if (req.query.dateFrom) {
+        filters.dateFrom = new Date(req.query.dateFrom as string);
+      }
+      if (req.query.dateTo) {
+        filters.dateTo = new Date(req.query.dateTo as string);
+      }
+      if (req.query.departmentIds) {
+        filters.departmentIds = (req.query.departmentIds as string).split(',').filter(Boolean);
+      }
+      if (req.query.aggregationPeriod) {
+        filters.aggregationPeriod = req.query.aggregationPeriod as 'daily' | 'weekly' | 'monthly' | 'quarterly';
+      }
 
       const result = await AnalyticsService.getTeamUtilizationData(filters);
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching team utilization data:', error);
       throw new ApiError(500, 'Failed to fetch team utilization data');
     }
@@ -31,17 +39,24 @@ export class AnalyticsController {
    */
   static async getCapacityTrends(req: Request, res: Response): Promise<void> {
     try {
-      const filters: AnalyticsFilters = {
-        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
-        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
-        departmentIds: req.query.departmentIds ? 
-          (req.query.departmentIds as string).split(',').filter(Boolean) : undefined,
-        aggregationPeriod: (req.query.aggregationPeriod as 'daily' | 'weekly' | 'monthly' | 'quarterly') || 'weekly'
-      };
+      const filters: AnalyticsFilters = {};
+      
+      if (req.query.dateFrom) {
+        filters.dateFrom = new Date(req.query.dateFrom as string);
+      }
+      if (req.query.dateTo) {
+        filters.dateTo = new Date(req.query.dateTo as string);
+      }
+      if (req.query.departmentIds) {
+        filters.departmentIds = (req.query.departmentIds as string).split(',').filter(Boolean);
+      }
+      if (req.query.aggregationPeriod) {
+        filters.aggregationPeriod = req.query.aggregationPeriod as 'daily' | 'weekly' | 'monthly' | 'quarterly';
+      }
 
       const result = await AnalyticsService.getCapacityTrends(filters);
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching capacity trends:', error);
       throw new ApiError(500, 'Failed to fetch capacity trends');
     }
@@ -52,22 +67,32 @@ export class AnalyticsController {
    */
   static async getResourceAllocationMetrics(req: Request, res: Response): Promise<void> {
     try {
-      const filters: AnalyticsFilters = {
-        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
-        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
-        departmentIds: req.query.departmentIds ? 
-          (req.query.departmentIds as string).split(',').filter(Boolean) : undefined,
-        skillCategories: req.query.skillCategories ? 
-          (req.query.skillCategories as string).split(',').filter(Boolean) : undefined,
-        utilizationThreshold: {
-          min: req.query.minUtilization ? parseFloat(req.query.minUtilization as string) : undefined,
-          max: req.query.maxUtilization ? parseFloat(req.query.maxUtilization as string) : undefined
-        }
-      };
+      const filters: AnalyticsFilters = {};
+      
+      if (req.query.dateFrom) {
+        filters.dateFrom = new Date(req.query.dateFrom as string);
+      }
+      if (req.query.dateTo) {
+        filters.dateTo = new Date(req.query.dateTo as string);
+      }
+      if (req.query.departmentIds) {
+        filters.departmentIds = (req.query.departmentIds as string).split(',').filter(Boolean);
+      }
+      if (req.query.skillCategories) {
+        filters.skillCategories = (req.query.skillCategories as string).split(',').filter(Boolean);
+      }
+      
+      const minUtil = req.query.minUtilization ? parseFloat(req.query.minUtilization as string) : undefined;
+      const maxUtil = req.query.maxUtilization ? parseFloat(req.query.maxUtilization as string) : undefined;
+      if (minUtil !== undefined || maxUtil !== undefined) {
+        filters.utilizationThreshold = {};
+        if (minUtil !== undefined) filters.utilizationThreshold.min = minUtil;
+        if (maxUtil !== undefined) filters.utilizationThreshold.max = maxUtil;
+      }
 
       const result = await AnalyticsService.getResourceAllocationMetrics(filters);
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching resource allocation metrics:', error);
       throw new ApiError(500, 'Failed to fetch resource allocation metrics');
     }
@@ -78,18 +103,24 @@ export class AnalyticsController {
    */
   static async getSkillsGapAnalysis(req: Request, res: Response): Promise<void> {
     try {
-      const filters: AnalyticsFilters = {
-        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
-        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
-        departmentIds: req.query.departmentIds ? 
-          (req.query.departmentIds as string).split(',').filter(Boolean) : undefined,
-        skillCategories: req.query.skillCategories ? 
-          (req.query.skillCategories as string).split(',').filter(Boolean) : undefined
-      };
+      const filters: AnalyticsFilters = {};
+      
+      if (req.query.dateFrom) {
+        filters.dateFrom = new Date(req.query.dateFrom as string);
+      }
+      if (req.query.dateTo) {
+        filters.dateTo = new Date(req.query.dateTo as string);
+      }
+      if (req.query.departmentIds) {
+        filters.departmentIds = (req.query.departmentIds as string).split(',').filter(Boolean);
+      }
+      if (req.query.skillCategories) {
+        filters.skillCategories = (req.query.skillCategories as string).split(',').filter(Boolean);
+      }
 
       const result = await AnalyticsService.getSkillGapAnalysis(filters);
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching skills gap analysis:', error);
       throw new ApiError(500, 'Failed to fetch skills gap analysis');
     }
@@ -100,16 +131,21 @@ export class AnalyticsController {
    */
   static async getDepartmentPerformance(req: Request, res: Response): Promise<void> {
     try {
-      const filters: AnalyticsFilters = {
-        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
-        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
-        departmentIds: req.query.departmentIds ? 
-          (req.query.departmentIds as string).split(',').filter(Boolean) : undefined
-      };
+      const filters: AnalyticsFilters = {};
+      
+      if (req.query.dateFrom) {
+        filters.dateFrom = new Date(req.query.dateFrom as string);
+      }
+      if (req.query.dateTo) {
+        filters.dateTo = new Date(req.query.dateTo as string);
+      }
+      if (req.query.departmentIds) {
+        filters.departmentIds = (req.query.departmentIds as string).split(',').filter(Boolean);
+      }
 
       const result = await AnalyticsService.getDepartmentPerformance(filters);
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching department performance:', error);
       throw new ApiError(500, 'Failed to fetch department performance');
     }
@@ -126,10 +162,14 @@ export class AnalyticsController {
         throw new ApiError(400, 'Both department IDs are required');
       }
 
-      const filters: AnalyticsFilters = {
-        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
-        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined
-      };
+      const filters: AnalyticsFilters = {};
+      
+      if (req.query.dateFrom) {
+        filters.dateFrom = new Date(req.query.dateFrom as string);
+      }
+      if (req.query.dateTo) {
+        filters.dateTo = new Date(req.query.dateTo as string);
+      }
 
       const result = await AnalyticsService.compareDepartments(departmentAId, departmentBId, filters);
       res.json({
@@ -142,7 +182,7 @@ export class AnalyticsController {
           }
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error comparing departments:', error);
       if (error instanceof ApiError) {
         throw error;
@@ -230,9 +270,101 @@ export class AnalyticsController {
       }
 
       res.json(exportData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error exporting analytics:', error);
       throw new ApiError(500, 'Failed to export analytics data');
+    }
+  }
+
+  /**
+   * Get comprehensive dashboard statistics with real database calculations
+   */
+  static async getDashboardStats(_req: Request, res: Response): Promise<void> {
+    try {
+      const db = DatabaseService.getInstance().getPool();
+      
+      // Simplified dashboard query compatible with PostgreSQL
+      const dashboardQuery = `
+        SELECT 
+          -- Employee metrics
+          (SELECT COUNT(*) FROM employees WHERE is_active = true) as "employeeCount",
+          (SELECT COUNT(*) FROM employees) as total_employees,
+          
+          -- Project metrics  
+          (SELECT COUNT(*) FROM projects WHERE status IN ('active', 'planning') AND is_active = true) as "projectCount",
+          (SELECT COUNT(*) FROM projects WHERE status = 'completed' AND is_active = true) as completed_projects,
+          (SELECT COUNT(*) FROM projects WHERE is_active = true) as total_projects,
+          
+          -- Allocation metrics
+          (SELECT COUNT(*) FROM resource_allocations) as "allocationCount",
+          (SELECT COUNT(*) FROM resource_allocations WHERE is_active = true) as active_allocations,
+          (SELECT COALESCE(SUM(allocated_hours), 0) FROM resource_allocations WHERE is_active = true) as total_allocated_hours,
+          
+          -- Simple utilization calculation
+          CASE 
+            WHEN (SELECT SUM(COALESCE(default_hours, 40)) FROM employees WHERE is_active = true) > 0 THEN
+              ROUND(
+                ((SELECT COALESCE(SUM(allocated_hours), 0) FROM resource_allocations WHERE is_active = true)::numeric / 
+                 NULLIF((SELECT SUM(COALESCE(default_hours, 40)) FROM employees WHERE is_active = true)::numeric, 0) * 100), 
+                2
+              )
+            ELSE 0
+          END as "utilizationRate"
+      `;
+
+      const result = await db.query(dashboardQuery);
+      const stats = result.rows[0];
+
+      // Format response with comprehensive dashboard data
+      const dashboardData = {
+        // Core metrics (backward compatibility)
+        employeeCount: parseInt(stats.employeeCount) || 0,
+        projectCount: parseInt(stats.projectCount) || 0,
+        utilizationRate: parseFloat(stats.utilizationRate) || 0,
+        allocationCount: parseInt(stats.allocationCount) || 0,
+
+        // Extended metrics for enhanced dashboard
+        summary: {
+          totalEmployees: parseInt(stats.total_employees) || 0,
+          completedProjects: parseInt(stats.completed_projects) || 0,
+          totalProjects: parseInt(stats.total_projects) || 0,
+          activeAllocations: parseInt(stats.active_allocations) || 0,
+          totalAllocatedHours: parseFloat(stats.total_allocated_hours) || 0
+        },
+
+        utilization: {
+          overallRate: parseFloat(stats.utilizationRate) || 0
+        },
+
+        metadata: {
+          generatedAt: new Date(),
+          dataSource: 'real-time',
+          queryOptimized: true,
+          note: 'Using simplified real database calculations'
+        }
+      };
+
+      res.json(dashboardData);
+
+    } catch (error) {
+      console.error('Error fetching comprehensive dashboard stats:', error);
+      console.error('Error details:', (error as any).message);
+      console.error('Error stack:', (error as any).stack);
+      
+      // Return minimal fallback data with error indication
+      res.json({
+        employeeCount: 0,
+        projectCount: 0, 
+        utilizationRate: 0,
+        allocationCount: 0,
+        error: 'Dashboard data temporarily unavailable',
+        errorDetails: (error as any).message,
+        metadata: {
+          generatedAt: new Date(),
+          dataSource: 'fallback',
+          queryOptimized: false
+        }
+      });
     }
   }
 
@@ -281,7 +413,7 @@ export class AnalyticsController {
       };
 
       res.json(summary);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching dashboard summary:', error);
       throw new ApiError(500, 'Failed to fetch dashboard summary');
     }

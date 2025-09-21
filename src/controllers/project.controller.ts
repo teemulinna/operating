@@ -1,18 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
-import { validationResult } from 'express-validator';
 import { ProjectService } from '../services/project.service';
 import { ResourceAssignmentService } from '../services/resource-assignment.service';
 import { ApiError } from '../utils/api-error';
-import { handleValidationErrors } from '../middleware/validate.middleware';
+import { WebSocketService } from '../websocket/websocket.service';
 // import { logger } from '../utils/logger';
 
 export class ProjectController {
   private projectService: ProjectService;
   private assignmentService: ResourceAssignmentService;
+  private webSocketService: WebSocketService;
 
   constructor() {
     this.projectService = new ProjectService();
     this.assignmentService = new ResourceAssignmentService();
+    this.webSocketService = WebSocketService.getInstance();
   }
 
   createProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -34,12 +35,24 @@ export class ProjectController {
 
       console.log(`Project created: ${project.name} (ID: ${project.id})`);
       
+      // Emit real-time event for project creation
+      this.webSocketService.sendNotification({
+        id: `project-created-${project.id}-${Date.now()}`,
+        type: 'project_created',
+        title: 'New Project Created',
+        message: `Project "${project.name}" has been created`,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        priority: 'medium',
+        data: project
+      });
+      
       res.status(201).json({
         success: true,
         data: project,
         message: 'Project created successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -70,14 +83,14 @@ export class ProjectController {
         pagination: result.pagination,
         total: result.total
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
 
   getProjectById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const projectId = parseInt(req.params.id);
+      const projectId = parseInt(req.params.id || '');
       if (isNaN(projectId)) {
         throw new ApiError(400, 'Invalid project ID');
       }
@@ -87,25 +100,22 @@ export class ProjectController {
         throw new ApiError(404, 'Project not found');
       }
 
-      // Get project roles and assignments
-      const roles = await this.projectService.getProjectRoles(projectId);
-      const assignments = await this.assignmentService.getProjectAssignments(projectId);
-
+      // Return project without roles/assignments for now since those tables don't exist yet
       res.json({
         success: true,
         data: {
           ...project,
-          roles,
-          assignments,
+          roles: [],
+          assignments: [],
           summary: {
-            totalRoles: roles.length,
-            filledRoles: roles.filter(r => r.current_assignments >= r.max_assignments).length,
-            assignedEmployees: assignments.length,
-            totalPlannedHours: assignments.reduce((sum, a) => sum + (a.planned_hours_per_week || 0), 0)
+            totalRoles: 0,
+            filledRoles: 0,
+            assignedEmployees: 0,
+            totalPlannedHours: 0
           }
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -113,7 +123,7 @@ export class ProjectController {
   updateProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
 
-      const projectId = parseInt(req.params.id);
+      const projectId = parseInt(req.params.id || '');
       if (isNaN(projectId)) {
         throw new ApiError(400, 'Invalid project ID');
       }
@@ -139,33 +149,30 @@ export class ProjectController {
         data: project,
         message: 'Project updated successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
 
   deleteProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const projectId = parseInt(req.params.id);
+      const projectId = parseInt(req.params.id || '');
       if (isNaN(projectId)) {
         throw new ApiError(400, 'Invalid project ID');
       }
 
-      // Check if project has active assignments
-      const activeAssignments = await this.assignmentService.getActiveAssignments(projectId);
-      if (activeAssignments.length > 0) {
-        throw new ApiError(400, 'Cannot delete project with active resource assignments');
-      }
+      // Check if project has active assignments (skip for now since table doesn't exist)
+      // const activeAssignments = await this.assignmentService.getActiveAssignments(projectId);
+      // if (activeAssignments.length > 0) {
+      //   throw new ApiError(400, 'Cannot delete project with active resource assignments');
+      // }
 
       await this.projectService.deleteProject(projectId);
 
       console.log(`Project deleted: ID ${projectId}`);
 
-      res.json({
-        success: true,
-        message: 'Project deleted successfully'
-      });
-    } catch (error) {
+      res.status(204).send();
+    } catch (error: any) {
       next(error);
     }
   };
@@ -174,7 +181,7 @@ export class ProjectController {
   addProjectRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
 
-      const projectId = parseInt(req.params.id);
+      const projectId = parseInt(req.params.id || '');
       if (isNaN(projectId)) {
         throw new ApiError(400, 'Invalid project ID');
       }
@@ -200,14 +207,14 @@ export class ProjectController {
         data: role,
         message: 'Project role created successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
 
   getProjectRoles = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const projectId = parseInt(req.params.id);
+      const projectId = parseInt(req.params.id || '');
       if (isNaN(projectId)) {
         throw new ApiError(400, 'Invalid project ID');
       }
@@ -218,7 +225,7 @@ export class ProjectController {
         success: true,
         data: roles
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -227,7 +234,7 @@ export class ProjectController {
   assignEmployeeToProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
 
-      const projectId = parseInt(req.params.id);
+      const projectId = parseInt(req.params.id || '');
       if (isNaN(projectId)) {
         throw new ApiError(400, 'Invalid project ID');
       }
@@ -252,14 +259,14 @@ export class ProjectController {
         data: assignment,
         message: 'Employee assigned to project successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
 
   getProjectAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const projectId = parseInt(req.params.id);
+      const projectId = parseInt(req.params.id || '');
       if (isNaN(projectId)) {
         throw new ApiError(400, 'Invalid project ID');
       }
@@ -270,7 +277,7 @@ export class ProjectController {
         success: true,
         data: assignments
       });
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };

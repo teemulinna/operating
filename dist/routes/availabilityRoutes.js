@@ -7,6 +7,7 @@ const availabilityController_1 = require("../controllers/availabilityController"
 const validate_middleware_1 = require("../middleware/validate.middleware");
 const router = (0, express_1.Router)();
 exports.availabilityRoutes = router;
+// Validation rules
 const availabilityStatusValidation = [
     (0, express_validator_1.body)('status')
         .isIn(['available', 'busy', 'unavailable'])
@@ -69,10 +70,52 @@ const bulkUpdateValidation = [
         .isInt({ min: 0 })
         .withMessage('Available hours must be non-negative'),
 ];
+// Routes
+/**
+ * @route GET /api/availability/status
+ * @description Get availability status for all employees with optional filtering
+ * @access Public
+ * @query {string} [status] - Filter by availability status (available, busy, unavailable, all)
+ * @query {string} [departmentId] - Filter by department UUID
+ * @query {string} [search] - Search in employee names, email, position
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page
+ */
 router.get('/status', employeeStatusesQueryValidation, validate_middleware_1.validateRequest, availabilityController_1.AvailabilityController.getEmployeeStatuses);
+/**
+ * @route PUT /api/availability/status/:id
+ * @description Update employee availability status
+ * @access Public
+ * @param {string} id - Employee UUID
+ * @body {string} status - New status (available, busy, unavailable)
+ * @body {number} capacity - Capacity percentage (0-100)
+ * @body {number} currentProjects - Number of current projects
+ * @body {number} availableHours - Available hours per week
+ */
 router.put('/status/:id', (0, express_validator_1.param)('id').isUUID().withMessage('Employee ID must be a valid UUID'), availabilityStatusValidation, validate_middleware_1.validateRequest, availabilityController_1.AvailabilityController.updateEmployeeStatus);
+/**
+ * @route GET /api/availability/department/:id
+ * @description Get department utilization metrics and employee details
+ * @access Public
+ * @param {string} id - Department UUID
+ */
 router.get('/department/:id', (0, express_validator_1.param)('id').isUUID().withMessage('Department ID must be a valid UUID'), validate_middleware_1.validateRequest, availabilityController_1.AvailabilityController.getDepartmentUtilization);
+/**
+ * @route GET /api/availability/real-time
+ * @description Get WebSocket configuration for real-time updates
+ * @access Public
+ */
 router.get('/real-time', availabilityController_1.AvailabilityController.getRealTimeConfig);
+/**
+ * @route GET /api/availability/real-time/status
+ * @description Get real-time system status and metrics
+ * @access Public
+ */
 router.get('/real-time/status', availabilityController_1.AvailabilityController.getRealTimeStatus);
+/**
+ * @route PUT /api/availability/bulk-update
+ * @description Bulk update multiple employee availability statuses
+ * @access Public
+ * @body {Array} updates - Array of update objects with employeeId and fields to update
+ */
 router.put('/bulk-update', bulkUpdateValidation, validate_middleware_1.validateRequest, availabilityController_1.AvailabilityController.bulkUpdateAvailability);
-//# sourceMappingURL=availabilityRoutes.js.map

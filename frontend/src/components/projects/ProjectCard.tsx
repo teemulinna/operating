@@ -1,46 +1,25 @@
 import React from 'react';
-import { Calendar, Users, Edit, Trash2, DollarSign, Clock, AlertTriangle } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import type { Project } from '@/types/project';
-import { PROJECT_STATUS_COLORS } from '@/types/project';
+import { Project, PROJECT_STATUS_COLORS, PROJECT_PRIORITY_COLORS } from '@/types/project';
+import { PencilIcon, TrashIcon, CalendarIcon, UserIcon } from '@heroicons/react/24/outline';
 
 interface ProjectCardProps {
   project: Project;
-  onClick?: (project: Project) => void;
-  onEdit?: (project: Project) => void;
-  onDelete?: (project: Project) => void;
-  onStatusChange?: (project: Project, newStatus: Project['status']) => void;
-  compact?: boolean;
-  showActions?: boolean;
+  onEdit: (project: Project) => void;
+  onDelete: (project: Project) => void;
 }
 
-export function ProjectCard({
-  project,
-  onClick,
-  onEdit,
-  onDelete,
-  onStatusChange,
-  compact = false,
-  showActions = true,
-}: ProjectCardProps) {
-  const handleCardClick = () => {
-    onClick?.(project);
-  };
-
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onEdit?.(project);
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onDelete?.(project);
+export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   const formatCurrency = (amount?: number) => {
-    if (!amount) return 'N/A';
+    if (!amount) return null;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -48,210 +27,173 @@ export function ProjectCard({
     }).format(amount);
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }).format(new Date(dateString));
-  };
-
-  const getDaysRemainingText = () => {
-    if (!project.endDate || project.status === 'completed') return null;
-    
-    if (project.isOverdue && project.daysRemaining !== undefined) {
-      return `${Math.abs(project.daysRemaining)} days overdue`;
-    }
-    
-    if (project.daysRemaining !== undefined && project.daysRemaining > 0) {
-      return `${project.daysRemaining} days remaining`;
-    }
-    
-    return null;
-  };
-
-  const getCardBorderClass = () => {
-    if (project.isOverdue) return 'border-red-200';
-    if (project.isOverBudget) return 'border-orange-200';
-    return 'border-gray-200';
-  };
-
-  const getStatusBadgeClass = () => {
-    return PROJECT_STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-800';
-  };
-
   return (
-    <Card 
-      className={`cursor-pointer hover:shadow-md transition-shadow duration-200 ${getCardBorderClass()}`}
-      onClick={handleCardClick}
-      data-testid="project-card"
+    <div
+      className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+      data-testid={`project-${project.id}`}
     >
-      <CardHeader className={`pb-3 ${compact ? 'pb-2' : ''}`}>
-        <div className="flex items-start justify-between">
+      <div className="p-6">
+        {/* Header with Title and Actions */}
+        <div className="flex justify-between items-start mb-4">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg text-gray-900 truncate mb-1">
+            <h3
+              className="text-lg font-medium text-gray-900 truncate"
+              data-testid={`project-name-${project.id}`}
+            >
               {project.name}
             </h3>
-            <p className="text-sm text-gray-600 mb-2">
-              {project.clientName}
-            </p>
-            {!compact && project.description && (
-              <p className="text-sm text-gray-500 line-clamp-2 mb-3">
-                {project.description}
-              </p>
+            {project.clientName && (
+              <div className="flex items-center mt-1 text-sm text-gray-500">
+                <UserIcon className="h-4 w-4 mr-1" />
+                <span data-testid={`project-client-${project.id}`}>{project.clientName}</span>
+              </div>
             )}
           </div>
-          {showActions && (
-            <div className="flex items-center gap-1 ml-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleEdit}
-                aria-label="Edit project"
-                className="h-8 w-8"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDelete}
-                aria-label="Delete project"
-                className="h-8 w-8 text-red-600 hover:text-red-800"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          <div className="flex space-x-1 ml-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(project)}
+              data-testid={`edit-project-${project.id}`}
+              aria-label="Edit project"
+              className="h-8 w-8"
+            >
+              <PencilIcon className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(project)}
+              data-testid={`delete-project-${project.id}`}
+              aria-label="Delete project"
+              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <TrashIcon className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Status and key indicators */}
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass()}`}>
-            {project.status}
+        {/* Description */}
+        {project.description && (
+          <p
+            className="text-sm text-gray-600 mb-4 line-clamp-2"
+            data-testid={`project-description-${project.id}`}
+          >
+            {project.description}
+          </p>
+        )}
+
+        {/* Status and Priority Badges */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              PROJECT_STATUS_COLORS[project.status]
+            }`}
+            data-testid={`project-status-${project.id}`}
+          >
+            {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
           </span>
-          
-          {project.isOverdue && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-              <AlertTriangle className="w-3 h-3 mr-1" />
-              Overdue
-            </span>
-          )}
-          
-          {project.isOverBudget && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-              <DollarSign className="w-3 h-3 mr-1" />
-              Over budget
-            </span>
-          )}
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              PROJECT_PRIORITY_COLORS[project.priority]
+            }`}
+            data-testid={`project-priority-${project.id}`}
+          >
+            {project.priority.charAt(0).toUpperCase() + project.priority.slice(1)}
+          </span>
         </div>
 
-        {/* Tags */}
-        {project.tags && project.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {project.tags.slice(0, compact ? 2 : 4).map((tag, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-700"
-              >
-                {tag}
-              </span>
-            ))}
-            {project.tags.length > (compact ? 2 : 4) && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-50 text-gray-500">
-                +{project.tags.length - (compact ? 2 : 4)} more
-              </span>
+        {/* Project Dates */}
+        <div className="flex items-center text-sm text-gray-500 mb-4">
+          <CalendarIcon className="h-4 w-4 mr-1" />
+          <span data-testid={`project-dates-${project.id}`}>
+            {formatDate(project.startDate)}
+            {project.endDate && (
+              <>
+                {' - '}
+                {formatDate(project.endDate)}
+              </>
+            )}
+          </span>
+        </div>
+
+        {/* Budget and Progress */}
+        {(project.budget || project.timeProgress !== undefined) && (
+          <div className="space-y-2">
+            {project.budget && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500">Budget:</span>
+                <span
+                  className={`font-medium ${project.isOverBudget ? 'text-red-600' : 'text-gray-900'}`}
+                  data-testid={`project-budget-${project.id}`}
+                >
+                  {formatCurrency(project.budget)}
+                </span>
+              </div>
+            )}
+            {project.timeProgress !== undefined && (
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Progress:</span>
+                  <span className="font-medium" data-testid={`project-progress-${project.id}`}>
+                    {Math.round(project.timeProgress)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      project.timeProgress > 100
+                        ? 'bg-red-600'
+                        : project.timeProgress > 80
+                        ? 'bg-orange-500'
+                        : 'bg-blue-600'
+                    }`}
+                    style={{ width: `${Math.min(project.timeProgress, 100)}%` }}
+                  />
+                </div>
+              </div>
             )}
           </div>
         )}
-      </CardHeader>
 
-      {!compact && (
-        <CardContent className="pt-0">
-          {/* Budget and progress info */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <div className="flex items-center text-sm text-gray-500 mb-1">
-                <DollarSign className="w-4 h-4 mr-1" />
-                Budget
-              </div>
-              <div className="text-lg font-medium">
-                {formatCurrency(project.budget)}
-              </div>
-              {project.budgetUtilization !== undefined && (
-                <div className="mt-2">
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>Progress</span>
-                    <span>{Math.round(project.budgetUtilization)}%</span>
-                  </div>
-                  <Progress 
-                    value={project.budgetUtilization} 
-                    className="h-2"
-                  />
+        {/* Team Information */}
+        {(project.assignedEmployees !== undefined || project.totalRoles !== undefined) && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {project.assignedEmployees !== undefined && (
+                <div>
+                  <span className="text-gray-500">Team:</span>
+                  <span className="ml-1 font-medium" data-testid={`project-team-${project.id}`}>
+                    {project.assignedEmployees} members
+                  </span>
+                </div>
+              )}
+              {project.totalRoles !== undefined && (
+                <div>
+                  <span className="text-gray-500">Roles:</span>
+                  <span className="ml-1 font-medium" data-testid={`project-roles-${project.id}`}>
+                    {project.filledRoles || 0}/{project.totalRoles}
+                  </span>
                 </div>
               )}
             </div>
-
-            <div>
-              <div className="flex items-center text-sm text-gray-500 mb-1">
-                <Users className="w-4 h-4 mr-1" />
-                Team
-              </div>
-              <div className="text-lg font-medium">
-                {project.teamMembersCount || 0} members
-              </div>
-            </div>
           </div>
+        )}
 
-          {/* Timeline info */}
-          <div className="flex items-center justify-between text-sm text-gray-500">
-            <div className="flex items-center">
-              <Calendar className="w-4 h-4 mr-1" />
-              {formatDate(project.startDate)}
-              {project.endDate && (
-                <>
-                  <span className="mx-1">–</span>
-                  {formatDate(project.endDate)}
-                </>
-              )}
-            </div>
-            
-            {getDaysRemainingText() && (
-              <div className={`flex items-center ${
-                project.isOverdue ? 'text-red-600' : 'text-gray-600'
-              }`}>
-                <Clock className="w-4 h-4 mr-1" />
-                {getDaysRemainingText()}
-              </div>
-            )}
+        {/* Overdue Warning */}
+        {project.isOverdue && (
+          <div className="mt-3 p-2 bg-red-100 border border-red-200 rounded text-sm text-red-800">
+            <span className="font-medium">⚠️ Overdue:</span> This project has passed its end date.
           </div>
-        </CardContent>
-      )}
+        )}
 
-      {/* Compact view info */}
-      {compact && (
-        <CardContent className="pt-0">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center text-gray-500">
-              <Users className="w-4 h-4 mr-1" />
-              {project.teamMembersCount || 0} members
-            </div>
-            <div className="flex items-center text-gray-500">
-              <DollarSign className="w-4 h-4 mr-1" />
-              {formatCurrency(project.budget)}
-            </div>
-            {getDaysRemainingText() && (
-              <div className={`flex items-center ${
-                project.isOverdue ? 'text-red-600' : 'text-gray-600'
-              }`}>
-                <Clock className="w-4 h-4 mr-1" />
-                {getDaysRemainingText()}
-              </div>
-            )}
+        {/* Days Remaining */}
+        {project.daysRemaining !== undefined && project.daysRemaining > 0 && !project.isOverdue && (
+          <div className="mt-3 text-sm text-gray-500" data-testid={`project-days-remaining-${project.id}`}>
+            {project.daysRemaining} days remaining
           </div>
-        </CardContent>
-      )}
-    </Card>
+        )}
+      </div>
+    </div>
   );
 }

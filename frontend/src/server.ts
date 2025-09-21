@@ -2,7 +2,7 @@ import app from './app';
 import { connectDatabase } from './utils/database';
 import { logger } from './utils/logger';
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 async function startServer() {
   try {

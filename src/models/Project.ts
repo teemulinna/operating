@@ -10,9 +10,11 @@ import {
   PaginatedResponse,
   DatabaseError
 } from '../types';
+import { DatabaseService } from '../database/database.service';
 
 export class ProjectModel {
   private static pool: Pool;
+  private static db = DatabaseService.getInstance();
 
   static initialize(pool: Pool): void {
     this.pool = pool;
@@ -21,8 +23,8 @@ export class ProjectModel {
   static async create(input: CreateProjectInput): Promise<Project> {
     try {
       const query = `
-        INSERT INTO projects (name, description, status, priority, client_id, start_date, end_date, estimated_hours, budget, manager_id, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        INSERT INTO projects (name, description, status, priority, client_name, start_date, end_date, estimated_hours, budget, hourly_rate)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *
       `;
 
@@ -31,13 +33,12 @@ export class ProjectModel {
         input.description || null,
         input.status,
         input.priority,
-        input.clientId || null,
+        input.clientName || null,
         input.startDate,
         input.endDate,
         input.estimatedHours,
         input.budget || null,
-        input.managerId,
-        true
+        input.hourlyRate || null
       ];
 
       const result = await this.pool.query(query, values);
@@ -56,10 +57,15 @@ export class ProjectModel {
   static async findById(id: string): Promise<Project | null> {
     const query = `
       SELECT * FROM projects 
-      WHERE id = $1 AND is_active = true
+      WHERE id = $1
     `;
 
-    const result = await this.pool.query(query, [id]);
+    // Ensure database is connected and use fallback
+    if (!this.db.isConnected()) {
+      await this.db.connect();
+    }
+
+    const result = await this.db.query(query, [id]);
     return result.rows.length > 0 ? this.mapRow(result.rows[0]) : null;
   }
 
@@ -137,7 +143,12 @@ export class ProjectModel {
       GROUP BY p.id, m.id, m.first_name, m.last_name, m.email, m.position
     `;
 
-    const result = await this.pool.query(query, [id]);
+    // Ensure database is connected and use fallback
+    if (!this.db.isConnected()) {
+      await this.db.connect();
+    }
+
+    const result = await this.db.query(query, [id]);
     
     if (result.rows.length === 0) {
       return null;
@@ -351,7 +362,12 @@ export class ProjectModel {
       RETURNING *
     `;
 
-    const result = await this.pool.query(query, [id]);
+    // Ensure database is connected and use fallback
+    if (!this.db.isConnected()) {
+      await this.db.connect();
+    }
+
+    const result = await this.db.query(query, [id]);
     
     if (result.rows.length === 0) {
       throw new Error('Project not found or already deleted');
@@ -482,7 +498,7 @@ export class ProjectModel {
   }
 
   private static mapRow(row: any): Project {
-    return {
+    const project: Project = {
       id: row.id,
       name: row.name,
       description: row.description,
@@ -492,13 +508,23 @@ export class ProjectModel {
       startDate: row.start_date,
       endDate: row.end_date,
       estimatedHours: parseFloat(row.estimated_hours) || 0,
-      actualHours: row.actual_hours ? parseFloat(row.actual_hours) : undefined,
-      budget: row.budget ? parseFloat(row.budget) : undefined,
-      costToDate: row.cost_to_date ? parseFloat(row.cost_to_date) : undefined,
       managerId: row.manager_id,
       isActive: row.is_active,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
+
+    // Only set optional properties if they have values
+    if (row.actual_hours !== null && row.actual_hours !== undefined) {
+      project.actualHours = parseFloat(row.actual_hours);
+    }
+    if (row.budget !== null && row.budget !== undefined) {
+      project.budget = parseFloat(row.budget);
+    }
+    if (row.cost_to_date !== null && row.cost_to_date !== undefined) {
+      project.costToDate = parseFloat(row.cost_to_date);
+    }
+
+    return project;
   }
 }

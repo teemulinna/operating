@@ -1,3 +1,5 @@
+import { DatabaseService } from '../database/database.service';
+import { EmployeeSkillMatch, ResourceRecommendation } from '../types';
 interface ProjectData {
     name: string;
     description?: string;
@@ -38,14 +40,69 @@ interface PaginationParams {
 }
 export declare class ProjectService {
     private db;
-    constructor();
-    createProject(projectData: ProjectData): Promise<any>;
-    getProjects(filters: ProjectFilters, pagination: PaginationParams): Promise<any>;
+    constructor(db?: DatabaseService);
+    static create(): Promise<ProjectService>;
+    createProject(projectData: any): Promise<any>;
+    getAllProjects(): Promise<any[]>;
+    getProjects(filters?: ProjectFilters, pagination?: PaginationParams): Promise<any>;
     getProjectById(projectId: number): Promise<any>;
     updateProject(projectId: number, updateData: Partial<ProjectData>): Promise<any>;
     deleteProject(projectId: number): Promise<void>;
+    private validateStatusTransition;
     addProjectRole(roleData: ProjectRoleData): Promise<any>;
     getProjectRoles(projectId: number): Promise<any[]>;
+    getSkillRequirements(projectId: number): Promise<{
+        totalRequirements: number;
+        skillBreakdown: Array<{
+            skillId: string;
+            skillName: string;
+            category: string;
+            minimumLevel: string;
+            requiredCount: number;
+            currentlyFilled: number;
+            roles: string[];
+            priority: 'low' | 'medium' | 'high' | 'critical';
+        }>;
+        overallStatus: {
+            fulfillmentRate: number;
+            criticalGaps: number;
+            readinessScore: number;
+        };
+    }>;
+    private determineSkillPriority;
+    getResourceRecommendations(projectId: number, options?: {
+        includeTeamChemistry?: boolean;
+        maxRecommendations?: number;
+        preferredDepartments?: string[];
+        budgetConstraints?: number;
+    }): Promise<ResourceRecommendation[]>;
+    findRoleMatches(projectId: number, roleId: number, options?: {
+        maxResults?: number;
+        minimumMatchScore?: number;
+        includeBenchWarming?: boolean;
+    }): Promise<EmployeeSkillMatch[]>;
+    getProjectSkillGaps(projectId: number): Promise<{
+        overallGaps: Array<{
+            skillName: string;
+            category: string;
+            requiredLevel: number;
+            availableLevel: number;
+            gap: number;
+            priority: 'low' | 'medium' | 'high' | 'critical';
+        }>;
+        roleGaps: Array<{
+            roleTitle: string;
+            gapsCount: number;
+            criticalGaps: string[];
+            recommendations: string[];
+        }>;
+        summary: {
+            totalGaps: number;
+            criticalGaps: number;
+            coveragePercentage: number;
+            riskLevel: 'low' | 'medium' | 'high';
+        };
+    }>;
 }
 export {};
 //# sourceMappingURL=project.service.d.ts.map

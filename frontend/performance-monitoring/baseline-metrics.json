@@ -1,0 +1,40 @@
+{
+  "timestamp": "2025-09-09T20:41:34.774Z",
+  "codebase": {
+    "appTsxLines": 137,
+    "inlineComponents": 4,
+    "totalComponents": 102,
+    "routeCount": 9,
+    "dependencies": 121
+  },
+  "buildConfig": {
+    "chunks": [
+      "plugins: [react()]",
+      "vendor: ['react', 'react-dom']",
+      "ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select']",
+      "query: ['@tanstack/react-query']",
+      "charts: ['chart.js', 'react-chartjs-2']",
+      "utils: ['axios', 'clsx', 'tailwind-merge']"
+    ],
+    "optimizations": [
+      "terser",
+      "code-splitting",
+      "pre-bundling"
+    ]
+  },
+  "development": {
+    "startTime": 0,
+    "memoryUsage": {
+      "rss": 44220416,
+      "heapTotal": 6389760,
+      "heapUsed": 4352216,
+      "external": 1729177,
+      "arrayBuffers": 10515
+    }
+  },
+  "buildStatus": {
+    "passing": false,
+    "errorCount": 15,
+    "warningCount": 0
+  }
+}

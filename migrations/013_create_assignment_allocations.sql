@@ -72,7 +72,7 @@ COMMENT ON COLUMN assignment_allocations.status IS 'Current status of the alloca
 CREATE OR REPLACE FUNCTION validate_employee_total_allocation()
 RETURNS TRIGGER AS $$
 DECLARE
-    employee_id INTEGER;
+    employee_id UUID;
     total_allocation DECIMAL(5,2);
     overlap_start DATE;
     overlap_end DATE;

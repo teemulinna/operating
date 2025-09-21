@@ -1,9 +1,55 @@
 "use strict";
+/**
+ * Service Injection Middleware
+ * Makes services available to controllers through request context
+ */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.serviceMonitoringMiddleware = exports.transactionMiddleware = exports.serviceHealthCheckMiddleware = exports.serviceInjectionMiddleware = void 0;
 const service_registration_1 = require("../container/service-registration");
-const serviceInjectionMiddleware = (req, res, next) => {
+/**
+ * Middleware to inject services into request context
+ */
+const serviceInjectionMiddleware = async (req, res, next) => {
     try {
+        // In test environment, ensure services are initialized
+        if (process.env.NODE_ENV === 'test') {
+            const { initializeAppServices } = await Promise.resolve().then(() => __importStar(require('../app')));
+            await initializeAppServices();
+        }
+        // Inject services into request
         req.services = {
             database: service_registration_1.Services.database(),
             department: service_registration_1.Services.department(),
@@ -15,15 +61,32 @@ const serviceInjectionMiddleware = (req, res, next) => {
     }
     catch (error) {
         console.error('Service injection failed:', error);
-        res.status(503).json({
-            error: 'Service unavailable',
-            message: 'Unable to initialize services',
-            timestamp: new Date().toISOString(),
-            path: req.path
-        });
+        console.error('Error details:', error);
+        // In test environment, provide more detailed error information
+        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+            res.status(503).json({
+                error: 'Service unavailable',
+                message: 'Unable to initialize services',
+                details: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+                timestamp: new Date().toISOString(),
+                path: req.path
+            });
+        }
+        else {
+            res.status(503).json({
+                error: 'Service unavailable',
+                message: 'Unable to initialize services',
+                timestamp: new Date().toISOString(),
+                path: req.path
+            });
+        }
     }
 };
 exports.serviceInjectionMiddleware = serviceInjectionMiddleware;
+/**
+ * Health check middleware to verify services are available
+ */
 const serviceHealthCheckMiddleware = async (req, res, next) => {
     try {
         const databaseService = service_registration_1.Services.database();
@@ -50,6 +113,9 @@ const serviceHealthCheckMiddleware = async (req, res, next) => {
     }
 };
 exports.serviceHealthCheckMiddleware = serviceHealthCheckMiddleware;
+/**
+ * Transaction middleware for database operations
+ */
 const transactionMiddleware = async (req, res, next) => {
     const services = req.services;
     if (!services?.database) {
@@ -60,24 +126,32 @@ const transactionMiddleware = async (req, res, next) => {
         });
         return;
     }
+    // For now, we'll use the existing connection pool
+    // In a more advanced implementation, we could start a transaction here
     next();
 };
 exports.transactionMiddleware = transactionMiddleware;
+/**
+ * Service performance monitoring middleware
+ */
 const serviceMonitoringMiddleware = (req, res, next) => {
     const startTime = Date.now();
+    // Override res.end to measure response time
     const originalEnd = res.end;
     res.end = function (chunk, encoding) {
         const duration = Date.now() - startTime;
+        // Log slow requests
         if (duration > 1000) {
             console.warn(`Slow request: ${req.method} ${req.path} took ${duration}ms`);
         }
+        // Log service-related metrics in development
         if (process.env.NODE_ENV === 'development') {
             console.log(`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
         }
+        // Call original end and return this
         originalEnd.call(this, chunk, encoding);
         return this;
     };
     next();
 };
 exports.serviceMonitoringMiddleware = serviceMonitoringMiddleware;
-//# sourceMappingURL=service-injection.middleware.js.map

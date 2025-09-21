@@ -13,7 +13,7 @@ export interface RequestWithServices extends Request {
         allocation: AllocationService;
     };
 }
-export declare const serviceInjectionMiddleware: (req: Request, res: Response, next: NextFunction) => void;
+export declare const serviceInjectionMiddleware: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const serviceHealthCheckMiddleware: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const transactionMiddleware: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const serviceMonitoringMiddleware: (req: Request, res: Response, next: NextFunction) => void;

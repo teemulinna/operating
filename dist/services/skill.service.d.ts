@@ -1,13 +1,33 @@
-import { Skill, PaginatedResponse } from '../types/employee.types';
+import { Pool } from 'pg';
+import { Skill, CreateSkillInput, UpdateSkillInput, SkillCategory } from '../types';
+import { PaginatedResponse } from '../types/employee.types';
 export declare class SkillService {
-    private db;
+    private static pool;
+    private static initialized;
+    static initialize(pool: Pool): void;
     constructor();
-    getSkills(search?: string, limit?: number): Promise<string[]>;
-    getPopularSkills(limit?: number): Promise<Skill[]>;
-    getEmployeesBySkill(skill: string, page?: number, limit?: number): Promise<PaginatedResponse<any>>;
-    getSkillRecommendations(employeeId: number, limit?: number): Promise<Skill[]>;
+    private static ensureInitialized;
+    getSkills(search?: string, category?: SkillCategory): Promise<Skill[]>;
+    createSkill(skillData: CreateSkillInput): Promise<Skill>;
+    updateSkill(id: string, skillData: UpdateSkillInput): Promise<Skill>;
+    deleteSkill(id: string): Promise<Skill>;
+    getSkillById(id: string): Promise<Skill | null>;
+    getPopularSkills(limit?: number): Promise<Array<{
+        skill: Skill;
+        employeeCount: number;
+    }>>;
+    getEmployeesBySkill(skillId: string, page?: number, limit?: number): Promise<PaginatedResponse<any>>;
+    getSkillRecommendations(employeeId: string, limit?: number): Promise<Array<{
+        skill: Skill;
+        relevanceScore: number;
+    }>>;
     getSkillAnalytics(): Promise<{
-        topSkills: any[];
+        totalSkills: number;
+        skillsByCategory: Record<SkillCategory, number>;
+        mostUsedSkills: {
+            skill: Skill;
+            employeeCount: number;
+        }[];
         skillsByDepartment: any[];
         emergingSkills: any[];
         skillDiversityByDepartment: any[];

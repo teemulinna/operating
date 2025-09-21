@@ -43,7 +43,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.getTeamUtilization();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/team-utilization', { params: {} });
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/team-utilization', { params: {} });
       expect(result).toEqual(mockResponse.data);
     });
 
@@ -59,7 +59,7 @@ describe('AnalyticsService', () => {
 
       await AnalyticsService.getTeamUtilization(filters);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/team-utilization', {
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/team-utilization', {
         params: {
           dateFrom: '2024-01-01',
           dateTo: '2024-01-31',
@@ -74,7 +74,7 @@ describe('AnalyticsService', () => {
 
       await AnalyticsService.getTeamUtilization({});
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/team-utilization', { params: {} });
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/team-utilization', { params: {} });
     });
   });
 
@@ -100,7 +100,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.getCapacityTrends();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/capacity-trends', { params: {} });
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/capacity-trends', { params: {} });
       expect(result).toEqual(mockResponse.data);
     });
   });
@@ -126,7 +126,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.getResourceAllocationMetrics();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/resource-allocation', { params: {} });
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/resource-allocation', { params: {} });
       expect(result).toEqual(mockResponse.data);
     });
 
@@ -142,7 +142,7 @@ describe('AnalyticsService', () => {
 
       await AnalyticsService.getResourceAllocationMetrics(filters);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/resource-allocation', {
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/resource-allocation', {
         params: {
           minUtilization: 0.6,
           maxUtilization: 0.9
@@ -173,7 +173,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.getSkillsGapAnalysis();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/skills-gap', { params: {} });
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/skills-gap', { params: {} });
       expect(result).toEqual(mockResponse.data);
     });
 
@@ -186,7 +186,7 @@ describe('AnalyticsService', () => {
 
       await AnalyticsService.getSkillsGapAnalysis(filters);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/skills-gap', {
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/skills-gap', {
         params: {
           skillCategories: 'technical,domain'
         }
@@ -216,7 +216,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.getDepartmentPerformance();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/department-performance', { params: {} });
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/department-performance', { params: {} });
       expect(result).toEqual(mockResponse.data);
     });
   });
@@ -268,7 +268,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.compareDepartments('1', '2');
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/compare-departments/1/2', { params: {} });
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/compare-departments/1/2', { params: {} });
       expect(result).toEqual(mockResponse.data);
     });
 
@@ -282,7 +282,7 @@ describe('AnalyticsService', () => {
 
       await AnalyticsService.compareDepartments('1', '2', filters);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/compare-departments/1/2', {
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/compare-departments/1/2', {
         params: {
           dateFrom: '2024-01-01',
           dateTo: '2024-01-31'
@@ -309,7 +309,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.exportAnalytics(exportOptions);
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/api/analytics/export', exportOptions, {
+      expect(mockedAxios.post).toHaveBeenCalledWith('http://localhost:3001/api/analytics/export', exportOptions, {
         responseType: 'json'
       });
       expect(result).toEqual(mockResponse.data);
@@ -332,7 +332,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.exportAnalytics(exportOptions);
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/api/analytics/export', exportOptions, {
+      expect(mockedAxios.post).toHaveBeenCalledWith('http://localhost:3001/api/analytics/export', exportOptions, {
         responseType: 'blob'
       });
       expect(result).toEqual(mockBlob);
@@ -373,7 +373,7 @@ describe('AnalyticsService', () => {
 
       const result = await AnalyticsService.getDashboardSummary();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/dashboard-summary', { params: {} });
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/dashboard-summary', { params: {} });
       expect(result).toEqual(mockResponse.data);
     });
   });
@@ -396,7 +396,7 @@ describe('AnalyticsService', () => {
 
       await AnalyticsService.getTeamUtilization(filters);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/team-utilization', {
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/team-utilization', {
         params: {
           dateFrom: '2024-01-01',
           dateTo: '2024-01-31',
@@ -419,7 +419,7 @@ describe('AnalyticsService', () => {
 
       await AnalyticsService.getTeamUtilization(filters);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/team-utilization', {
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/team-utilization', {
         params: {}
       });
     });
@@ -436,7 +436,7 @@ describe('AnalyticsService', () => {
 
       await AnalyticsService.getResourceAllocationMetrics(filters);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/analytics/resource-allocation', {
+      expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:3001/api/analytics/resource-allocation', {
         params: {
           maxUtilization: 0.9
         }

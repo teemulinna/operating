@@ -3,7 +3,7 @@ export declare class DatabaseService {
     private static instance;
     private pool;
     private connecting;
-    private constructor();
+    constructor();
     static getInstance(): DatabaseService;
     static resetInstance(): void;
     static disconnect(): Promise<void>;
@@ -12,7 +12,8 @@ export declare class DatabaseService {
     private createPool;
     disconnect(): Promise<void>;
     isConnected(): boolean;
-    getPool(): Pool | null;
+    getPool(): Pool;
+    closePool(): Promise<void>;
     checkHealth(): Promise<boolean>;
     reconnect(): Promise<void>;
     queryWithReconnect(text: string, params?: any[], maxRetries?: number): Promise<QueryResult>;

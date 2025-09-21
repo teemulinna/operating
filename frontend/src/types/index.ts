@@ -14,6 +14,7 @@ export interface Employee {
   skills: string[];
   managerId?: string;
   profileImage?: string;
+  defaultHours: number;
   address?: {
     street: string;
     city: string;

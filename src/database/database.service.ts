@@ -8,7 +8,7 @@ export class DatabaseService {
   private pool: Pool | null = null;
   private connecting: Promise<void> | null = null;
 
-  private constructor() {
+  constructor() {
     // Private constructor to enforce singleton pattern
   }
 
@@ -26,6 +26,10 @@ export class DatabaseService {
    * Reset singleton instance (for testing purposes)
    */
   public static resetInstance(): void {
+    if (DatabaseService.instance && DatabaseService.instance.pool) {
+      DatabaseService.instance.pool.end().catch(() => {});
+      DatabaseService.instance.pool = null;
+    }
     DatabaseService.instance = null;
   }
 
@@ -59,27 +63,50 @@ export class DatabaseService {
   }
 
   private async createConnection(): Promise<void> {
+    // Use test database configuration in test environment
+    const isTestEnv = process.env.NODE_ENV === 'test';
+    const defaultDatabase = isTestEnv ? 'employee_test' : 'employee_management';
+
     const config = process.env.DATABASE_URL ? {
       connectionString: process.env.DATABASE_URL,
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      max: isTestEnv ? 5 : 20, // Fewer connections for tests
+      idleTimeoutMillis: isTestEnv ? 1000 : 30000, // Shorter timeout for tests
+      connectionTimeoutMillis: isTestEnv ? 5000 : 2000, // Longer connection timeout for tests
+      ssl: false // Disable SSL for local test databases
     } : {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'employee_management',
+      database: process.env.DB_NAME || defaultDatabase,
       user: process.env.DB_USER || 'teemulinna',
       password: process.env.DB_PASSWORD || '',
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      max: isTestEnv ? 5 : 20, // Fewer connections for tests
+      idleTimeoutMillis: isTestEnv ? 1000 : 30000, // Shorter timeout for tests
+      connectionTimeoutMillis: isTestEnv ? 5000 : 2000, // Longer connection timeout for tests
+      ssl: false // Disable SSL for local databases
     };
+
+    console.log(`🔗 Connecting to database: ${config.database || 'from URL'} (${process.env.NODE_ENV} environment)`);
+    console.log(`🔗 Database config:`, {
+      host: config.host,
+      port: config.port,
+      database: config.database || 'from_url',
+      user: config.user
+    });
 
     this.pool = this.createPool(config);
 
     // Test connection
     try {
       const client = await this.pool.connect();
+
+      // In test environment, check what user and database we're connected to
+      if (process.env.NODE_ENV === 'test') {
+        const userResult = await client.query('SELECT current_user, session_user');
+        const dbResult = await client.query('SELECT current_database()');
+        console.log('🔗 Connected as user:', userResult.rows[0]);
+        console.log('🔗 Connected to database:', dbResult.rows[0]);
+      }
+
       client.release();
       console.log('Database connected successfully');
     } catch (error) {
@@ -113,10 +140,20 @@ export class DatabaseService {
   }
 
   /**
-   * Get the connection pool (for testing)
+   * Get the connection pool (for testing and services)
    */
-  public getPool(): Pool | null {
+  public getPool(): Pool {
+    if (!this.pool) {
+      throw new Error('Database not connected. Call connect() first.');
+    }
     return this.pool;
+  }
+
+  /**
+   * Close the connection pool (alias for disconnect)
+   */
+  public async closePool(): Promise<void> {
+    await this.disconnect();
   }
 
   /**
@@ -243,50 +280,8 @@ export class DatabaseService {
   }
 
   async runMigrations(): Promise<void> {
-    // Basic table creation if they don't exist
-    const migrations = [
-      // Departments table
-      `CREATE TABLE IF NOT EXISTS departments (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL UNIQUE,
-        description TEXT,
-        manager_id INTEGER,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`,
-      
-      // Employees table  
-      `CREATE TABLE IF NOT EXISTS employees (
-        id SERIAL PRIMARY KEY,
-        first_name VARCHAR(50) NOT NULL,
-        last_name VARCHAR(50) NOT NULL,
-        email VARCHAR(255) NOT NULL UNIQUE,
-        position VARCHAR(100) NOT NULL,
-        department_id INTEGER REFERENCES departments(id),
-        salary DECIMAL(10,2) NOT NULL,
-        hire_date DATE DEFAULT CURRENT_DATE,
-        skills TEXT[] DEFAULT '{}',
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`,
-      
-      // Indexes for performance
-      `CREATE INDEX IF NOT EXISTS idx_employees_department ON employees(department_id)`,
-      `CREATE INDEX IF NOT EXISTS idx_employees_email ON employees(email)`,
-      `CREATE INDEX IF NOT EXISTS idx_employees_skills ON employees USING GIN(skills)`
-    ];
-
-    for (const migration of migrations) {
-      try {
-        await this.query(migration);
-      } catch (error) {
-        console.error('Migration error:', error);
-        // Continue with other migrations
-      }
-    }
-
-    console.log('Database migrations completed');
+    console.warn('runMigrations() is deprecated. Use DatabaseMigrator class instead.');
+    console.log('Basic table creation skipped - use proper migrations.');
   }
 
   async clearTestData(): Promise<void> {

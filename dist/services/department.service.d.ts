@@ -1,7 +1,9 @@
+import { DatabaseService } from '../database/database.service';
 import { Department } from '../types/employee.types';
 export declare class DepartmentService {
     private db;
-    constructor();
+    constructor(db?: DatabaseService);
+    static create(): Promise<DepartmentService>;
     getDepartments(): Promise<Department[]>;
     getDepartmentById(id: number): Promise<Department | null>;
     getDepartmentByName(name: string): Promise<Department | null>;

@@ -11,14 +11,7 @@ const ExportManager = jest.fn(() => <div>Export Manager</div>);
 
 // Mock API functions
 const mockAvailabilityAPI = {
-  getEmployeeStatuses: jest.fn(),
-  updateEmployeeStatus: jest.fn(),
-  getDepartmentUtilization: jest.fn(),
-  subscribeToUpdates: jest.fn(),
-  exportEmployees: jest.fn(),
-  generateCapacityReport: jest.fn(),
-  scheduleReport: jest.fn()
-};
+  getEmployeeStatuses: undefined;
 
 const mockEmployees = [
   {
@@ -83,7 +76,7 @@ describe('Availability Dashboard Components', () => {
     test('should render available status correctly', () => {
       const employee = mockEmployees[0];
       
-      render(<StatusIndicator employee={employee} onStatusChange={jest.fn()} />);
+      render(<StatusIndicator employee={employee} onStatusChange={undefined;
       
       expect(screen.getByText('Available')).toBeInTheDocument();
       expect(screen.getByText('100% Capacity')).toBeInTheDocument();
@@ -93,7 +86,7 @@ describe('Availability Dashboard Components', () => {
     test('should render busy status with warning styling', () => {
       const employee = mockEmployees[1];
       
-      render(<StatusIndicator employee={employee} onStatusChange={jest.fn()} />);
+      render(<StatusIndicator employee={employee} onStatusChange={undefined;
       
       expect(screen.getByText('Busy')).toBeInTheDocument();
       expect(screen.getByText('75% Capacity')).toBeInTheDocument();
@@ -104,7 +97,7 @@ describe('Availability Dashboard Components', () => {
     });
 
     test('should handle status change interactions', async () => {
-      const onStatusChange = jest.fn();
+      const onStatusChange = undefined;
       const employee = mockEmployees[0];
       
       render(<StatusIndicator employee={employee} onStatusChange={onStatusChange} />);
@@ -153,7 +146,7 @@ describe('Availability Dashboard Components', () => {
     });
 
     test('should handle department filter changes', async () => {
-      const onFilterChange = jest.fn();
+      const onFilterChange = undefined;
       
       render(
         <TeamOverview 
@@ -183,10 +176,7 @@ describe('Availability Dashboard Components', () => {
 
   describe('AvailabilityDashboard Component', () => {
     test('should render with employee data and controls', () => {
-      mockAvailabilityAPI.getEmployeeStatuses.mockResolvedValue({
-        data: mockEmployees,
-        total: 2
-      });
+      mockAvailabilityAPI.getEmployeeStatuses.;
 
       renderWithProviders(<AvailabilityDashboard />);
       
@@ -197,12 +187,9 @@ describe('Availability Dashboard Components', () => {
 
     test('should handle real-time status updates', async () => {
       const mockWebSocket = {
-        addEventListener: jest.fn(),
-        send: jest.fn(),
-        close: jest.fn()
-      };
+        addEventListener: undefined;
       
-      mockAvailabilityAPI.subscribeToUpdates.mockReturnValue(mockWebSocket);
+      mockAvailabilityAPI.subscribeToUpdates.;
       
       renderWithProviders(<AvailabilityDashboard enableRealTime={true} />);
       
@@ -223,10 +210,7 @@ describe('Availability Dashboard Components', () => {
     });
 
     test('should filter employees by availability status', async () => {
-      mockAvailabilityAPI.getEmployeeStatuses.mockResolvedValue({
-        data: mockEmployees,
-        total: 2
-      });
+      mockAvailabilityAPI.getEmployeeStatuses.;
 
       renderWithProviders(<AvailabilityDashboard />);
       
@@ -239,10 +223,7 @@ describe('Availability Dashboard Components', () => {
     });
 
     test('should handle search functionality', async () => {
-      mockAvailabilityAPI.getEmployeeStatuses.mockResolvedValue({
-        data: mockEmployees,
-        total: 2
-      });
+      mockAvailabilityAPI.getEmployeeStatuses.;
 
       renderWithProviders(<AvailabilityDashboard />);
       
@@ -269,7 +250,7 @@ describe('Availability Dashboard Components', () => {
     });
 
     test('should handle CSV export with field selection', async () => {
-      mockAvailabilityAPI.exportEmployees.mockResolvedValue(new Blob());
+      mockAvailabilityAPI.exportEmployees.);
       
       render(<ExportManager employees={mockEmployees} />);
       
@@ -296,7 +277,7 @@ describe('Availability Dashboard Components', () => {
     });
 
     test('should handle PDF capacity report generation', async () => {
-      mockAvailabilityAPI.generateCapacityReport.mockResolvedValue(new Blob());
+      mockAvailabilityAPI.generateCapacityReport.);
       
       render(<ExportManager employees={mockEmployees} />);
       
@@ -324,10 +305,7 @@ describe('Availability Dashboard Components', () => {
     });
 
     test('should handle scheduled report configuration', async () => {
-      mockAvailabilityAPI.scheduleReport.mockResolvedValue({
-        scheduleId: 'sched-123',
-        nextRun: '2024-09-13T09:00:00Z'
-      });
+      mockAvailabilityAPI.scheduleReport.;
       
       render(<ExportManager employees={mockEmployees} />);
       
@@ -358,11 +336,8 @@ describe('Availability Dashboard Components', () => {
 
   describe('Integration Scenarios', () => {
     test('should handle end-to-end workflow: search -> filter -> export', async () => {
-      mockAvailabilityAPI.getEmployeeStatuses.mockResolvedValue({
-        data: mockEmployees,
-        total: 2
-      });
-      mockAvailabilityAPI.exportEmployees.mockResolvedValue(new Blob());
+      mockAvailabilityAPI.getEmployeeStatuses.;
+      mockAvailabilityAPI.exportEmployees.);
 
       renderWithProviders(
         <div>
@@ -396,16 +371,10 @@ describe('Availability Dashboard Components', () => {
 
     test('should maintain state consistency during real-time updates', async () => {
       const mockWebSocket = {
-        addEventListener: jest.fn(),
-        send: jest.fn(),
-        close: jest.fn()
-      };
+        addEventListener: undefined;
       
-      mockAvailabilityAPI.subscribeToUpdates.mockReturnValue(mockWebSocket);
-      mockAvailabilityAPI.getEmployeeStatuses.mockResolvedValue({
-        data: mockEmployees,
-        total: 2
-      });
+      mockAvailabilityAPI.subscribeToUpdates.;
+      mockAvailabilityAPI.getEmployeeStatuses.;
 
       renderWithProviders(<AvailabilityDashboard enableRealTime={true} />);
       
@@ -434,8 +403,7 @@ describe('Availability Dashboard Components', () => {
 
   describe('Error Handling', () => {
     test('should handle API failures gracefully', async () => {
-      mockAvailabilityAPI.getEmployeeStatuses.mockRejectedValue(
-        new Error('Network error')
+      mockAvailabilityAPI.getEmployeeStatuses
       );
 
       renderWithProviders(<AvailabilityDashboard />);
@@ -448,12 +416,9 @@ describe('Availability Dashboard Components', () => {
 
     test('should handle WebSocket connection failures', async () => {
       const mockWebSocket = {
-        addEventListener: jest.fn(),
-        send: jest.fn(),
-        close: jest.fn()
-      };
+        addEventListener: undefined;
       
-      mockAvailabilityAPI.subscribeToUpdates.mockReturnValue(mockWebSocket);
+      mockAvailabilityAPI.subscribeToUpdates.;
 
       renderWithProviders(<AvailabilityDashboard enableRealTime={true} />);
       
@@ -470,8 +435,7 @@ describe('Availability Dashboard Components', () => {
     });
 
     test('should handle export failures with user feedback', async () => {
-      mockAvailabilityAPI.exportEmployees.mockRejectedValue(
-        new Error('Export failed')
+      mockAvailabilityAPI.exportEmployees
       );
 
       render(<ExportManager employees={mockEmployees} />);

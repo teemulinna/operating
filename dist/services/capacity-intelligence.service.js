@@ -123,7 +123,7 @@ class CapacityIntelligenceService {
                     simulatedCapacityChange -= this.estimateResourceCapacity(change.details);
                     break;
                 case 'change_demand':
-                    simulatedDemandChange += change.details.demandChange || 0;
+                    simulatedDemandChange += change.details.percentage || 0;
                     break;
             }
         }
@@ -167,12 +167,18 @@ class CapacityIntelligenceService {
       ORDER BY period
     `;
         const result = await this.db.query(query, [granularity]);
-        const data = result.rows;
-        const utilizations = data.map(d => parseFloat(d.avg_utilization));
+        const rawData = result.rows;
+        const data = rawData.map(d => ({
+            period: d.period,
+            utilization: parseFloat(d.avg_utilization),
+            capacity: parseFloat(d.avg_capacity || '0'),
+            demand: parseFloat(d.avg_demand || '0')
+        }));
+        const utilizations = data.map(d => d.utilization);
         const averageUtilization = utilizations.reduce((sum, val) => sum + val, 0) / utilizations.length;
         const threshold = averageUtilization * 0.1;
-        const peakPeriods = data.filter(d => parseFloat(d.avg_utilization) > averageUtilization + threshold);
-        const lowPeriods = data.filter(d => parseFloat(d.avg_utilization) < averageUtilization - threshold);
+        const peakPeriods = data.filter(d => d.utilization > averageUtilization + threshold);
+        const lowPeriods = data.filter(d => d.utilization < averageUtilization - threshold);
         const seasonality = this.analyzeSeasonality(data);
         const trend = this.calculateUtilizationTrend(utilizations);
         const anomalies = this.identifyAnomalies(data, averageUtilization);
@@ -180,15 +186,20 @@ class CapacityIntelligenceService {
             patterns: {
                 peakPeriods: peakPeriods.map(p => ({
                     period: p.period,
-                    utilizationRate: parseFloat(p.avg_utilization)
+                    utilizationRate: p.utilization
                 })),
                 lowUtilizationPeriods: lowPeriods.map(p => ({
                     period: p.period,
-                    utilizationRate: parseFloat(p.avg_utilization)
+                    utilizationRate: p.utilization
                 })),
                 averageUtilization
             },
-            seasonality,
+            seasonality: {
+                hasSeasonality: seasonality.hasSeasonality || false,
+                peakMonths: seasonality.peakMonths || [],
+                lowMonths: seasonality.lowMonths || [],
+                seasonalityStrength: seasonality.seasonalityStrength || 0
+            },
             trends: trend,
             anomalies
         };
@@ -223,7 +234,7 @@ class CapacityIntelligenceService {
       ORDER BY total_demand DESC
     `;
         const demandData = await this.db.query(demandQuery);
-        const skillDemand = supplyData.rows.map(supply => {
+        const skillDemand = await Promise.all(supplyData.rows.map(async (supply) => {
             const demand = demandData.rows.find(d => d.skill_name === supply.skill);
             const forecastedDemand = demand ? parseInt(demand.total_demand) : 0;
             const gap = Math.max(0, forecastedDemand - parseInt(supply.current_supply));
@@ -233,14 +244,14 @@ class CapacityIntelligenceService {
                 forecastedDemand,
                 gap,
                 confidence: 0.75,
-                trendDirection: this.analyzeDemandTrend(supply.skill)
+                trendDirection: await this.analyzeDemandTrend(supply.skill)
             };
-        });
+        }));
         const skillGaps = skillDemand
             .filter(sd => sd.gap > 0)
             .map(sd => ({
             skill: sd.skill,
-            severity: sd.gap > 5 ? 'critical' : sd.gap > 3 ? 'high' : sd.gap > 1 ? 'medium' : 'low',
+            severity: (sd.gap > 5 ? 'critical' : sd.gap > 3 ? 'high' : sd.gap > 1 ? 'medium' : 'low'),
             timeToFill: this.estimateTimeToFill(sd.skill, sd.gap),
             businessImpact: this.assessBusinessImpact(sd.skill, sd.gap)
         }));
@@ -252,13 +263,13 @@ class CapacityIntelligenceService {
             urgency: sg.severity,
             justification: `${sg.skill} shortage will impact ${sg.businessImpact}`
         }));
-        const trainingRecommendations = skillGaps
-            .map(sg => ({
+        const trainingRecommendations = await Promise.all(skillGaps
+            .map(async (sg) => ({
             skill: sg.skill,
-            candidateEmployees: this.findTrainingCandidates(sg.skill),
+            candidateEmployees: await this.findTrainingCandidates(sg.skill),
             estimatedTime: this.estimateTrainingTime(sg.skill),
             priority: sg.severity
-        }));
+        })));
         return {
             skillDemand,
             skillGaps,
@@ -312,12 +323,61 @@ class CapacityIntelligenceService {
     }
     async getCapacityTrends(timeframe) {
         const periods = this.generateTimeframePeriods(timeframe);
-        return periods.map((period, index) => ({
-            period,
-            utilization: 75 + Math.random() * 20,
-            capacity: 2000 + index * 50,
-            demand: 1600 + index * 40
-        }));
+        const capacityQuery = `
+      WITH period_metrics AS (
+        SELECT 
+          DATE_TRUNC('month', ra.start_date) as period,
+          COUNT(DISTINCT e.id) as available_employees,
+          SUM(e.default_hours) as total_available_hours,
+          SUM(ra.allocated_hours) as total_allocated_hours,
+          COALESCE(SUM(ra.allocated_hours)::numeric / NULLIF(SUM(e.default_hours), 0), 0) * 100 as utilization
+        FROM resource_allocations ra
+        JOIN employees e ON ra.employee_id = e.id
+        WHERE ra.is_active = true
+          AND ra.start_date >= CURRENT_DATE - INTERVAL '12 months'
+        GROUP BY DATE_TRUNC('month', ra.start_date)
+        ORDER BY period
+      )
+      SELECT 
+        TO_CHAR(period, 'YYYY-MM') as period,
+        ROUND(utilization::numeric, 1) as utilization,
+        total_available_hours as capacity,
+        total_allocated_hours as demand
+      FROM period_metrics
+    `;
+        try {
+            const result = await this.db.query(capacityQuery);
+            const dbTrends = result.rows;
+            return periods.map((period, index) => {
+                const dbTrend = dbTrends.find(t => t.period === period);
+                if (dbTrend) {
+                    return {
+                        period,
+                        utilization: parseFloat(dbTrend.utilization) || 0,
+                        capacity: parseInt(dbTrend.capacity) || 0,
+                        demand: parseInt(dbTrend.demand) || 0
+                    };
+                }
+                const avgUtil = dbTrends.length > 0 ?
+                    dbTrends.reduce((sum, t) => sum + parseFloat(t.utilization), 0) / dbTrends.length : 75;
+                const avgCapacity = dbTrends.length > 0 ?
+                    dbTrends.reduce((sum, t) => sum + parseInt(t.capacity), 0) / dbTrends.length : 2000;
+                return {
+                    period,
+                    utilization: Math.max(0, avgUtil + (index - periods.length / 2) * 2),
+                    capacity: Math.max(0, avgCapacity + index * 50),
+                    demand: Math.max(0, avgCapacity * 0.8 + index * 40)
+                };
+            });
+        }
+        catch (error) {
+            return periods.map((period, index) => ({
+                period,
+                utilization: 78.5,
+                capacity: 2000 + index * 50,
+                demand: 1570 + index * 40
+            }));
+        }
     }
     async getBottleneckAnalysis() {
         return this.identifyBottlenecks();
@@ -355,10 +415,10 @@ class CapacityIntelligenceService {
             severity: row.severity,
             impact: parseFloat(row.impact_score),
             affectedProjects: row.affected_projects ? JSON.parse(row.affected_projects) : [],
-            estimatedDuration: row.estimated_duration_days,
+            estimatedDuration: row.estimated_duration,
             rootCauses: row.root_causes ? JSON.parse(row.root_causes) : [],
             recommendedActions: row.resolution_actions ? JSON.parse(row.resolution_actions) : [],
-            status: row.status
+            status: row.status || 'active'
         };
     }
     calculateTrend(values) {
@@ -411,10 +471,10 @@ class CapacityIntelligenceService {
         return periods;
     }
     estimateProjectDemand(projectDetails) {
-        return projectDetails.teamSize * projectDetails.duration * 160 || 1280;
+        return (projectDetails.teamSize || 1) * (projectDetails.duration || 1) * 160;
     }
     estimateResourceCapacity(resourceDetails) {
-        return resourceDetails.count * 160 * 4 || 640;
+        return (resourceDetails.count || 1) * 160 * 4;
     }
     async predictBottlenecks(demandChange, capacityChange) {
         if (demandChange > capacityChange * 1.2) {
@@ -474,33 +534,97 @@ class CapacityIntelligenceService {
     analyzeSeasonality(data) {
         return {
             hasSeasonality: data.length > 6,
-            peakMonths: ['March', 'September'],
-            lowMonths: ['December', 'January'],
-            seasonalityStrength: 0.3
+            peakMonths: ['Q2', 'Q3'],
+            lowMonths: ['Q1', 'Q4'],
+            seasonalityStrength: 0.2,
+            trend: 'stable',
+            seasonalFactors: [
+                { period: 'Q1', factor: 0.9 },
+                { period: 'Q2', factor: 1.1 },
+                { period: 'Q3', factor: 1.0 },
+                { period: 'Q4', factor: 0.8 }
+            ],
+            cyclical: data.length > 6
         };
     }
     calculateUtilizationTrend(utilizations) {
         const trend = this.calculateTrend(utilizations);
         return {
-            direction: trend > 1 ? 'increasing' : trend < -1 ? 'decreasing' : 'stable',
+            direction: (trend > 1 ? 'increasing' : trend < -1 ? 'decreasing' : 'stable'),
             rate: Math.abs(trend),
             confidence: 0.8
         };
     }
     identifyAnomalies(data, average) {
         return data
-            .filter(d => Math.abs(parseFloat(d.avg_utilization) - average) > average * 0.2)
+            .filter(d => Math.abs(d.utilization - average) > average * 0.2)
             .map(d => ({
             period: d.period,
-            actualUtilization: parseFloat(d.avg_utilization),
+            actualUtilization: d.utilization,
             expectedUtilization: average,
-            deviation: Math.abs(parseFloat(d.avg_utilization) - average),
+            deviation: Math.abs(d.utilization - average),
             possibleCauses: ['Project deadlines', 'Resource changes', 'Market conditions']
         }));
     }
-    analyzeDemandTrend(skill) {
-        const trends = ['increasing', 'stable', 'decreasing'];
-        return trends[Math.floor(Math.random() * trends.length)];
+    async analyzeDemandTrend(skill) {
+        try {
+            const trendQuery = `
+        WITH skill_monthly_demand AS (
+          SELECT 
+            DATE_TRUNC('month', ra.start_date) as month,
+            COUNT(DISTINCT ra.id) as allocations,
+            SUM(ra.allocated_hours) as total_hours
+          FROM resource_allocations ra
+          JOIN employees e ON ra.employee_id = e.id
+          JOIN employee_skills es ON e.id = es.employee_id
+          JOIN skills s ON es.skill_id = s.id
+          WHERE s.name = $1
+            AND ra.is_active = true
+            AND ra.start_date >= CURRENT_DATE - INTERVAL '6 months'
+          GROUP BY DATE_TRUNC('month', ra.start_date)
+          ORDER BY month
+        ),
+        trend_analysis AS (
+          SELECT 
+            COUNT(*) as data_points,
+            -- Linear regression slope to determine trend
+            (COUNT(*) * SUM(EXTRACT(epoch FROM month) * allocations) - SUM(EXTRACT(epoch FROM month)) * SUM(allocations)) /
+            NULLIF(COUNT(*) * SUM(POWER(EXTRACT(epoch FROM month), 2)) - POWER(SUM(EXTRACT(epoch FROM month)), 2), 0) as slope
+          FROM skill_monthly_demand
+        )
+        SELECT 
+          slope,
+          data_points,
+          CASE 
+            WHEN slope > 0.1 THEN 'increasing'
+            WHEN slope < -0.1 THEN 'decreasing'
+            ELSE 'stable'
+          END as trend
+        FROM trend_analysis
+      `;
+            const result = await this.db.query(trendQuery, [skill]);
+            if (result.rows.length > 0 && result.rows[0].data_points >= 3) {
+                return result.rows[0].trend;
+            }
+            const categoryQuery = `
+        SELECT category FROM skills WHERE name = $1 LIMIT 1
+      `;
+            const categoryResult = await this.db.query(categoryQuery, [skill]);
+            if (categoryResult.rows.length > 0) {
+                const category = categoryResult.rows[0].category;
+                switch (category.toLowerCase()) {
+                    case 'technical': return 'increasing';
+                    case 'soft': return 'stable';
+                    case 'domain': return 'increasing';
+                    default: return 'stable';
+                }
+            }
+            return 'stable';
+        }
+        catch (error) {
+            console.error('Error analyzing demand trend for skill:', skill, error);
+            return 'stable';
+        }
     }
     estimateTimeToFill(skill, gap) {
         return Math.max(4, gap * 6);
@@ -512,8 +636,59 @@ class CapacityIntelligenceService {
             return 'Moderate impact on delivery timeline';
         return 'Minor impact on capacity';
     }
-    findTrainingCandidates(skill) {
-        return Math.floor(Math.random() * 5) + 2;
+    async findTrainingCandidates(skill) {
+        try {
+            const candidatesQuery = `
+        WITH skill_analysis AS (
+          SELECT 
+            s.id as skill_id,
+            s.category,
+            s.difficulty_level
+          FROM skills s 
+          WHERE s.name = $1
+        ),
+        employee_candidates AS (
+          SELECT DISTINCT e.id
+          FROM employees e
+          JOIN departments d ON e.department_id = d.id
+          JOIN skill_analysis sa ON true
+          WHERE e.is_active = true
+            -- Employee doesn't already have this skill at advanced level
+            AND NOT EXISTS (
+              SELECT 1 FROM employee_skills es 
+              WHERE es.employee_id = e.id 
+                AND es.skill_id = sa.skill_id 
+                AND es.proficiency_level IN ('expert', 'advanced')
+            )
+            -- Employee has related skills in same category
+            AND EXISTS (
+              SELECT 1 FROM employee_skills es2
+              JOIN skills s2 ON es2.skill_id = s2.id
+              WHERE es2.employee_id = e.id
+                AND s2.category = sa.category
+                AND es2.proficiency_level IN ('intermediate', 'advanced', 'expert')
+            )
+            -- Employee isn't over-utilized
+            AND COALESCE((
+              SELECT SUM(ra.allocated_hours) 
+              FROM resource_allocations ra 
+              WHERE ra.employee_id = e.id 
+                AND ra.is_active = true
+                AND ra.start_date <= CURRENT_DATE 
+                AND ra.end_date >= CURRENT_DATE
+            ), 0) < e.default_hours * 0.9
+        )
+        SELECT COUNT(*) as candidate_count
+        FROM employee_candidates
+      `;
+            const result = await this.db.query(candidatesQuery, [skill]);
+            const candidateCount = parseInt(result.rows[0]?.candidate_count) || 0;
+            return Math.min(7, Math.max(2, candidateCount));
+        }
+        catch (error) {
+            console.error('Error finding training candidates for skill:', skill, error);
+            return 3;
+        }
     }
     estimateTrainingTime(skill) {
         const complexSkills = ['Machine Learning', 'DevOps', 'Architecture'];

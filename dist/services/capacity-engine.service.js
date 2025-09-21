@@ -7,7 +7,7 @@ class CapacityEngineService {
         this.projectService = projectService;
     }
     async calculateEmployeeAvailability(employeeId, startDate, endDate) {
-        const assignments = await this.resourceAssignmentService.getAssignmentsByEmployee(employeeId, startDate, endDate);
+        const assignments = await this.resourceAssignmentService.getAssignmentsByEmployee(String(employeeId));
         const workingDays = this.calculateWorkingDays(startDate, endDate);
         const totalHours = workingDays * 8;
         let allocatedHours = 0;
@@ -48,7 +48,7 @@ class CapacityEngineService {
         return matches.sort((a, b) => b.matchScore - a.matchScore);
     }
     async optimizeResourceAllocation(requirements) {
-        const availableEmployees = await this.resourceAssignmentService.getAvailableEmployees(requirements.startDate || new Date(), requirements.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+        const availableEmployees = await this.resourceAssignmentService.getAllEmployees();
         const skillMatches = await this.findSkillMatches(requirements.requiredSkills, availableEmployees);
         const recommendations = [];
         let remainingEffort = requirements.effortHours;

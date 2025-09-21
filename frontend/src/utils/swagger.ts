@@ -4,17 +4,17 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Employee Management API',
+      title: 'ResourceForge API',
       version: '1.0.0',
-      description: 'A comprehensive API for managing employees, departments, and skills',
+      description: 'ResourceForge - Intelligent Resource Planning & Capacity Management API',
       contact: {
         name: 'API Support',
-        email: 'support@employeemgmt.com'
+        email: 'support@resourceforge.com'
       },
     },
     servers: [
       {
-        url: 'http://localhost:3000/api',
+        url: 'http://localhost:3001/api',
         description: 'Development server',
       },
     ],

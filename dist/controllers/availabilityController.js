@@ -6,6 +6,9 @@ class AvailabilityController {
     static initialize(pool) {
         this.pool = pool;
     }
+    /**
+     * Get availability status for all employees
+     */
     static async getEmployeeStatuses(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -39,6 +42,7 @@ class AvailabilityController {
             }
             const whereClause = whereConditions.join(' AND ');
             const offset = (Number(page) - 1) * Number(limit);
+            // Get total count
             const countQuery = `
         SELECT COUNT(DISTINCT e.id) as total
         FROM employees e
@@ -47,6 +51,7 @@ class AvailabilityController {
       `;
             const countResult = await this.pool.query(countQuery, values);
             const total = parseInt(countResult.rows[0].total);
+            // Get paginated results with availability data
             values.push(Number(limit), offset);
             const dataQuery = `
         SELECT 
@@ -95,6 +100,9 @@ class AvailabilityController {
             });
         }
     }
+    /**
+     * Update employee availability status
+     */
     static async updateEmployeeStatus(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -108,6 +116,7 @@ class AvailabilityController {
             }
             const { id } = req.params;
             const { status, capacity, currentProjects, availableHours } = req.body;
+            // Check if employee exists
             const employeeCheck = await this.pool.query('SELECT id FROM employees WHERE id = $1 AND is_active = true', [id]);
             if (employeeCheck.rows.length === 0) {
                 res.status(404).json({
@@ -116,6 +125,7 @@ class AvailabilityController {
                 });
                 return;
             }
+            // Upsert availability record
             const upsertQuery = `
         INSERT INTO employee_availability (
           employee_id, status, capacity, current_projects, available_hours, updated_at
@@ -130,7 +140,8 @@ class AvailabilityController {
         RETURNING *
       `;
             const values = [id, status, capacity, currentProjects, availableHours];
-            const result = await this.pool.query(upsertQuery, values);
+            await this.pool.query(upsertQuery, values);
+            // Get updated employee data with department info
             const employeeQuery = `
         SELECT 
           e.id,
@@ -168,9 +179,13 @@ class AvailabilityController {
             });
         }
     }
+    /**
+     * Get department utilization metrics
+     */
     static async getDepartmentUtilization(req, res) {
         try {
             const { id } = req.params;
+            // Verify department exists
             const deptCheck = await this.pool.query('SELECT id, name FROM departments WHERE id = $1 AND is_active = true', [id]);
             if (deptCheck.rows.length === 0) {
                 res.status(404).json({
@@ -180,6 +195,7 @@ class AvailabilityController {
                 return;
             }
             const departmentName = deptCheck.rows[0].name;
+            // Get department utilization data
             const utilizationQuery = `
         SELECT 
           COUNT(*) as total_employees,
@@ -193,6 +209,7 @@ class AvailabilityController {
       `;
             const utilizationResult = await this.pool.query(utilizationQuery, [id]);
             const stats = utilizationResult.rows[0];
+            // Get individual employee data
             const employeesQuery = `
         SELECT 
           e.id,
@@ -217,7 +234,7 @@ class AvailabilityController {
             const employees = employeesResult.rows.map(this.mapAvailabilityRow);
             const departmentUtilization = {
                 departmentId: id,
-                departmentName,
+                departmentName: departmentName,
                 totalEmployees: parseInt(stats.total_employees),
                 availableEmployees: parseInt(stats.available_employees),
                 busyEmployees: parseInt(stats.busy_employees),
@@ -239,7 +256,10 @@ class AvailabilityController {
             });
         }
     }
-    static async getRealTimeConfig(req, res) {
+    /**
+     * Get real-time WebSocket configuration
+     */
+    static async getRealTimeConfig(_req, res) {
         try {
             res.json({
                 success: true,
@@ -261,11 +281,15 @@ class AvailabilityController {
             });
         }
     }
-    static async getRealTimeStatus(req, res) {
+    /**
+     * Get real-time status for monitoring
+     */
+    static async getRealTimeStatus(_req, res) {
         try {
+            // This would typically check WebSocket server status
             const status = {
                 timestamp: new Date().toISOString(),
-                activeConnections: 0,
+                activeConnections: 0, // Would get from WebSocket server
                 lastUpdated: new Date().toISOString(),
                 systemHealth: 'healthy',
                 averageResponseTime: 45,
@@ -285,6 +309,9 @@ class AvailabilityController {
             });
         }
     }
+    /**
+     * Bulk update employee availability
+     */
     static async bulkUpdateAvailability(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -310,6 +337,7 @@ class AvailabilityController {
                 await client.query('BEGIN');
                 for (const update of updates) {
                     const { employeeId, status, capacity, currentProjects, availableHours } = update;
+                    // Verify employee exists
                     const employeeCheck = await client.query('SELECT id FROM employees WHERE id = $1 AND is_active = true', [employeeId]);
                     if (employeeCheck.rows.length === 0) {
                         results.push({
@@ -319,6 +347,7 @@ class AvailabilityController {
                         });
                         continue;
                     }
+                    // Update availability
                     const upsertQuery = `
             INSERT INTO employee_availability (
               employee_id, status, capacity, current_projects, available_hours, updated_at
@@ -363,6 +392,9 @@ class AvailabilityController {
             });
         }
     }
+    /**
+     * Map database row to EmployeeAvailability interface
+     */
     static mapAvailabilityRow(row) {
         return {
             id: row.id,
@@ -382,4 +414,3 @@ class AvailabilityController {
     }
 }
 exports.AvailabilityController = AvailabilityController;
-//# sourceMappingURL=availabilityController.js.map

@@ -1,211 +1,222 @@
-// CRM Integration Service for Pipeline Management
 import { DatabaseService } from '../database/database.service';
-import { ApiError } from '../utils/api-error';
-import {
-  CRMSystemConfig,
-  CRMSyncOperation,
-  CRMSyncError,
-  CRMSyncConflict,
-  PipelineProject,
-  CRMSyncRequest,
-  CRMFieldMapping
+import { 
+  CRMSystemConfig, 
+  CRMSyncOperation, 
+  CRMSyncConflict, 
+  CRMSyncRequest
 } from '../types/pipeline';
+import { CRMAdapterFactory } from './crm-adapters/adapter-factory';
+import { BaseCRMAdapter } from './crm-adapters/base-crm-adapter';
 
 export class CRMIntegrationService {
   private db: DatabaseService;
-  private activeSyncs: Map<string, CRMSyncOperation> = new Map();
 
   constructor() {
     this.db = DatabaseService.getInstance();
   }
 
-  // CRM System Configuration
-  async createCRMSystem(config: Omit<CRMSystemConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<CRMSystemConfig> {
-    try {
-      const query = `
-        INSERT INTO crm_systems (
-          name, type, api_url, api_version, auth_type, credentials,
-          sync_settings, is_active
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING *
-      `;
+  async createCRMSystem(data: Omit<CRMSystemConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<CRMSystemConfig> {
+    const query = `
+      INSERT INTO crm_systems 
+      (name, type, api_url, api_version, auth_type, credentials, sync_settings, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *, created_at, updated_at
+    `;
 
-      const values = [
-        config.name,
-        config.type,
-        config.apiUrl,
-        config.apiVersion,
-        config.authType,
-        JSON.stringify(config.credentials),
-        JSON.stringify(config.syncSettings),
-        config.isActive
-      ];
+    const values = [
+      data.name,
+      data.type,
+      data.apiUrl,
+      data.apiVersion,
+      data.authType,
+      JSON.stringify(data.credentials),
+      JSON.stringify(data.syncSettings),
+      data.isActive
+    ];
 
-      const result = await this.db.query(query, values);
-      return this.transformCRMSystem(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating CRM system:', error);
-      throw new ApiError(500, 'Failed to create CRM system');
-    }
+    const result = await this.db.query(query, values);
+    return this.mapRowToCRMSystem(result.rows[0]);
   }
 
   async getCRMSystems(includeInactive = false): Promise<CRMSystemConfig[]> {
-    try {
-      const whereClause = includeInactive ? '' : 'WHERE is_active = true';
-      const query = `SELECT * FROM crm_systems ${whereClause} ORDER BY name ASC`;
-      
-      const result = await this.db.query(query);
-      return result.rows.map(row => this.transformCRMSystem(row));
-    } catch (error) {
-      console.error('Error fetching CRM systems:', error);
-      throw new ApiError(500, 'Failed to fetch CRM systems');
+    let query = 'SELECT * FROM crm_systems';
+    if (!includeInactive) {
+      query += ' WHERE is_active = true';
     }
+    query += ' ORDER BY created_at DESC';
+
+    const result = await this.db.query(query);
+    return result.rows.map(row => this.mapRowToCRMSystem(row));
   }
 
-  async updateCRMSystem(id: string, updates: Partial<CRMSystemConfig>): Promise<CRMSystemConfig> {
-    try {
-      const updateFields: string[] = [];
-      const queryParams: any[] = [];
-      let paramIndex = 1;
+  async updateCRMSystem(id: string, data: Partial<Omit<CRMSystemConfig, 'id' | 'createdAt' | 'updatedAt'>>): Promise<CRMSystemConfig> {
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
 
-      if (updates.name) {
-        updateFields.push(`name = $${paramIndex}`);
-        queryParams.push(updates.name);
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined) {
+        const columnName = this.camelToSnake(key);
+        setClauses.push(`${columnName} = $${paramIndex}`);
+        
+        if (typeof value === 'object') {
+          values.push(JSON.stringify(value));
+        } else {
+          values.push(value);
+        }
         paramIndex++;
       }
+    });
 
-      if (updates.apiUrl) {
-        updateFields.push(`api_url = $${paramIndex}`);
-        queryParams.push(updates.apiUrl);
-        paramIndex++;
-      }
+    setClauses.push(`updated_at = NOW()`);
 
-      if (updates.credentials) {
-        updateFields.push(`credentials = $${paramIndex}`);
-        queryParams.push(JSON.stringify(updates.credentials));
-        paramIndex++;
-      }
+    const query = `
+      UPDATE crm_systems 
+      SET ${setClauses.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *, created_at, updated_at
+    `;
 
-      if (updates.syncSettings) {
-        updateFields.push(`sync_settings = $${paramIndex}`);
-        queryParams.push(JSON.stringify(updates.syncSettings));
-        paramIndex++;
-      }
-
-      if (updates.isActive !== undefined) {
-        updateFields.push(`is_active = $${paramIndex}`);
-        queryParams.push(updates.isActive);
-        paramIndex++;
-      }
-
-      if (updateFields.length === 0) {
-        throw new ApiError(400, 'No fields to update');
-      }
-
-      updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-      queryParams.push(id);
-
-      const query = `
-        UPDATE crm_systems 
-        SET ${updateFields.join(', ')}
-        WHERE id = $${paramIndex}
-        RETURNING *
-      `;
-
-      const result = await this.db.query(query, queryParams);
-      
-      if (!result.rows.length) {
-        throw new ApiError(404, 'CRM system not found');
-      }
-
-      return this.transformCRMSystem(result.rows[0]);
-    } catch (error) {
-      console.error('Error updating CRM system:', error);
-      if (error instanceof ApiError) throw error;
-      throw new ApiError(500, 'Failed to update CRM system');
+    values.push(id);
+    const result = await this.db.query(query, values);
+    
+    if (result.rows.length === 0) {
+      throw new Error('CRM system not found');
     }
+
+    return this.mapRowToCRMSystem(result.rows[0]);
   }
 
-  // CRM Data Synchronization
   async startSync(request: CRMSyncRequest): Promise<CRMSyncOperation> {
-    try {
-      const crmSystem = await this.getCRMSystemById(request.crmSystemId);
-      if (!crmSystem || !crmSystem.isActive) {
-        throw new ApiError(400, 'CRM system not found or inactive');
-      }
+    const operation: Omit<CRMSyncOperation, 'id'> = {
+      crmSystemId: request.crmSystemId,
+      operation: request.operation,
+      direction: request.direction || 'bidirectional',
+      status: 'pending',
+      progress: {
+        total: 0,
+        processed: 0,
+        successful: 0,
+        failed: 0,
+        skipped: 0
+      },
+      results: {
+        created: 0,
+        updated: 0,
+        deleted: 0,
+        conflicts: 0,
+        errors: []
+      },
+      metadata: request.filters
+    };
 
-      // Create sync operation record
-      const syncOperation = await this.createSyncOperation(request);
-      this.activeSyncs.set(syncOperation.id, syncOperation);
+    const query = `
+      INSERT INTO crm_sync_operations 
+      (crm_system_id, operation, direction, status, progress, results, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `;
 
-      // Start sync in background
-      this.performSync(syncOperation, crmSystem).catch(error => {
-        console.error(`Sync operation ${syncOperation.id} failed:`, error);
-        this.updateSyncStatus(syncOperation.id, 'failed', error.message);
-      });
+    const values = [
+      operation.crmSystemId,
+      operation.operation,
+      operation.direction,
+      operation.status,
+      JSON.stringify(operation.progress),
+      JSON.stringify(operation.results),
+      JSON.stringify(operation.metadata)
+    ];
 
-      return syncOperation;
-    } catch (error) {
-      console.error('Error starting sync:', error);
-      if (error instanceof ApiError) throw error;
-      throw new ApiError(500, 'Failed to start sync operation');
-    }
+    const result = await this.db.query(query, values);
+    return this.mapRowToSyncOperation(result.rows[0]);
   }
 
   async getSyncOperations(crmSystemId?: string, limit = 50): Promise<CRMSyncOperation[]> {
-    try {
-      let query = `
-        SELECT * FROM crm_sync_operations 
-        ${crmSystemId ? 'WHERE crm_system_id = $1' : ''}
-        ORDER BY started_at DESC 
-        LIMIT ${crmSystemId ? '$2' : '$1'}
-      `;
+    let query = 'SELECT * FROM crm_sync_operations';
+    const values: any[] = [];
 
-      const params = crmSystemId ? [crmSystemId, limit] : [limit];
-      const result = await this.db.query(query, params);
-      
-      return result.rows.map(row => this.transformSyncOperation(row));
-    } catch (error) {
-      console.error('Error fetching sync operations:', error);
-      throw new ApiError(500, 'Failed to fetch sync operations');
+    if (crmSystemId) {
+      query += ' WHERE crm_system_id = $1';
+      values.push(crmSystemId);
     }
+
+    query += ' ORDER BY created_at DESC LIMIT $' + (values.length + 1);
+    values.push(limit);
+
+    const result = await this.db.query(query, values);
+    return result.rows.map(row => this.mapRowToSyncOperation(row));
   }
 
   async getSyncOperation(id: string): Promise<CRMSyncOperation | null> {
-    try {
-      const query = `SELECT * FROM crm_sync_operations WHERE id = $1`;
-      const result = await this.db.query(query, [id]);
-      
-      return result.rows.length ? this.transformSyncOperation(result.rows[0]) : null;
-    } catch (error) {
-      console.error('Error fetching sync operation:', error);
-      throw new ApiError(500, 'Failed to fetch sync operation');
+    const query = 'SELECT * FROM crm_sync_operations WHERE id = $1';
+    const result = await this.db.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return null;
     }
+
+    return this.mapRowToSyncOperation(result.rows[0]);
   }
 
-  // CRM API Integration Methods
   async testConnection(crmSystemId: string): Promise<{ success: boolean; message: string; details?: any }> {
     try {
       const crmSystem = await this.getCRMSystemById(crmSystemId);
       if (!crmSystem) {
-        throw new ApiError(404, 'CRM system not found');
+        return {
+          success: false,
+          message: 'CRM system not found',
+          details: { error: 'NOT_FOUND' }
+        };
       }
 
-      const result = await this.makeAPIRequest(crmSystem, 'GET', '/ping', null);
+      // Check if the CRM type is supported
+      if (!CRMAdapterFactory.isSupported(crmSystem.type)) {
+        return {
+          success: false,
+          message: `CRM type '${crmSystem.type}' is not supported. Supported types: ${CRMAdapterFactory.getSupportedTypes().join(', ')}`,
+          details: { error: 'UNSUPPORTED_TYPE' }
+        };
+      }
+
+      const adapter = CRMAdapterFactory.getAdapter(crmSystem);
+      const result = await adapter.testConnection();
       
-      return {
-        success: true,
-        message: 'Connection successful',
-        details: result
-      };
-    } catch (error) {
-      console.error('Connection test failed:', error);
+      return result;
+    } catch (error: any) {
       return {
         success: false,
-        message: error.message || 'Connection failed',
-        details: error
+        message: `Connection test failed: ${error.message}`,
+        details: { error: error.message }
       };
+    }
+  }
+
+  async getSyncConflicts(crmSystemId?: string): Promise<CRMSyncConflict[]> {
+    let query = 'SELECT * FROM crm_sync_conflicts WHERE resolution IS NULL';
+    const values: any[] = [];
+
+    if (crmSystemId) {
+      query += ' AND crm_system_id = $1';
+      values.push(crmSystemId);
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const result = await this.db.query(query, values);
+    return result.rows.map(row => this.mapRowToSyncConflict(row));
+  }
+
+  async resolveSyncConflict(conflictId: string, resolution: string, customValue?: any): Promise<void> {
+    const query = `
+      UPDATE crm_sync_conflicts 
+      SET resolution = $1, resolved_at = NOW(), resolved_by = 'system'
+      WHERE id = $2
+    `;
+
+    const result = await this.db.query(query, [resolution, conflictId]);
+    
+    if (result.rowCount === 0) {
+      throw new Error('Sync conflict not found');
     }
   }
 
@@ -213,37 +224,48 @@ export class CRMIntegrationService {
     try {
       const crmSystem = await this.getCRMSystemById(crmSystemId);
       if (!crmSystem) {
-        throw new ApiError(404, 'CRM system not found');
+        return {
+          success: false,
+          error: 'CRM system not found'
+        };
       }
 
       const project = await this.getProjectById(projectId);
       if (!project) {
-        throw new ApiError(404, 'Project not found');
+        return {
+          success: false,
+          error: 'Project not found'
+        };
       }
 
-      const crmData = this.transformProjectToCRM(project, crmSystem);
-      
-      let result;
-      if (project.crmId) {
-        // Update existing record
-        result = await this.makeAPIRequest(crmSystem, 'PUT', `/opportunities/${project.crmId}`, crmData);
-      } else {
-        // Create new record
-        result = await this.makeAPIRequest(crmSystem, 'POST', '/opportunities', crmData);
-        
-        // Update project with CRM ID
-        await this.updateProjectCRMId(projectId, result.id, crmSystemId);
+      if (!CRMAdapterFactory.isSupported(crmSystem.type)) {
+        return {
+          success: false,
+          error: `CRM type '${crmSystem.type}' is not supported`
+        };
       }
+
+      const adapter = CRMAdapterFactory.getAdapter(crmSystem);
+      
+      const crmProject = await adapter.createProject({
+        name: project.name,
+        description: project.description,
+        priority: project.priority,
+        dueDate: project.estimatedEndDate,
+        labels: project.tags || []
+      });
+
+      // Update project with CRM ID
+      await this.updateProjectCRMId(projectId, crmProject.id, crmSystemId);
 
       return {
         success: true,
-        crmId: result.id
+        crmId: crmProject.id
       };
-    } catch (error) {
-      console.error('Error syncing project to CRM:', error);
+    } catch (error: any) {
       return {
         success: false,
-        error: error.message
+        error: `Failed to sync project to CRM: ${error.message}`
       };
     }
   }
@@ -252,293 +274,59 @@ export class CRMIntegrationService {
     try {
       const crmSystem = await this.getCRMSystemById(crmSystemId);
       if (!crmSystem) {
-        throw new ApiError(404, 'CRM system not found');
+        return {
+          success: false,
+          error: 'CRM system not found'
+        };
       }
 
-      const crmData = await this.makeAPIRequest(crmSystem, 'GET', `/opportunities/${crmId}`, null);
-      const projectData = this.transformCRMToProject(crmData, crmSystem);
-      
-      // Check if project already exists
-      const existingProject = await this.getProjectByCRMId(crmId, crmSystemId);
-      
-      let result;
-      if (existingProject) {
-        // Update existing project
-        result = await this.updateProject(existingProject.id, projectData);
-      } else {
-        // Create new project
-        result = await this.createProject(projectData);
+      if (!CRMAdapterFactory.isSupported(crmSystem.type)) {
+        return {
+          success: false,
+          error: `CRM type '${crmSystem.type}' is not supported`
+        };
       }
+
+      const adapter = CRMAdapterFactory.getAdapter(crmSystem);
+      
+      const crmProject = await adapter.getProject(crmId);
+      if (!crmProject) {
+        return {
+          success: false,
+          error: 'Project not found in CRM'
+        };
+      }
+
+      // Create or update project in our system
+      const projectId = await this.createOrUpdateProjectFromCRM(crmProject, crmSystemId);
 
       return {
         success: true,
-        projectId: result.id
+        projectId
       };
-    } catch (error) {
-      console.error('Error syncing project from CRM:', error);
+    } catch (error: any) {
       return {
         success: false,
-        error: error.message
+        error: `Failed to sync project from CRM: ${error.message}`
       };
     }
   }
 
-  // Conflict Resolution
-  async getSyncConflicts(crmSystemId?: string): Promise<CRMSyncConflict[]> {
-    try {
-      let query = `
-        SELECT * FROM crm_sync_conflicts 
-        ${crmSystemId ? 'WHERE crm_system_id = $1' : ''}
-        WHERE resolution IS NULL
-        ORDER BY created_at DESC
-      `;
-
-      const params = crmSystemId ? [crmSystemId] : [];
-      const result = await this.db.query(query, params);
-      
-      return result.rows.map(row => this.transformSyncConflict(row));
-    } catch (error) {
-      console.error('Error fetching sync conflicts:', error);
-      throw new ApiError(500, 'Failed to fetch sync conflicts');
-    }
-  }
-
-  async resolveSyncConflict(conflictId: string, resolution: 'use-system' | 'use-crm' | 'merge', customValue?: any): Promise<void> {
-    try {
-      const query = `
-        UPDATE crm_sync_conflicts 
-        SET resolution = $1, resolved_at = CURRENT_TIMESTAMP, resolved_by = $2
-        WHERE id = $3
-      `;
-
-      await this.db.query(query, [resolution, 'system', conflictId]); // TODO: Get user from auth context
-
-      // Apply resolution logic here
-      // This would involve updating the actual data based on the resolution chosen
-    } catch (error) {
-      console.error('Error resolving sync conflict:', error);
-      throw new ApiError(500, 'Failed to resolve sync conflict');
-    }
-  }
-
-  // Private helper methods
-  private async getCRMSystemById(id: string): Promise<CRMSystemConfig | null> {
-    const query = `SELECT * FROM crm_systems WHERE id = $1`;
-    const result = await this.db.query(query, [id]);
-    return result.rows.length ? this.transformCRMSystem(result.rows[0]) : null;
-  }
-
-  private async createSyncOperation(request: CRMSyncRequest): Promise<CRMSyncOperation> {
-    const query = `
-      INSERT INTO crm_sync_operations (
-        crm_system_id, operation, direction, status, progress, results, metadata
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *
-    `;
-
-    const initialProgress = { total: 0, processed: 0, successful: 0, failed: 0, skipped: 0 };
-    const initialResults = { created: 0, updated: 0, deleted: 0, conflicts: 0, errors: [] };
-
-    const values = [
-      request.crmSystemId,
-      request.operation,
-      request.direction || 'bidirectional',
-      'pending',
-      JSON.stringify(initialProgress),
-      JSON.stringify(initialResults),
-      JSON.stringify({ filters: request.filters, options: request.options })
-    ];
-
-    const result = await this.db.query(query, values);
-    return this.transformSyncOperation(result.rows[0]);
-  }
-
-  private async performSync(syncOperation: CRMSyncOperation, crmSystem: CRMSystemConfig): Promise<void> {
-    await this.updateSyncStatus(syncOperation.id, 'running');
-
-    try {
-      switch (syncOperation.operation) {
-        case 'sync':
-          await this.performBidirectionalSync(syncOperation, crmSystem);
-          break;
-        case 'import':
-          await this.performImportFromCRM(syncOperation, crmSystem);
-          break;
-        case 'export':
-          await this.performExportToCRM(syncOperation, crmSystem);
-          break;
-      }
-
-      await this.updateSyncStatus(syncOperation.id, 'completed');
-    } catch (error) {
-      await this.updateSyncStatus(syncOperation.id, 'failed', error.message);
-      throw error;
-    }
-  }
-
-  private async performBidirectionalSync(syncOperation: CRMSyncOperation, crmSystem: CRMSystemConfig): Promise<void> {
-    // Implementation for bidirectional sync
-    // This would involve comparing data between systems and syncing changes
-    console.log('Performing bidirectional sync...', syncOperation.id);
-  }
-
-  private async performImportFromCRM(syncOperation: CRMSyncOperation, crmSystem: CRMSystemConfig): Promise<void> {
-    // Implementation for importing data from CRM
-    console.log('Performing import from CRM...', syncOperation.id);
-  }
-
-  private async performExportToCRM(syncOperation: CRMSyncOperation, crmSystem: CRMSystemConfig): Promise<void> {
-    // Implementation for exporting data to CRM
-    console.log('Performing export to CRM...', syncOperation.id);
-  }
-
-  private async makeAPIRequest(crmSystem: CRMSystemConfig, method: string, endpoint: string, data: any): Promise<any> {
-    // Mock CRM API implementation for testing
-    // In production, this would make actual HTTP requests to CRM systems
-    
-    console.log(`Making ${method} request to ${crmSystem.name} at ${endpoint}`);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    switch (method) {
-      case 'GET':
-        if (endpoint === '/ping') {
-          return { status: 'OK', timestamp: new Date().toISOString() };
-        }
-        if (endpoint.startsWith('/opportunities/')) {
-          const id = endpoint.split('/')[2];
-          return {
-            id,
-            name: `Mock Opportunity ${id}`,
-            stage: 'opportunity',
-            value: 50000,
-            probability: 75,
-            closeDate: '2024-12-31'
-          };
-        }
-        break;
-        
-      case 'POST':
-        return {
-          id: `crm_${Date.now()}`,
-          ...data
-        };
-        
-      case 'PUT':
-        return {
-          id: endpoint.split('/')[2],
-          ...data,
-          updatedAt: new Date().toISOString()
-        };
-        
-      default:
-        throw new Error(`Unsupported HTTP method: ${method}`);
-    }
-    
-    return null;
-  }
-
-  private transformProjectToCRM(project: PipelineProject, crmSystem: CRMSystemConfig): any {
-    const mappings = crmSystem.syncSettings.fieldMappings;
-    const crmData: any = {};
-
-    mappings.forEach(mapping => {
-      if (mapping.direction === 'to-crm' || mapping.direction === 'bidirectional') {
-        const systemValue = this.getNestedValue(project, mapping.systemField);
-        if (systemValue !== undefined) {
-          crmData[mapping.crmField] = this.transformValue(systemValue, mapping);
+  private mapRowToCRMSystem(row: any): CRMSystemConfig {
+    const safeJsonParse = (value: any, fallback: any = {}) => {
+      if (!value) return fallback;
+      if (typeof value === 'object') return value;
+      if (typeof value === 'string') {
+        if (value === '[object Object]') return fallback;
+        try {
+          return JSON.parse(value);
+        } catch {
+          return fallback;
         }
       }
-    });
+      return fallback;
+    };
 
-    return crmData;
-  }
-
-  private transformCRMToProject(crmData: any, crmSystem: CRMSystemConfig): Partial<PipelineProject> {
-    const mappings = crmSystem.syncSettings.fieldMappings;
-    const projectData: any = {};
-
-    mappings.forEach(mapping => {
-      if (mapping.direction === 'from-crm' || mapping.direction === 'bidirectional') {
-        const crmValue = this.getNestedValue(crmData, mapping.crmField);
-        if (crmValue !== undefined) {
-          this.setNestedValue(projectData, mapping.systemField, this.transformValue(crmValue, mapping));
-        }
-      }
-    });
-
-    return projectData;
-  }
-
-  private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
-  }
-
-  private setNestedValue(obj: any, path: string, value: any): void {
-    const keys = path.split('.');
-    const lastKey = keys.pop()!;
-    const target = keys.reduce((current, key) => {
-      if (!current[key]) current[key] = {};
-      return current[key];
-    }, obj);
-    target[lastKey] = value;
-  }
-
-  private transformValue(value: any, mapping: CRMFieldMapping): any {
-    if (mapping.transform) {
-      try {
-        // Execute transformation function
-        // In production, this would use a safe sandbox for custom transforms
-        return eval(`(function(value) { return ${mapping.transform}; })`)(value);
-      } catch (error) {
-        console.warn(`Transform failed for field ${mapping.systemField}:`, error);
-        return value;
-      }
-    }
-    return value;
-  }
-
-  private async updateSyncStatus(syncId: string, status: string, errorMessage?: string): Promise<void> {
-    const query = `
-      UPDATE crm_sync_operations 
-      SET status = $1, ${status === 'completed' ? 'completed_at = CURRENT_TIMESTAMP,' : ''} 
-          ${errorMessage ? 'results = jsonb_set(results, \'{errors}\', jsonb_build_array($3))' : ''}
-      WHERE id = $2
-    `;
-
-    const params = errorMessage ? [status, syncId, errorMessage] : [status, syncId];
-    await this.db.query(query, params);
-  }
-
-  // Placeholder methods for project operations
-  private async getProjectById(id: string): Promise<PipelineProject | null> {
-    // This would integrate with existing project service
-    return null;
-  }
-
-  private async updateProjectCRMId(projectId: string, crmId: string, crmSystemId: string): Promise<void> {
-    // Implementation would update project with CRM information
-  }
-
-  private async getProjectByCRMId(crmId: string, crmSystemId: string): Promise<PipelineProject | null> {
-    // Implementation would find project by CRM ID
-    return null;
-  }
-
-  private async createProject(projectData: any): Promise<PipelineProject> {
-    // Implementation would create new project
-    return {} as PipelineProject;
-  }
-
-  private async updateProject(id: string, updates: any): Promise<PipelineProject> {
-    // Implementation would update existing project
-    return {} as PipelineProject;
-  }
-
-  // Transform database rows to domain objects
-  private transformCRMSystem(row: any): CRMSystemConfig {
     return {
       id: row.id,
       name: row.name,
@@ -546,15 +334,8 @@ export class CRMIntegrationService {
       apiUrl: row.api_url,
       apiVersion: row.api_version,
       authType: row.auth_type,
-      credentials: row.credentials || {},
-      syncSettings: row.sync_settings || {
-        autoSync: false,
-        syncInterval: 60,
-        syncDirection: 'bidirectional',
-        fieldMappings: [],
-        filters: {},
-        conflictResolution: 'manual'
-      },
+      credentials: safeJsonParse(row.credentials, {}),
+      syncSettings: safeJsonParse(row.sync_settings, {}),
       isActive: row.is_active,
       lastSyncAt: row.last_sync_at,
       createdAt: row.created_at,
@@ -562,24 +343,38 @@ export class CRMIntegrationService {
     };
   }
 
-  private transformSyncOperation(row: any): CRMSyncOperation {
+  private mapRowToSyncOperation(row: any): CRMSyncOperation {
+    const safeJsonParse = (value: any, fallback: any = {}) => {
+      if (!value) return fallback;
+      if (typeof value === 'object') return value;
+      if (typeof value === 'string') {
+        if (value === '[object Object]') return fallback;
+        try {
+          return JSON.parse(value);
+        } catch {
+          return fallback;
+        }
+      }
+      return fallback;
+    };
+
     return {
       id: row.id,
       crmSystemId: row.crm_system_id,
       operation: row.operation,
       direction: row.direction,
       status: row.status,
-      progress: row.progress || { total: 0, processed: 0, successful: 0, failed: 0, skipped: 0 },
-      results: row.results || { created: 0, updated: 0, deleted: 0, conflicts: 0, errors: [] },
+      progress: safeJsonParse(row.progress, {}),
+      results: safeJsonParse(row.results, {}),
       startedAt: row.started_at,
       completedAt: row.completed_at,
       duration: row.duration,
       triggeredBy: row.triggered_by,
-      metadata: row.metadata || {}
+      metadata: safeJsonParse(row.metadata, {})
     };
   }
 
-  private transformSyncConflict(row: any): CRMSyncConflict {
+  private mapRowToSyncConflict(row: any): CRMSyncConflict {
     return {
       id: row.id,
       recordId: row.record_id,
@@ -594,5 +389,547 @@ export class CRMIntegrationService {
       resolvedAt: row.resolved_at,
       createdAt: row.created_at
     };
+  }
+
+  private camelToSnake(str: string): string {
+    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+  }
+
+  private async getCRMSystemById(id: string): Promise<CRMSystemConfig | null> {
+    const query = 'SELECT * FROM crm_systems WHERE id = $1';
+    const result = await this.db.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return this.mapRowToCRMSystem(result.rows[0]);
+  }
+
+  private async getProjectById(id: string): Promise<any | null> {
+    const query = 'SELECT * FROM projects WHERE id = $1';
+    const result = await this.db.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0];
+  }
+
+  private async updateProjectCRMId(projectId: string, crmId: string, crmSystemId: string): Promise<void> {
+    const query = `
+      UPDATE projects 
+      SET crm_id = $1, crm_system_id = $2, updated_at = NOW()
+      WHERE id = $3
+    `;
+    
+    await this.db.query(query, [crmId, crmSystemId, projectId]);
+  }
+
+  private async createOrUpdateProjectFromCRM(crmProject: any, crmSystemId: string): Promise<string> {
+    // Check if project already exists by CRM ID
+    const existingQuery = 'SELECT id FROM projects WHERE crm_id = $1 AND crm_system_id = $2';
+    const existing = await this.db.query(existingQuery, [crmProject.id, crmSystemId]);
+
+    if (existing.rows.length > 0) {
+      // Update existing project
+      const updateQuery = `
+        UPDATE projects
+        SET name = $1, description = $2, status = $3, updated_at = NOW()
+        WHERE id = $4
+        RETURNING id
+      `;
+
+      const result = await this.db.query(updateQuery, [
+        crmProject.name,
+        crmProject.description,
+        crmProject.status,
+        existing.rows[0].id
+      ]);
+
+      return result.rows[0].id;
+    } else {
+      // Create new project
+      const insertQuery = `
+        INSERT INTO projects
+        (name, description, status, crm_id, crm_system_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+        RETURNING id
+      `;
+
+      const result = await this.db.query(insertQuery, [
+        crmProject.name,
+        crmProject.description || '',
+        crmProject.status || 'active',
+        crmProject.id,
+        crmSystemId
+      ]);
+
+      return result.rows[0].id;
+    }
+  }
+
+  /**
+   * Sync data from external CRM system to internal database
+   */
+  async syncFromCRM(crmSystemId: string, options?: {
+    entityTypes?: string[];
+    since?: Date;
+    dryRun?: boolean;
+  }): Promise<{
+    success: boolean;
+    syncedRecords: number;
+    errors: string[];
+    conflicts: Array<{ recordId: string; field: string; reason: string }>;
+  }> {
+    const result = {
+      success: false,
+      syncedRecords: 0,
+      errors: [] as string[],
+      conflicts: [] as Array<{ recordId: string; field: string; reason: string }>
+    };
+
+    try {
+      const crmSystem = await this.getCRMSystemById(crmSystemId);
+      if (!crmSystem) {
+        result.errors.push('CRM system not found');
+        return result;
+      }
+
+      if (!CRMAdapterFactory.isSupported(crmSystem.type)) {
+        result.errors.push(`CRM type '${crmSystem.type}' is not supported`);
+        return result;
+      }
+
+      const adapter = CRMAdapterFactory.getAdapter(crmSystem);
+
+      // Test connection first
+      const connectionTest = await adapter.testConnection();
+      if (!connectionTest.success) {
+        result.errors.push(`CRM connection failed: ${connectionTest.message}`);
+        return result;
+      }
+
+      // Get projects from CRM
+      const crmProjects = await adapter.listProjects({
+        limit: 1000 // TODO: Implement pagination
+      });
+
+      for (const crmProject of crmProjects) {
+        try {
+          // Map CRM data to internal format
+          const mappedData = await this.mapCRMData(crmProject, crmSystemId);
+
+          if (!options?.dryRun) {
+            // Create or update project in our system
+            await this.createOrUpdateProjectFromCRM(mappedData, crmSystemId);
+          }
+
+          result.syncedRecords++;
+        } catch (error: any) {
+          result.errors.push(`Failed to sync project ${crmProject.id}: ${error.message}`);
+        }
+      }
+
+      // Update last sync timestamp
+      if (!options?.dryRun) {
+        await this.updateLastSyncTimestamp(crmSystemId);
+      }
+
+      result.success = result.errors.length === 0;
+      return result;
+    } catch (error: any) {
+      result.errors.push(`Sync failed: ${error.message}`);
+      return result;
+    }
+  }
+
+  /**
+   * Sync data from internal database to external CRM system
+   */
+  async syncToCRM(crmSystemId: string, options?: {
+    projectIds?: string[];
+    since?: Date;
+    dryRun?: boolean;
+  }): Promise<{
+    success: boolean;
+    syncedRecords: number;
+    errors: string[];
+    conflicts: Array<{ recordId: string; field: string; reason: string }>;
+  }> {
+    const result = {
+      success: false,
+      syncedRecords: 0,
+      errors: [] as string[],
+      conflicts: [] as Array<{ recordId: string; field: string; reason: string }>
+    };
+
+    try {
+      const crmSystem = await this.getCRMSystemById(crmSystemId);
+      if (!crmSystem) {
+        result.errors.push('CRM system not found');
+        return result;
+      }
+
+      if (!CRMAdapterFactory.isSupported(crmSystem.type)) {
+        result.errors.push(`CRM type '${crmSystem.type}' is not supported`);
+        return result;
+      }
+
+      const adapter = CRMAdapterFactory.getAdapter(crmSystem);
+
+      // Test connection first
+      const connectionTest = await adapter.testConnection();
+      if (!connectionTest.success) {
+        result.errors.push(`CRM connection failed: ${connectionTest.message}`);
+        return result;
+      }
+
+      // Get projects to sync
+      let query = 'SELECT * FROM projects WHERE 1=1';
+      const params: any[] = [];
+
+      if (options?.projectIds && options.projectIds.length > 0) {
+        query += ` AND id = ANY($${params.length + 1})`;
+        params.push(options.projectIds);
+      }
+
+      if (options?.since) {
+        query += ` AND updated_at >= $${params.length + 1}`;
+        params.push(options.since);
+      }
+
+      const projectsResult = await this.db.query(query, params);
+      const projects = projectsResult.rows;
+
+      for (const project of projects) {
+        try {
+          const projectData = {
+            name: project.name,
+            description: project.description,
+            priority: project.priority,
+            dueDate: project.estimated_end_date,
+            labels: project.tags || []
+          };
+
+          if (!options?.dryRun) {
+            if (project.crm_id && project.crm_system_id === crmSystemId) {
+              // Update existing project in CRM
+              await adapter.updateProject(project.crm_id, projectData);
+            } else {
+              // Create new project in CRM
+              const crmProject = await adapter.createProject(projectData);
+
+              // Update project with CRM ID
+              await this.updateProjectCRMId(project.id, crmProject.id, crmSystemId);
+            }
+          }
+
+          result.syncedRecords++;
+        } catch (error: any) {
+          result.errors.push(`Failed to sync project ${project.id}: ${error.message}`);
+        }
+      }
+
+      // Update last sync timestamp
+      if (!options?.dryRun) {
+        await this.updateLastSyncTimestamp(crmSystemId);
+      }
+
+      result.success = result.errors.length === 0;
+      return result;
+    } catch (error: any) {
+      result.errors.push(`Sync failed: ${error.message}`);
+      return result;
+    }
+  }
+
+  /**
+   * Map CRM data to internal format based on field mappings
+   */
+  async mapCRMData(crmData: any, crmSystemId: string): Promise<any> {
+    try {
+      const crmSystem = await this.getCRMSystemById(crmSystemId);
+      if (!crmSystem) {
+        throw new Error('CRM system not found');
+      }
+
+      const mappings = crmSystem.syncSettings?.fieldMappings || [];
+      const mappedData: any = {};
+
+      // Default mappings for common fields
+      const defaultMappings = [
+        { systemField: 'name', crmField: 'name', dataType: 'string' },
+        { systemField: 'description', crmField: 'description', dataType: 'string' },
+        { systemField: 'status', crmField: 'status', dataType: 'string' },
+        { systemField: 'priority', crmField: 'priority', dataType: 'string' },
+        { systemField: 'created_at', crmField: 'createdAt', dataType: 'date' },
+        { systemField: 'updated_at', crmField: 'updatedAt', dataType: 'date' }
+      ];
+
+      // Apply custom mappings first, then default mappings
+      const allMappings = [...mappings, ...defaultMappings];
+
+      for (const mapping of allMappings) {
+        if (crmData.hasOwnProperty(mapping.crmField)) {
+          let value = crmData[mapping.crmField];
+
+          // Apply data type transformations
+          switch (mapping.dataType) {
+            case 'date':
+              value = value ? new Date(value).toISOString() : null;
+              break;
+            case 'number':
+              value = value ? parseFloat(value) : null;
+              break;
+            case 'boolean':
+              value = Boolean(value);
+              break;
+            case 'array':
+              value = Array.isArray(value) ? value : (value ? [value] : []);
+              break;
+            case 'object':
+              value = typeof value === 'object' ? value : {};
+              break;
+            default:
+              value = value ? String(value) : null;
+          }
+
+          // Apply custom transform if specified (only for full CRMFieldMapping objects)
+          const fullMapping = mapping as any;
+          if (fullMapping.transform) {
+            try {
+              // Simple transform evaluation (in production, use a safer evaluator)
+              const transformFn = new Function('value', `return ${fullMapping.transform}`);
+              value = transformFn(value);
+            } catch (error) {
+              console.warn(`Transform failed for field ${mapping.systemField}:`, error);
+            }
+          }
+
+          mappedData[mapping.systemField] = value;
+        }
+      }
+
+      // Ensure we have the original CRM ID
+      mappedData.id = crmData.id;
+
+      return mappedData;
+    } catch (error: any) {
+      throw new Error(`Data mapping failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Handle incoming webhooks from CRM systems
+   */
+  async handleWebhook(crmSystemId: string, payload: any): Promise<{
+    success: boolean;
+    message: string;
+    processedRecords?: number;
+  }> {
+    try {
+      const crmSystem = await this.getCRMSystemById(crmSystemId);
+      if (!crmSystem) {
+        return {
+          success: false,
+          message: 'CRM system not found'
+        };
+      }
+
+      // Log webhook received
+      await this.logWebhookEvent(crmSystemId, payload);
+
+      // Parse webhook payload based on CRM type
+      const parsedEvents = await this.parseWebhookPayload(crmSystem.type, payload);
+      let processedRecords = 0;
+
+      for (const event of parsedEvents) {
+        try {
+          switch (event.type) {
+            case 'project.created':
+            case 'project.updated':
+              await this.handleProjectEvent(crmSystemId, event);
+              processedRecords++;
+              break;
+
+            case 'project.deleted':
+              await this.handleProjectDeletion(crmSystemId, event.data.id);
+              processedRecords++;
+              break;
+
+            default:
+              console.log(`Unhandled webhook event type: ${event.type}`);
+          }
+        } catch (error: any) {
+          console.error(`Failed to process webhook event:`, error);
+        }
+      }
+
+      return {
+        success: true,
+        message: `Processed ${processedRecords} events`,
+        processedRecords
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Webhook processing failed: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Get the last sync status for a CRM system
+   */
+  async getLastSyncStatus(crmSystemId: string): Promise<{
+    lastSyncAt: string | null;
+    status: 'success' | 'failed' | 'pending' | 'never';
+    details?: {
+      syncedRecords?: number;
+      errors?: string[];
+      duration?: number;
+    };
+  }> {
+    try {
+      // Get the most recent sync operation
+      const query = `
+        SELECT * FROM crm_sync_operations
+        WHERE crm_system_id = $1
+        ORDER BY started_at DESC
+        LIMIT 1
+      `;
+
+      const result = await this.db.query(query, [crmSystemId]);
+
+      if (result.rows.length === 0) {
+        return {
+          lastSyncAt: null,
+          status: 'never'
+        };
+      }
+
+      const operation = this.mapRowToSyncOperation(result.rows[0]);
+
+      let status: 'success' | 'failed' | 'pending' | 'never';
+      switch (operation.status) {
+        case 'completed':
+          status = operation.results.errors.length > 0 ? 'failed' : 'success';
+          break;
+        case 'failed':
+          status = 'failed';
+          break;
+        case 'pending':
+        case 'running':
+          status = 'pending';
+          break;
+        default:
+          status = 'failed';
+      }
+
+      return {
+        lastSyncAt: operation.startedAt || null,
+        status,
+        details: {
+          syncedRecords: operation.results.created + operation.results.updated,
+          errors: operation.results.errors.map(e => e.error),
+          duration: operation.duration
+        }
+      };
+    } catch (error: any) {
+      console.error('Failed to get last sync status:', error);
+      return {
+        lastSyncAt: null,
+        status: 'failed',
+        details: {
+          errors: [error.message]
+        }
+      };
+    }
+  }
+
+  // Helper methods for webhook processing
+  private async parseWebhookPayload(crmType: string, payload: any): Promise<Array<{
+    type: string;
+    data: any;
+  }>> {
+    // Simple webhook parsing - in production, implement specific parsers for each CRM
+    const events = [];
+
+    if (payload.events && Array.isArray(payload.events)) {
+      // Multiple events format
+      events.push(...payload.events);
+    } else if (payload.event_type || payload.type) {
+      // Single event format
+      events.push({
+        type: payload.event_type || payload.type,
+        data: payload.data || payload
+      });
+    }
+
+    return events;
+  }
+
+  private async handleProjectEvent(crmSystemId: string, event: any): Promise<void> {
+    try {
+      const crmSystem = await this.getCRMSystemById(crmSystemId);
+      if (!crmSystem || !CRMAdapterFactory.isSupported(crmSystem.type)) {
+        return;
+      }
+
+      const adapter = CRMAdapterFactory.getAdapter(crmSystem);
+      const crmProject = await adapter.getProject(event.data.id);
+
+      if (crmProject) {
+        const mappedData = await this.mapCRMData(crmProject, crmSystemId);
+        await this.createOrUpdateProjectFromCRM(mappedData, crmSystemId);
+      }
+    } catch (error: any) {
+      console.error(`Failed to handle project event:`, error);
+      throw error;
+    }
+  }
+
+  private async handleProjectDeletion(crmSystemId: string, crmProjectId: string): Promise<void> {
+    try {
+      const query = `
+        UPDATE projects
+        SET status = 'deleted', updated_at = NOW()
+        WHERE crm_id = $1 AND crm_system_id = $2
+      `;
+
+      await this.db.query(query, [crmProjectId, crmSystemId]);
+    } catch (error: any) {
+      console.error(`Failed to handle project deletion:`, error);
+      throw error;
+    }
+  }
+
+  private async logWebhookEvent(crmSystemId: string, payload: any): Promise<void> {
+    try {
+      const query = `
+        INSERT INTO webhook_logs (crm_system_id, payload, received_at)
+        VALUES ($1, $2, NOW())
+      `;
+
+      await this.db.query(query, [crmSystemId, JSON.stringify(payload)]);
+    } catch (error: any) {
+      console.error('Failed to log webhook event:', error);
+    }
+  }
+
+  private async updateLastSyncTimestamp(crmSystemId: string): Promise<void> {
+    try {
+      const query = `
+        UPDATE crm_systems
+        SET last_sync_at = NOW(), updated_at = NOW()
+        WHERE id = $1
+      `;
+
+      await this.db.query(query, [crmSystemId]);
+    } catch (error: any) {
+      console.error('Failed to update last sync timestamp:', error);
+    }
   }
 }

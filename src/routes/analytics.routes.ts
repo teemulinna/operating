@@ -364,4 +364,35 @@ router.post('/export', asyncHandler(AnalyticsController.exportAnalytics));
  */
 router.get('/dashboard-summary', asyncHandler(AnalyticsController.getDashboardSummary));
 
+/**
+ * @swagger
+ * /api/analytics/stats:
+ *   get:
+ *     summary: Get basic dashboard statistics (employee count, project count, utilization rate)
+ *     tags: [Analytics]
+ *     responses:
+ *       200:
+ *         description: Basic dashboard statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 employeeCount:
+ *                   type: number
+ *                   description: Total number of active employees
+ *                 projectCount:
+ *                   type: number
+ *                   description: Total number of active projects
+ *                 utilizationRate:
+ *                   type: number
+ *                   description: Average team utilization percentage
+ *                 allocationCount:
+ *                   type: number
+ *                   description: Total number of resource allocations
+ *       500:
+ *         description: Server error
+ */
+router.get('/stats', asyncHandler(AnalyticsController.getDashboardStats));
+
 export default router;

@@ -214,7 +214,7 @@ export class RoleTemplatesService {
     if (result.rows.length === 0) return null;
 
     const template = this.mapTemplateRow(result.rows[0]);
-    template['requiredSkills'] = result.rows[0].template_skills;
+    (template as any)['requiredSkills'] = result.rows[0].template_skills;
     return template;
   }
 
