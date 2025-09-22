@@ -725,9 +725,459 @@ router.put('/:id', validateCapacityUpdate, CapacityController.updateCapacity);
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', 
+router.delete('/:id',
   param('id').isUUID().withMessage('Capacity entry ID must be a valid UUID'),
   CapacityController.deleteCapacity
+);
+
+// ============================================
+// HEAT MAP ENDPOINTS
+// ============================================
+
+/**
+ * @swagger
+ * /api/capacity/heatmap:
+ *   get:
+ *     tags: [Capacity, HeatMap]
+ *     summary: Get capacity heat map data
+ *     description: Retrieve heat map visualization data for capacity planning
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for heat map
+ *       - in: query
+ *         name: endDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for heat map
+ *       - in: query
+ *         name: departmentId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by department ID
+ *       - in: query
+ *         name: employeeIds
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uuid
+ *         style: form
+ *         explode: true
+ *         description: Filter by employee IDs
+ *       - in: query
+ *         name: granularity
+ *         schema:
+ *           type: string
+ *           enum: [daily, weekly, monthly]
+ *           default: daily
+ *         description: Heat map granularity
+ *       - in: query
+ *         name: includeInactive
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Include inactive employees
+ *       - in: query
+ *         name: includeWeekends
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Include weekend days
+ *     responses:
+ *       200:
+ *         description: Heat map data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cells:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       employeeId:
+ *                         type: string
+ *                       employeeName:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       heatLevel:
+ *                         type: string
+ *                         enum: [available, green, blue, yellow, red, unavailable]
+ *                       utilizationPercentage:
+ *                         type: number
+ *                 summary:
+ *                   type: object
+ *                 metadata:
+ *                   type: object
+ *       400:
+ *         description: Invalid request parameters
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/heatmap',
+  [
+    query('startDate')
+      .isISO8601()
+      .withMessage('Start date must be a valid ISO 8601 date'),
+    query('endDate')
+      .isISO8601()
+      .withMessage('End date must be a valid ISO 8601 date'),
+    query('departmentId')
+      .optional()
+      .isUUID()
+      .withMessage('Department ID must be a valid UUID'),
+    query('employeeIds')
+      .optional()
+      .isArray()
+      .withMessage('Employee IDs must be an array'),
+    query('employeeIds.*')
+      .optional()
+      .isUUID()
+      .withMessage('Each employee ID must be a valid UUID'),
+    query('granularity')
+      .optional()
+      .isIn(['daily', 'weekly', 'monthly'])
+      .withMessage('Granularity must be daily, weekly, or monthly'),
+    query('includeInactive')
+      .optional()
+      .isBoolean()
+      .withMessage('Include inactive must be a boolean'),
+    query('includeWeekends')
+      .optional()
+      .isBoolean()
+      .withMessage('Include weekends must be a boolean')
+  ],
+  CapacityController.getHeatmap
+);
+
+/**
+ * @swagger
+ * /api/capacity/bottlenecks:
+ *   get:
+ *     tags: [Capacity, HeatMap]
+ *     summary: Get capacity bottlenecks
+ *     description: Identify resources and periods with capacity issues
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for analysis
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for analysis
+ *       - in: query
+ *         name: departmentId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by department ID
+ *     responses:
+ *       200:
+ *         description: Bottlenecks retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   employeeId:
+ *                     type: string
+ *                   employeeName:
+ *                     type: string
+ *                   startDate:
+ *                     type: string
+ *                     format: date
+ *                   endDate:
+ *                     type: string
+ *                     format: date
+ *                   consecutiveDays:
+ *                     type: number
+ *                   avgUtilization:
+ *                     type: number
+ *                   severity:
+ *                     type: string
+ *                     enum: [low, medium, high, critical]
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/bottlenecks',
+  [
+    query('startDate')
+      .optional()
+      .isISO8601()
+      .withMessage('Start date must be a valid ISO 8601 date'),
+    query('endDate')
+      .optional()
+      .isISO8601()
+      .withMessage('End date must be a valid ISO 8601 date'),
+    query('departmentId')
+      .optional()
+      .isUUID()
+      .withMessage('Department ID must be a valid UUID')
+  ],
+  CapacityController.getBottlenecks
+);
+
+/**
+ * @swagger
+ * /api/capacity/trends/{employeeId}:
+ *   get:
+ *     tags: [Capacity]
+ *     summary: Get capacity trends for employee
+ *     description: Retrieve historical capacity trends for an employee
+ *     parameters:
+ *       - in: path
+ *         name: employeeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Employee UUID
+ *       - in: query
+ *         name: periods
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 52
+ *           default: 12
+ *         description: Number of periods to analyze
+ *     responses:
+ *       200:
+ *         description: Capacity trends retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   period:
+ *                     type: string
+ *                   utilizationPercentage:
+ *                     type: number
+ *                   allocatedHours:
+ *                     type: number
+ *                   availableHours:
+ *                     type: number
+ *                   trend:
+ *                     type: string
+ *                     enum: [increasing, stable, decreasing]
+ *       400:
+ *         description: Invalid employee ID
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/trends/:employeeId',
+  [
+    param('employeeId')
+      .isUUID()
+      .withMessage('Employee ID must be a valid UUID'),
+    query('periods')
+      .optional()
+      .isInt({ min: 1, max: 52 })
+      .withMessage('Periods must be between 1 and 52')
+  ],
+  CapacityController.getCapacityTrends
+);
+
+/**
+ * @swagger
+ * /api/capacity/heatmap/export:
+ *   get:
+ *     tags: [Capacity, HeatMap]
+ *     summary: Export heat map data to CSV
+ *     description: Export heat map visualization data in CSV format
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for export
+ *       - in: query
+ *         name: endDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for export
+ *       - in: query
+ *         name: departmentId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by department ID
+ *       - in: query
+ *         name: granularity
+ *         schema:
+ *           type: string
+ *           enum: [daily, weekly, monthly]
+ *           default: daily
+ *         description: Export granularity
+ *     responses:
+ *       200:
+ *         description: CSV file download
+ *         content:
+ *           text/csv:
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid request parameters
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/heatmap/export',
+  [
+    query('startDate')
+      .isISO8601()
+      .withMessage('Start date must be a valid ISO 8601 date'),
+    query('endDate')
+      .isISO8601()
+      .withMessage('End date must be a valid ISO 8601 date'),
+    query('departmentId')
+      .optional()
+      .isUUID()
+      .withMessage('Department ID must be a valid UUID'),
+    query('granularity')
+      .optional()
+      .isIn(['daily', 'weekly', 'monthly'])
+      .withMessage('Granularity must be daily, weekly, or monthly')
+  ],
+  CapacityController.exportHeatmapCSV
+);
+
+/**
+ * @swagger
+ * /api/capacity/heatmap/refresh:
+ *   post:
+ *     tags: [Capacity, HeatMap]
+ *     summary: Refresh heat map materialized views
+ *     description: Manually trigger refresh of heat map cached data
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               concurrent:
+ *                 type: boolean
+ *                 default: true
+ *                 description: Use concurrent refresh (non-blocking)
+ *     responses:
+ *       200:
+ *         description: Views refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 refreshed:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       viewName:
+ *                         type: string
+ *                       duration:
+ *                         type: string
+ *                       rowCount:
+ *                         type: number
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/heatmap/refresh',
+  [
+    body('concurrent')
+      .optional()
+      .isBoolean()
+      .withMessage('Concurrent must be a boolean')
+  ],
+  CapacityController.refreshHeatmapViews
+);
+
+/**
+ * @swagger
+ * /api/capacity/department/{departmentId}/summary:
+ *   get:
+ *     tags: [Capacity]
+ *     summary: Get department capacity summary
+ *     description: Get aggregated capacity summary for a department
+ *     parameters:
+ *       - in: path
+ *         name: departmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Department UUID
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date for summary (defaults to today)
+ *     responses:
+ *       200:
+ *         description: Department summary retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 departmentId:
+ *                   type: string
+ *                 departmentName:
+ *                   type: string
+ *                 totalEmployees:
+ *                   type: number
+ *                 totalAvailableHours:
+ *                   type: number
+ *                 totalAllocatedHours:
+ *                   type: number
+ *                 avgUtilizationPercentage:
+ *                   type: number
+ *                 departmentHeatLevel:
+ *                   type: string
+ *       404:
+ *         description: Department summary not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/department/:departmentId/summary',
+  [
+    param('departmentId')
+      .isUUID()
+      .withMessage('Department ID must be a valid UUID'),
+    query('date')
+      .optional()
+      .isISO8601()
+      .withMessage('Date must be a valid ISO 8601 date')
+  ],
+  CapacityController.getDepartmentCapacitySummary
 );
 
 export { router as capacityRoutes };
