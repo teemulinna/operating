@@ -1,23 +1,33 @@
-# Comprehensive Technical Architecture Solutions
+# Resource Management Platform - Technical Architecture Solutions
+
+> See also: `docs/GUIDELINES/CONVENTIONS_INDEX.md` for coding, API, DB, testing, and deployment conventions referenced by this document.
 
 ## Current State Analysis
 
-After analyzing the codebase, I've identified these critical architectural issues:
+After analyzing the Resource Management Platform codebase, I've identified these critical architectural issues:
 
 ### Current Problems
+
 1. **Monolithic App.tsx**: 1600+ lines with multiple page components
 2. **Mock Service Dependencies**: Many services still use mock data
 3. **Missing E2E Test Structure**: No comprehensive testing architecture
 4. **Inconsistent State Management**: Direct API calls in components
 5. **No Service Layer Architecture**: Business logic mixed with UI
+6. **Database Schema Inconsistencies**: Mixed naming conventions and missing relationships
+7. **Real-time Updates**: WebSocket integration needs standardization
+8. **Capacity Calculation Logic**: Complex business rules scattered across components
 
 ## 1. Mock Service Replacement Architecture
 
 ### Current Issues
+
 - Multiple services contain placeholder/mock implementations
 - Inconsistent API client patterns
 - Missing error handling standardization
 - No service layer abstraction
+- Capacity calculation logic scattered across components
+- Real-time WebSocket events not standardized
+- Database queries not optimized for capacity planning
 
 ### Solution: Service Layer Architecture
 
@@ -68,26 +78,54 @@ export abstract class BaseService<T, CreateT = Omit<T, 'id'>, UpdateT = Partial<
 // src/services/interfaces/IEmployeeService.ts
 export interface IEmployeeService {
   findAll(): Promise<Employee[]>;
-  findById(id: number): Promise<Employee | null>;
-  findByDepartment(departmentId: number): Promise<Employee[]>;
+  findById(id: string): Promise<Employee | null>;
+  findByDepartment(departmentId: string): Promise<Employee[]>;
   findBySkills(skills: string[]): Promise<Employee[]>;
   create(employee: CreateEmployeeDto): Promise<Employee>;
-  update(id: number, updates: UpdateEmployeeDto): Promise<Employee>;
-  delete(id: number): Promise<void>;
-  getCapacity(id: number, dateRange: DateRange): Promise<CapacityInfo>;
-  getAllocations(id: number, dateRange?: DateRange): Promise<Allocation[]>;
+  update(id: string, updates: UpdateEmployeeDto): Promise<Employee>;
+  delete(id: string): Promise<void>;
+  getCapacity(id: string, dateRange: DateRange): Promise<CapacityInfo>;
+  getAllocations(id: string, dateRange?: DateRange): Promise<ResourceAllocation[]>;
+  getRealTimeCapacity(id: string, dateRange: DateRange): Promise<CapacitySnapshot[]>;
+  getOverAllocationWarnings(id: string): Promise<OverAllocationWarning[]>;
 }
 
 // src/services/interfaces/IProjectService.ts
 export interface IProjectService {
   findAll(): Promise<Project[]>;
-  findById(id: number): Promise<Project | null>;
+  findById(id: string): Promise<Project | null>;
   findByStatus(status: ProjectStatus[]): Promise<Project[]>;
   create(project: CreateProjectDto): Promise<Project>;
-  update(id: number, updates: UpdateProjectDto): Promise<Project>;
-  delete(id: number): Promise<void>;
-  getResourceRequirements(id: number): Promise<ResourceRequirement[]>;
-  getTeamMembers(id: number): Promise<Employee[]>;
+  update(id: string, updates: UpdateProjectDto): Promise<Project>;
+  delete(id: string): Promise<void>;
+  getResourceRequirements(id: string): Promise<ResourceRequirement[]>;
+  getTeamMembers(id: string): Promise<Employee[]>;
+  getProjectTasks(id: string): Promise<ProjectTask[]>;
+  getProjectAllocations(id: string): Promise<ResourceAllocation[]>;
+}
+
+// src/services/interfaces/ICapacityService.ts
+export interface ICapacityService {
+  calculateRealTimeCapacity(employeeId: string, dateRange: DateRange): Promise<CapacitySnapshot[]>;
+  detectOverAllocations(employeeId: string, allocation: CreateResourceAllocationInput): Promise<OverAllocationWarning[]>;
+  validateAllocation(allocation: CreateResourceAllocationInput): Promise<CapacityValidationResult>;
+  generateResolutionSuggestions(warning: OverAllocationWarning): Promise<ResolutionSuggestion[]>;
+  recalculateCapacityForPeriod(dateFrom: Date, dateTo: Date): Promise<BatchOperationResult>;
+  getCapacityHeatmap(filters: HeatmapFilters): Promise<CapacityHeatmapData>;
+  getCapacityTrends(employeeId: string, period: string): Promise<CapacityTrend[]>;
+}
+
+// src/services/interfaces/IAllocationService.ts
+export interface IAllocationService {
+  findAll(): Promise<ResourceAllocation[]>;
+  findById(id: string): Promise<ResourceAllocation | null>;
+  create(allocation: CreateResourceAllocationInput): Promise<ResourceAllocation>;
+  update(id: string, updates: UpdateResourceAllocationInput): Promise<ResourceAllocation>;
+  delete(id: string): Promise<void>;
+  createWithValidation(allocation: CreateResourceAllocationInput): Promise<ResourceAllocationExtended>;
+  getCapacityImpact(employeeId: string, dateRange: DateRange): Promise<CapacityImpact>;
+  approveAllocation(id: string, approverId: string): Promise<ResourceAllocation>;
+  rejectAllocation(id: string, reason: string): Promise<ResourceAllocation>;
 }
 ```
 
@@ -98,7 +136,7 @@ export interface IProjectService {
 export class EmployeeService extends BaseService<Employee, CreateEmployeeDto, UpdateEmployeeDto> implements IEmployeeService {
   protected endpoint = 'employees';
 
-  async findByDepartment(departmentId: number): Promise<Employee[]> {
+  async findByDepartment(departmentId: string): Promise<Employee[]> {
     const response = await this.apiClient.get(`/${this.endpoint}?departmentId=${departmentId}`);
     return response.data.data || response.data;
   }
@@ -109,16 +147,81 @@ export class EmployeeService extends BaseService<Employee, CreateEmployeeDto, Up
     return response.data.data || response.data;
   }
 
-  async getCapacity(id: number, dateRange: DateRange): Promise<CapacityInfo> {
+  async getCapacity(id: string, dateRange: DateRange): Promise<CapacityInfo> {
     const response = await this.apiClient.get(`/${this.endpoint}/${id}/capacity`, {
       params: dateRange
     });
     return response.data;
   }
 
-  async getAllocations(id: number, dateRange?: DateRange): Promise<Allocation[]> {
+  async getAllocations(id: string, dateRange?: DateRange): Promise<ResourceAllocation[]> {
     const response = await this.apiClient.get(`/${this.endpoint}/${id}/allocations`, {
       params: dateRange
+    });
+    return response.data.data || response.data;
+  }
+
+  async getRealTimeCapacity(id: string, dateRange: DateRange): Promise<CapacitySnapshot[]> {
+    const response = await this.apiClient.get(`/api/capacity/employee/${id}/real-time`, {
+      params: {
+        dateFrom: dateRange.start.toISOString(),
+        dateTo: dateRange.end.toISOString()
+      }
+    });
+    return response.data.data || response.data;
+  }
+
+  async getOverAllocationWarnings(id: string): Promise<OverAllocationWarning[]> {
+    const response = await this.apiClient.get(`/api/capacity/warnings?employeeId=${id}`);
+    return response.data.data || response.data;
+  }
+}
+
+// src/services/implementations/CapacityService.ts
+export class CapacityService implements ICapacityService {
+  constructor(private apiClient: AxiosInstance) {}
+
+  async calculateRealTimeCapacity(employeeId: string, dateRange: DateRange): Promise<CapacitySnapshot[]> {
+    const response = await this.apiClient.get(`/api/capacity/employee/${employeeId}/real-time`, {
+      params: {
+        dateFrom: dateRange.start.toISOString(),
+        dateTo: dateRange.end.toISOString()
+      }
+    });
+    return response.data.data || response.data;
+  }
+
+  async detectOverAllocations(employeeId: string, allocation: CreateResourceAllocationInput): Promise<OverAllocationWarning[]> {
+    const response = await this.apiClient.post('/api/capacity/validate-allocation', allocation);
+    return response.data.data?.warnings || [];
+  }
+
+  async validateAllocation(allocation: CreateResourceAllocationInput): Promise<CapacityValidationResult> {
+    const response = await this.apiClient.post('/api/capacity/validate-allocation', allocation);
+    return response.data.data || response.data;
+  }
+
+  async generateResolutionSuggestions(warning: OverAllocationWarning): Promise<ResolutionSuggestion[]> {
+    const response = await this.apiClient.get(`/api/capacity/warnings/${warning.id}/suggestions`);
+    return response.data.data || response.data;
+  }
+
+  async recalculateCapacityForPeriod(dateFrom: Date, dateTo: Date): Promise<BatchOperationResult> {
+    const response = await this.apiClient.post('/api/capacity/recalculate', {
+      dateFrom: dateFrom.toISOString(),
+      dateTo: dateTo.toISOString()
+    });
+    return response.data.data || response.data;
+  }
+
+  async getCapacityHeatmap(filters: HeatmapFilters): Promise<CapacityHeatmapData> {
+    const response = await this.apiClient.get('/api/capacity/heatmap', { params: filters });
+    return response.data.data || response.data;
+  }
+
+  async getCapacityTrends(employeeId: string, period: string): Promise<CapacityTrend[]> {
+    const response = await this.apiClient.get(`/api/capacity/trends/${employeeId}`, {
+      params: { period }
     });
     return response.data.data || response.data;
   }
@@ -165,6 +268,27 @@ export class ServiceFactory {
       this.services.set('allocation', new AllocationService(this.apiClient));
     }
     return this.services.get('allocation');
+  }
+
+  getCapacityService(): ICapacityService {
+    if (!this.services.has('capacity')) {
+      this.services.set('capacity', new CapacityService(this.apiClient));
+    }
+    return this.services.get('capacity');
+  }
+
+  getAnalyticsService(): IAnalyticsService {
+    if (!this.services.has('analytics')) {
+      this.services.set('analytics', new AnalyticsService(this.apiClient));
+    }
+    return this.services.get('analytics');
+  }
+
+  getNotificationService(): INotificationService {
+    if (!this.services.has('notification')) {
+      this.services.set('notification', new NotificationService(this.apiClient));
+    }
+    return this.services.get('notification');
   }
 }
 ```
@@ -226,11 +350,156 @@ export class ErrorHandler {
 }
 ```
 
+### WebSocket and Real-time Architecture
+
+```typescript
+// src/services/websocket/WebSocketService.ts
+export class WebSocketService {
+  private socket: Socket | null = null;
+  private eventHandlers: Map<string, Function[]> = new Map();
+
+  constructor(private baseUrl: string) {}
+
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.socket = io(this.baseUrl, {
+        transports: ['websocket'],
+        timeout: 20000,
+        forceNew: true
+      });
+
+      this.socket.on('connect', () => {
+        console.log('WebSocket connected');
+        resolve();
+      });
+
+      this.socket.on('connect_error', (error) => {
+        console.error('WebSocket connection error:', error);
+        reject(error);
+      });
+
+      this.socket.on('disconnect', () => {
+        console.log('WebSocket disconnected');
+      });
+
+      // Register default event handlers
+      this.registerDefaultHandlers();
+    });
+  }
+
+  private registerDefaultHandlers() {
+    this.on('capacity:updated', (data: CapacityUpdateEvent) => {
+      this.emit('capacityUpdate', data);
+    });
+
+    this.on('warning:created', (data: WarningCreatedEvent) => {
+      this.emit('warningCreated', data);
+    });
+
+    this.on('allocation:approved', (data: AllocationApprovedEvent) => {
+      this.emit('allocationApproved', data);
+    });
+
+    this.on('allocation:rejected', (data: AllocationRejectedEvent) => {
+      this.emit('allocationRejected', data);
+    });
+  }
+
+  on(event: string, handler: Function) {
+    if (!this.eventHandlers.has(event)) {
+      this.eventHandlers.set(event, []);
+    }
+    this.eventHandlers.get(event)!.push(handler);
+
+    if (this.socket) {
+      this.socket.on(event, handler);
+    }
+  }
+
+  emit(event: string, data: any) {
+    const handlers = this.eventHandlers.get(event) || [];
+    handlers.forEach(handler => handler(data));
+  }
+
+  disconnect() {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+  }
+}
+
+// src/hooks/useWebSocket.ts
+export function useWebSocket() {
+  const [socket, setSocket] = useState<WebSocketService | null>(null);
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    const wsService = new WebSocketService(process.env.REACT_APP_WS_URL || 'ws://localhost:3001');
+    
+    wsService.connect()
+      .then(() => {
+        setSocket(wsService);
+        setConnected(true);
+      })
+      .catch((error) => {
+        console.error('Failed to connect to WebSocket:', error);
+        setConnected(false);
+      });
+
+    return () => {
+      wsService.disconnect();
+    };
+  }, []);
+
+  return { socket, connected };
+}
+
+// src/hooks/useRealTimeCapacity.ts
+export function useRealTimeCapacity(employeeId: string, dateRange: DateRange) {
+  const { socket } = useWebSocket();
+  const [capacityData, setCapacityData] = useState<CapacitySnapshot[]>([]);
+  const [warnings, setWarnings] = useState<OverAllocationWarning[]>([]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCapacityUpdate = (data: CapacityUpdateEvent) => {
+      if (data.employeeId === employeeId) {
+        setCapacityData(prev => 
+          prev.map(snapshot => 
+            snapshot.snapshotDate.toDateString() === data.date.toDateString()
+              ? { ...snapshot, ...data.updates }
+              : snapshot
+          )
+        );
+      }
+    };
+
+    const handleWarningCreated = (data: WarningCreatedEvent) => {
+      if (data.employeeId === employeeId) {
+        setWarnings(prev => [...prev, data.warning]);
+      }
+    };
+
+    socket.on('capacity:updated', handleCapacityUpdate);
+    socket.on('warning:created', handleWarningCreated);
+
+    return () => {
+      socket.off('capacity:updated', handleCapacityUpdate);
+      socket.off('warning:created', handleWarningCreated);
+    };
+  }, [socket, employeeId]);
+
+  return { capacityData, warnings };
+}
+```
+
 ### Data Flow and Integration Patterns
 
 ```typescript
 // src/services/patterns/Repository.ts
-export interface Repository<T, K = number> {
+export interface Repository<T, K = string> {
   findAll(options?: QueryOptions): Promise<PaginatedResult<T>>;
   findById(id: K): Promise<T | null>;
   create(data: Omit<T, 'id'>): Promise<T>;
@@ -275,9 +544,10 @@ export class UnitOfWork {
 }
 ```
 
-## 2. Frontend Component Architecture Design
+## 2. Frontend Component Architecture
 
-### Current Issues
+### Frontend Issues
+
 - Single 1600+ line App.tsx file
 - No component hierarchy
 - Mixed concerns (UI + business logic)
@@ -286,21 +556,69 @@ export class UnitOfWork {
 ### Solution: Layered Component Architecture
 
 ```typescript
-// Frontend Architecture Structure
+// Resource Management Platform Frontend Architecture Structure
 src/
 ├── components/
 │   ├── common/           # Reusable UI components
+│   │   ├── DataTable.tsx
+│   │   ├── Modal.tsx
+│   │   ├── Charts/
+│   │   └── Forms/
 │   ├── layout/           # Layout components
-│   ├── forms/            # Form components
-│   └── domain/           # Domain-specific components
+│   │   ├── AppLayout.tsx
+│   │   ├── Navigation.tsx
+│   │   └── Sidebar.tsx
+│   ├── capacity/         # Capacity management components
+│   │   ├── CapacityDashboard.tsx
+│   │   ├── HeatMapGrid.tsx
+│   │   ├── CapacityCard.tsx
+│   │   └── OverAllocationWarnings.tsx
+│   ├── allocations/      # Resource allocation components
+│   │   ├── AllocationForm.tsx
+│   │   ├── AllocationCalendar.tsx
+│   │   └── AllocationTimeline.tsx
+│   ├── projects/         # Project management components
+│   │   ├── ProjectCard.tsx
+│   │   ├── ProjectTasks.tsx
+│   │   └── ProjectTimeline.tsx
+│   ├── analytics/        # Analytics and reporting components
+│   │   ├── AnalyticsDashboard.tsx
+│   │   ├── UtilizationChart.tsx
+│   │   └── TrendAnalysis.tsx
+│   └── scenarios/        # What-if scenario components
+│       ├── ScenarioBuilder.tsx
+│       ├── ScenarioComparison.tsx
+│       └── ImpactAnalysis.tsx
 ├── pages/                # Route-level components
-├── containers/           # Connected components (logic)
+│   ├── DashboardPage.tsx
+│   ├── CapacityPage.tsx
+│   ├── AllocationsPage.tsx
+│   ├── ProjectsPage.tsx
+│   ├── AnalyticsPage.tsx
+│   └── ScenariosPage.tsx
 ├── hooks/                # Custom React hooks
-├── contexts/             # React contexts
+│   ├── useCapacity.ts
+│   ├── useAllocations.ts
+│   ├── useWebSocket.ts
+│   └── useRealTimeUpdates.ts
 ├── services/             # API services
+│   ├── capacity.service.ts
+│   ├── allocation.service.ts
+│   ├── project.service.ts
+│   └── analytics.service.ts
 ├── types/                # TypeScript types
+│   ├── capacity.types.ts
+│   ├── allocation.types.ts
+│   ├── project.types.ts
+│   └── analytics.types.ts
 ├── utils/                # Utility functions
+│   ├── dateUtils.ts
+│   ├── capacityUtils.ts
+│   └── validationUtils.ts
 └── constants/            # Application constants
+    ├── capacityThresholds.ts
+    ├── colorSchemes.ts
+    └── apiEndpoints.ts
 ```
 
 ### Component Hierarchy Design
@@ -583,11 +901,20 @@ export const AppRouter: React.FC = () => {
             <Route path="new" element={<CreateEmployeePage />} />
           </Route>
 
+          {/* Capacity Management Routes */}
+          <Route path="capacity">
+            <Route index element={<CapacityPage />} />
+            <Route path="heatmap" element={<HeatMapPage />} />
+            <Route path="warnings" element={<WarningsPage />} />
+            <Route path="trends" element={<TrendsPage />} />
+          </Route>
+
           {/* Project Management Routes */}
           <Route path="projects">
             <Route index element={<ProjectsPage />} />
             <Route path=":id" element={<ProjectDetailPage />} />
             <Route path="new" element={<CreateProjectPage />} />
+            <Route path=":id/tasks" element={<ProjectTasksPage />} />
           </Route>
 
           {/* Resource Allocation Routes */}
@@ -595,13 +922,24 @@ export const AppRouter: React.FC = () => {
             <Route index element={<AllocationsPage />} />
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="timeline" element={<TimelinePage />} />
+            <Route path="new" element={<CreateAllocationPage />} />
           </Route>
 
-          {/* Reports Routes */}
-          <Route path="reports">
-            <Route index element={<ReportsPage />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="exports" element={<ExportsPage />} />
+          {/* Analytics Routes */}
+          <Route path="analytics">
+            <Route index element={<AnalyticsPage />} />
+            <Route path="utilization" element={<UtilizationPage />} />
+            <Route path="forecasting" element={<ForecastingPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+          </Route>
+
+          {/* Scenario Planning Routes */}
+          <Route path="scenarios">
+            <Route index element={<ScenariosPage />} />
+            <Route path="new" element={<CreateScenarioPage />} />
+            <Route path=":id" element={<ScenarioDetailPage />} />
+            <Route path=":id/compare" element={<ScenarioComparisonPage />} />
           </Route>
 
           {/* Settings Routes */}
@@ -623,23 +961,39 @@ export const routes = {
   dashboard: '/',
   employees: {
     list: '/employees',
-    detail: (id: number) => `/employees/${id}`,
+    detail: (id: string) => `/employees/${id}`,
     create: '/employees/new'
+  },
+  capacity: {
+    list: '/capacity',
+    heatmap: '/capacity/heatmap',
+    warnings: '/capacity/warnings',
+    trends: '/capacity/trends'
   },
   projects: {
     list: '/projects',
-    detail: (id: number) => `/projects/${id}`,
-    create: '/projects/new'
+    detail: (id: string) => `/projects/${id}`,
+    create: '/projects/new',
+    tasks: (id: string) => `/projects/${id}/tasks`
   },
   allocations: {
     list: '/allocations',
     schedule: '/allocations/schedule',
-    calendar: '/allocations/calendar'
+    calendar: '/allocations/calendar',
+    timeline: '/allocations/timeline',
+    create: '/allocations/new'
   },
-  reports: {
-    list: '/reports',
-    analytics: '/reports/analytics',
-    exports: '/reports/exports'
+  analytics: {
+    list: '/analytics',
+    utilization: '/analytics/utilization',
+    forecasting: '/analytics/forecasting',
+    reports: '/analytics/reports'
+  },
+  scenarios: {
+    list: '/scenarios',
+    create: '/scenarios/new',
+    detail: (id: string) => `/scenarios/${id}`,
+    compare: (id: string) => `/scenarios/${id}/compare`
   }
 } as const;
 ```
@@ -653,6 +1007,9 @@ export interface AppStore {
   employees: EmployeesState;
   projects: ProjectsState;
   allocations: AllocationsState;
+  capacity: CapacityState;
+  analytics: AnalyticsState;
+  scenarios: ScenariosState;
   ui: UIState;
 }
 
@@ -689,15 +1046,19 @@ export function useService<T extends keyof ServiceMap>(serviceName: T): ServiceM
       case 'employee': return serviceFactory.getEmployeeService();
       case 'project': return serviceFactory.getProjectService();
       case 'allocation': return serviceFactory.getAllocationService();
+      case 'capacity': return serviceFactory.getCapacityService();
+      case 'analytics': return serviceFactory.getAnalyticsService();
+      case 'notification': return serviceFactory.getNotificationService();
       default: throw new Error(`Unknown service: ${serviceName}`);
     }
   }, [serviceFactory, serviceName]) as ServiceMap[T];
 }
 ```
 
-## 3. E2E Testing Architecture
+## 3. Testing Architecture
 
-### Current Issues
+### Testing Issues
+
 - No organized test structure
 - Missing page object patterns
 - No test data management
@@ -706,17 +1067,46 @@ export function useService<T extends keyof ServiceMap>(serviceName: T): ServiceM
 ### Solution: Comprehensive Testing Framework
 
 ```typescript
-// Testing Architecture Structure
+// Resource Management Platform Testing Architecture Structure
 tests/
 ├── e2e/
 │   ├── fixtures/           # Test data and fixtures
+│   │   ├── EmployeeFixtures.ts
+│   │   ├── ProjectFixtures.ts
+│   │   ├── AllocationFixtures.ts
+│   │   └── CapacityFixtures.ts
 │   ├── pages/              # Page object models
+│   │   ├── EmployeesPage.ts
+│   │   ├── CapacityPage.ts
+│   │   ├── AllocationsPage.ts
+│   │   ├── ProjectsPage.ts
+│   │   ├── AnalyticsPage.ts
+│   │   └── ScenariosPage.ts
 │   ├── specs/              # Test specifications
+│   │   ├── employee-management.spec.ts
+│   │   ├── capacity-planning.spec.ts
+│   │   ├── resource-allocations.spec.ts
+│   │   ├── project-management.spec.ts
+│   │   ├── analytics-reporting.spec.ts
+│   │   └── scenario-planning.spec.ts
 │   ├── utils/              # Test utilities
+│   │   ├── DatabaseManager.ts
+│   │   ├── WebSocketHelper.ts
+│   │   └── CapacityTestUtils.ts
 │   └── config/             # Test configuration
+│       ├── playwright.config.ts
+│       └── test-setup.ts
 ├── integration/            # Integration tests
+│   ├── capacity-workflow.test.ts
+│   ├── allocation-validation.test.ts
+│   └── real-time-updates.test.ts
 ├── unit/                   # Unit tests
+│   ├── services/
+│   ├── components/
+│   └── utils/
 └── support/               # Test support files
+    ├── test-database.ts
+    └── mock-services.ts
 ```
 
 ### Page Object Pattern
@@ -847,6 +1237,125 @@ export class EmployeeFormModal {
     await expect(errorElement).toHaveText(message);
   }
 }
+
+// tests/e2e/pages/CapacityPage.ts
+export class CapacityPage {
+  constructor(private page: Page) {}
+
+  // Locators
+  private get heatMapGrid() { return this.page.getByTestId('capacity-heatmap-grid'); }
+  private get capacityCards() { return this.page.getByTestId('capacity-card'); }
+  private get warningsList() { return this.page.getByTestId('over-allocation-warnings'); }
+  private get dateRangePicker() { return this.page.getByTestId('date-range-picker'); }
+  private get employeeFilter() { return this.page.getByTestId('employee-filter'); }
+
+  // Actions
+  async navigateTo() {
+    await this.page.goto('/capacity');
+    await this.page.waitForSelector('[data-testid="capacity-page"]');
+  }
+
+  async selectDateRange(startDate: string, endDate: string) {
+    await this.dateRangePicker.click();
+    await this.page.fill('[data-testid="start-date"]', startDate);
+    await this.page.fill('[data-testid="end-date"]', endDate);
+    await this.page.click('[data-testid="apply-date-range"]');
+  }
+
+  async filterByEmployee(employeeId: string) {
+    await this.employeeFilter.selectOption(employeeId);
+    await this.page.waitForSelector('[data-testid="filtered-capacity-data"]');
+  }
+
+  async viewCapacityDetails(employeeId: string, date: string) {
+    const capacityCell = this.page.getByTestId(`capacity-cell-${employeeId}-${date}`);
+    await capacityCell.click();
+    await this.page.waitForSelector('[data-testid="capacity-details-modal"]');
+  }
+
+  async acknowledgeWarning(warningId: string) {
+    const warning = this.page.getByTestId(`warning-${warningId}`);
+    await warning.click();
+    await this.page.click('[data-testid="acknowledge-warning"]');
+  }
+
+  // Assertions
+  async expectCapacityHeatmapVisible() {
+    await expect(this.heatMapGrid).toBeVisible();
+  }
+
+  async expectCapacityCardCount(expectedCount: number) {
+    const cards = this.capacityCards;
+    await expect(cards).toHaveCount(expectedCount);
+  }
+
+  async expectWarningCount(expectedCount: number) {
+    const warnings = this.warningsList.locator('[data-testid^="warning-"]');
+    await expect(warnings).toHaveCount(expectedCount);
+  }
+
+  async expectCapacityUtilization(employeeId: string, date: string, expectedUtilization: number) {
+    const utilizationElement = this.page.getByTestId(`utilization-${employeeId}-${date}`);
+    await expect(utilizationElement).toHaveText(`${expectedUtilization}%`);
+  }
+}
+
+// tests/e2e/pages/AllocationsPage.ts
+export class AllocationsPage {
+  constructor(private page: Page) {}
+
+  // Locators
+  private get createAllocationButton() { return this.page.getByTestId('create-allocation-button'); }
+  private get allocationsList() { return this.page.getByTestId('allocations-list'); }
+  private get calendarView() { return this.page.getByTestId('allocations-calendar'); }
+  private get timelineView() { return this.page.getByTestId('allocations-timeline'); }
+
+  // Actions
+  async navigateTo() {
+    await this.page.goto('/allocations');
+    await this.page.waitForSelector('[data-testid="allocations-page"]');
+  }
+
+  async createAllocation(allocation: CreateAllocationDto) {
+    await this.createAllocationButton.click();
+    
+    const form = new AllocationFormModal(this.page);
+    await form.fillForm(allocation);
+    await form.submit();
+    await form.waitForClose();
+  }
+
+  async switchToCalendarView() {
+    await this.page.click('[data-testid="calendar-view-toggle"]');
+    await this.page.waitForSelector('[data-testid="allocations-calendar"]');
+  }
+
+  async switchToTimelineView() {
+    await this.page.click('[data-testid="timeline-view-toggle"]');
+    await this.page.waitForSelector('[data-testid="allocations-timeline"]');
+  }
+
+  async editAllocation(allocationId: string, updates: UpdateAllocationDto) {
+    const editButton = this.page.getByTestId(`edit-allocation-${allocationId}`);
+    await editButton.click();
+
+    const form = new AllocationFormModal(this.page);
+    await form.fillForm(updates);
+    await form.submit();
+    await form.waitForClose();
+  }
+
+  // Assertions
+  async expectAllocationVisible(allocation: ResourceAllocation) {
+    const allocationRow = this.page.getByTestId(`allocation-${allocation.id}`);
+    await expect(allocationRow).toBeVisible();
+  }
+
+  async expectAllocationCount(expectedCount: number) {
+    const allocations = this.allocationsList.locator('[data-testid^="allocation-"]');
+    await expect(allocations).toHaveCount(expectedCount);
+  }
+}
 ```
 
 ### Test Data Management
@@ -906,6 +1415,69 @@ export class ProjectFixtures {
     };
   }
 }
+
+// tests/e2e/fixtures/AllocationFixtures.ts
+export class AllocationFixtures {
+  static createValidAllocation(): CreateResourceAllocationInput {
+    const startDate = faker.date.future();
+    const endDate = faker.date.future({ refDate: startDate });
+    
+    return {
+      projectId: faker.string.uuid(),
+      employeeId: faker.string.uuid(),
+      allocatedHours: faker.number.int({ min: 10, max: 40 }),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      roleOnProject: faker.person.jobTitle(),
+      hourlyRate: faker.number.int({ min: 50, max: 200 }),
+      notes: faker.lorem.sentence()
+    };
+  }
+
+  static createOverAllocation(): CreateResourceAllocationInput {
+    const allocation = this.createValidAllocation();
+    return {
+      ...allocation,
+      allocatedHours: 50 // Over capacity
+    };
+  }
+}
+
+// tests/e2e/fixtures/CapacityFixtures.ts
+export class CapacityFixtures {
+  static createCapacitySnapshot(): CapacitySnapshot {
+    return {
+      id: faker.string.uuid(),
+      employeeId: faker.string.uuid(),
+      snapshotDate: faker.date.recent(),
+      allocatedHours: faker.number.float({ min: 0, max: 12, fractionDigits: 2 }),
+      availableHours: 8.0,
+      overAllocationHours: 0,
+      utilizationPercentage: faker.number.float({ min: 0, max: 150, fractionDigits: 2 }),
+      lastUpdated: new Date()
+    };
+  }
+
+  static createOverAllocationWarning(): OverAllocationWarning {
+    return {
+      id: faker.string.uuid(),
+      employeeId: faker.string.uuid(),
+      projectId: faker.string.uuid(),
+      allocationId: faker.string.uuid(),
+      warningType: 'over_allocation',
+      severity: faker.helpers.arrayElement(['low', 'medium', 'high', 'critical']),
+      conflictDate: faker.date.recent(),
+      overAllocationHours: faker.number.float({ min: 0.5, max: 4, fractionDigits: 2 }),
+      autoResolved: false,
+      resolutionStrategy: null,
+      acknowledgedBy: null,
+      acknowledgedAt: null,
+      resolvedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+}
 ```
 
 ### Test Database Management
@@ -928,32 +1500,34 @@ export class DatabaseManager {
   }
 
   async resetDatabase(): Promise<void> {
+    // Truncate tables in correct order due to foreign key constraints
+    await this.db.execute('TRUNCATE TABLE over_allocation_warnings CASCADE');
+    await this.db.execute('TRUNCATE TABLE employee_capacity_snapshots CASCADE');
     await this.db.execute('TRUNCATE TABLE resource_allocations CASCADE');
+    await this.db.execute('TRUNCATE TABLE project_tasks CASCADE');
     await this.db.execute('TRUNCATE TABLE projects CASCADE');
     await this.db.execute('TRUNCATE TABLE employees CASCADE');
     await this.db.execute('TRUNCATE TABLE departments CASCADE');
     
-    // Reset sequences
-    await this.db.execute('ALTER SEQUENCE employees_id_seq RESTART WITH 1');
-    await this.db.execute('ALTER SEQUENCE projects_id_seq RESTART WITH 1');
-    await this.db.execute('ALTER SEQUENCE resource_allocations_id_seq RESTART WITH 1');
+    // Reset sequences for UUID primary keys (if using serial IDs)
+    // Note: UUIDs don't need sequence resets
   }
 
   async seedDefaultData(): Promise<void> {
     // Seed departments
     await this.db.execute(`
       INSERT INTO departments (id, name) VALUES 
-      (1, 'Engineering'), 
-      (2, 'Product'), 
-      (3, 'Marketing'), 
-      (4, 'QA')
+      (gen_random_uuid(), 'Engineering'), 
+      (gen_random_uuid(), 'Product'), 
+      (gen_random_uuid(), 'Marketing'), 
+      (gen_random_uuid(), 'QA')
     `);
   }
 
   async createEmployee(employee: CreateEmployeeDto): Promise<Employee> {
     const result = await this.db.query(`
-      INSERT INTO employees (first_name, last_name, email, position, department_id, default_hours_per_week, salary)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO employees (id, first_name, last_name, email, position, department_id, default_hours_per_week, salary)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `, [
       employee.firstName,
@@ -970,8 +1544,8 @@ export class DatabaseManager {
 
   async createProject(project: CreateProjectDto): Promise<Project> {
     const result = await this.db.query(`
-      INSERT INTO projects (name, description, client_name, status, priority, start_date, end_date, budget, hourly_rate, estimated_hours)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO projects (id, name, description, client_name, status, priority, start_date, end_date, budget, hourly_rate, estimated_hours)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `, [
       project.name,
@@ -1085,6 +1659,108 @@ test.describe('Employee Management', () => {
     await employeesPage.expectEmployeeCount(2);
   });
 });
+
+// tests/e2e/specs/capacity-planning.spec.ts
+import { test, expect } from '@playwright/test';
+import { CapacityPage } from '../pages/CapacityPage';
+import { CapacityFixtures } from '../fixtures/CapacityFixtures';
+import { DatabaseManager } from '../utils/DatabaseManager';
+
+test.describe('Capacity Planning', () => {
+  let capacityPage: CapacityPage;
+  let dbManager: DatabaseManager;
+
+  test.beforeEach(async ({ page }) => {
+    capacityPage = new CapacityPage(page);
+    dbManager = DatabaseManager.getInstance();
+    
+    await dbManager.resetDatabase();
+    await dbManager.seedDefaultData();
+    await capacityPage.navigateTo();
+  });
+
+  test('should display capacity heatmap', async () => {
+    await capacityPage.expectCapacityHeatmapVisible();
+  });
+
+  test('should show over-allocation warnings', async () => {
+    // Setup: Create over-allocation warning
+    const warning = CapacityFixtures.createOverAllocationWarning();
+    await dbManager.createOverAllocationWarning(warning);
+    
+    await capacityPage.page.reload();
+    
+    await capacityPage.expectWarningCount(1);
+  });
+
+  test('should filter capacity by date range', async () => {
+    const startDate = '2024-01-01';
+    const endDate = '2024-01-31';
+    
+    await capacityPage.selectDateRange(startDate, endDate);
+    
+    // Verify date range is applied
+    await expect(capacityPage.page.getByTestId('date-range-display')).toContainText('Jan 1 - Jan 31');
+  });
+
+  test('should show capacity utilization details', async () => {
+    // Setup: Create capacity snapshot
+    const snapshot = CapacityFixtures.createCapacitySnapshot();
+    await dbManager.createCapacitySnapshot(snapshot);
+    
+    await capacityPage.page.reload();
+    
+    await capacityPage.expectCapacityUtilization(
+      snapshot.employeeId, 
+      snapshot.snapshotDate.toISOString().split('T')[0], 
+      snapshot.utilizationPercentage
+    );
+  });
+});
+
+// tests/e2e/specs/resource-allocations.spec.ts
+import { test, expect } from '@playwright/test';
+import { AllocationsPage } from '../pages/AllocationsPage';
+import { AllocationFixtures } from '../fixtures/AllocationFixtures';
+import { DatabaseManager } from '../utils/DatabaseManager';
+
+test.describe('Resource Allocations', () => {
+  let allocationsPage: AllocationsPage;
+  let dbManager: DatabaseManager;
+
+  test.beforeEach(async ({ page }) => {
+    allocationsPage = new AllocationsPage(page);
+    dbManager = DatabaseManager.getInstance();
+    
+    await dbManager.resetDatabase();
+    await dbManager.seedDefaultData();
+    await allocationsPage.navigateTo();
+  });
+
+  test('should create new allocation', async () => {
+    const newAllocation = AllocationFixtures.createValidAllocation();
+    
+    await allocationsPage.createAllocation(newAllocation);
+    await allocationsPage.expectAllocationCount(1);
+  });
+
+  test('should validate over-allocation', async () => {
+    const overAllocation = AllocationFixtures.createOverAllocation();
+    
+    await allocationsPage.createAllocation(overAllocation);
+    
+    // Should show validation warning
+    await expect(allocationsPage.page.getByTestId('validation-warning')).toBeVisible();
+  });
+
+  test('should switch between calendar and timeline views', async () => {
+    await allocationsPage.switchToCalendarView();
+    await expect(allocationsPage.page.getByTestId('allocations-calendar')).toBeVisible();
+    
+    await allocationsPage.switchToTimelineView();
+    await expect(allocationsPage.page.getByTestId('allocations-timeline')).toBeVisible();
+  });
+});
 ```
 
 ### CI/CD Integration
@@ -1164,64 +1840,72 @@ export default defineConfig({
 
 ```typescript
 // Migration Pattern: Strangler Fig
-// Gradually replace monolithic components with new architecture
+// Gradually replace monolithic components with new Resource Management Platform architecture
 
 // Phase 1: Extract Services
 // - Move API calls from components to services
-// - Implement service interfaces
-// - Add error handling
+// - Implement service interfaces for capacity, allocations, projects
+// - Add error handling and WebSocket integration
+// - Standardize on PostgreSQL with UUID primary keys
 
 // Phase 2: Component Decomposition  
-// - Extract reusable components
-// - Implement page-level components
-// - Add proper state management
+// - Extract reusable components (DataTable, Charts, Forms)
+// - Implement domain-specific components (Capacity, Allocations, Projects)
+// - Add proper state management with real-time updates
+// - Implement capacity planning and heat map components
 
 // Phase 3: Routing Restructure
-// - Implement proper routing
-// - Add lazy loading
-// - Optimize bundle splitting
+// - Implement proper routing for all platform features
+// - Add lazy loading for capacity, analytics, scenarios
+// - Optimize bundle splitting for large datasets
+// - Add route guards for approval workflows
 
 // Phase 4: Testing Integration
-// - Add comprehensive E2E tests
-// - Implement page object patterns
-// - Set up CI/CD pipeline
+// - Add comprehensive E2E tests for capacity planning
+// - Implement page object patterns for complex workflows
+// - Set up CI/CD pipeline with database migrations
+// - Add performance testing for capacity calculations
 
-// Implementation Timeline
+// Implementation Timeline for Resource Management Platform
 const migrationPhases = {
   phase1: {
-    duration: '2-3 weeks',
+    duration: '3-4 weeks',
     tasks: [
-      'Extract API services',
-      'Implement error handling',
-      'Add service interfaces',
+      'Extract API services (capacity, allocations, projects)',
+      'Implement WebSocket integration',
+      'Add service interfaces for all domains',
+      'Standardize on PostgreSQL with UUIDs',
       'Update dependency injection'
     ]
   },
   phase2: {
-    duration: '3-4 weeks', 
+    duration: '4-5 weeks', 
     tasks: [
-      'Break down App.tsx',
-      'Create page components',
-      'Implement custom hooks',
-      'Add proper state management'
+      'Break down App.tsx into domain components',
+      'Create capacity planning components',
+      'Implement heat map and analytics components',
+      'Add real-time state management',
+      'Implement scenario planning components'
     ]
   },
   phase3: {
-    duration: '2-3 weeks',
+    duration: '3-4 weeks',
     tasks: [
-      'Restructure routing',
-      'Add lazy loading',
-      'Optimize performance',
-      'Implement error boundaries'
+      'Restructure routing for all platform features',
+      'Add lazy loading for heavy components',
+      'Optimize performance for large datasets',
+      'Implement error boundaries and validation',
+      'Add approval workflow routing'
     ]
   },
   phase4: {
-    duration: '2-3 weeks',
+    duration: '3-4 weeks',
     tasks: [
-      'Create E2E test suite',
-      'Implement page objects',
-      'Set up CI/CD pipeline',
-      'Add monitoring'
+      'Create comprehensive E2E test suite',
+      'Implement page objects for complex workflows',
+      'Set up CI/CD pipeline with database migrations',
+      'Add monitoring and performance testing',
+      'Implement capacity calculation testing'
     ]
   }
 };
@@ -1298,6 +1982,8 @@ const VirtualizedEmployeeList = ({ employees }: { employees: Employee[] }) => {
 };
 
 // 4. Request Optimization
+import { useQuery } from '@tanstack/react-query';
+
 const useOptimizedEmployees = () => {
   return useQuery({
     queryKey: ['employees'],
@@ -1374,3 +2060,31 @@ const sanitizeErrorMessage = (error: any): string => {
 ```
 
 This comprehensive architectural solution addresses all critical issues identified in the current codebase and provides clear implementation guidelines for building a maintainable, scalable, and testable application architecture.
+
+### Appendix: HTTP Caching Example
+
+```typescript
+// Example: Controller with explicit caching for read-heavy endpoints
+// src/controllers/capacity.controller.ts
+export async function getCapacityHeatmap(req: Request, res: Response) {
+  const filters = parseHeatmapFilters(req);
+
+  // Cache public data for 5 minutes; adjust per business rules
+  res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+
+  const data = await capacityService.getCapacityHeatmap(filters);
+  return res.status(200).json({ success: true, data });
+}
+
+// Example: private data (user-specific)
+export async function getEmployeeCapacity(req: Request, res: Response) {
+  const { employeeId } = req.params;
+  const dateRange = parseDateRange(req);
+
+  // Private caches should not be shared by proxies
+  res.setHeader('Cache-Control', 'private, max-age=120');
+
+  const data = await capacityService.calculateRealTimeCapacity(employeeId, dateRange);
+  return res.status(200).json({ success: true, data });
+}
+```
