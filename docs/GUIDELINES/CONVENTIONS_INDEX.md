@@ -13,6 +13,7 @@ This index ties conventions to `docs/plan.md` and the PHASE1 epics.
 - Deployment: `docs/GUIDELINES/DEPLOYMENT_CHECKLIST.md`
 - Contributing: `docs/GUIDELINES/CONTRIBUTING.md`
 - ADR Template: `docs/GUIDELINES/ADR_TEMPLATE.md`
+ - Git Feature Workflow: `docs/GUIDELINES/GIT_FEATURE_WORKFLOW.md`
 
 For epic-specific details, see:
 - `docs/PHASE1/PHASE_1_EPIC_BREAKDOWN.md`
