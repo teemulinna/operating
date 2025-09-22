@@ -334,7 +334,7 @@ export class CapacityHeatmapService {
       logger.info('Heatmap views refreshed:', result.rows);
 
       // Clear cache after refresh
-      await this.cache.clearPattern('heatmap:*');
+      await this.cache.delete('heatmap:*');
 
       // Notify clients of refresh
       this.ws.broadcast('capacity:refreshed', {

@@ -11,6 +11,11 @@ import { SkillService } from '../services/skill.service';
 import { AllocationServiceWrapper } from '../services/allocation-service-wrapper';
 import { DependencyService } from '../services/dependency.service';
 import { ScheduleManagementService } from '../services/schedule-management.service';
+import { CacheService } from '../services/cache.service';
+import { WebSocketService } from '../websocket/websocket.service';
+import { AvailabilityPatternService } from '../services/availability-pattern.service';
+import { ScenarioPlanner } from '../services/scenario-planner.service';
+import { ResourceAnalyticsService } from '../services/resource-analytics.service';
 import { ExportController } from '../controllers/exportController';
 import { initializeModels } from '../models';
 
@@ -25,6 +30,11 @@ export const SERVICE_NAMES = {
   ALLOCATION: 'AllocationService',
   DEPENDENCY: 'DependencyService',
   SCHEDULE_MANAGEMENT: 'ScheduleManagementService',
+  CACHE: 'CacheService',
+  WEBSOCKET: 'WebSocketService',
+  AVAILABILITY_PATTERN: 'AvailabilityPatternService',
+  SCENARIO_PLANNER: 'ScenarioPlanner',
+  RESOURCE_ANALYTICS: 'ResourceAnalyticsService',
 } as const;
 
 /**
@@ -83,6 +93,61 @@ export function configureServices(): void {
       return new ScheduleManagementService();
     }
   );
+
+  // Register cache service as singleton
+  registerService.singleton(
+    SERVICE_NAMES.CACHE,
+    () => {
+      return CacheService.getInstance({
+        maxSize: 1000,
+        defaultTTL: 3600,
+        evictionPolicy: 'LRU',
+        cleanupIntervalMs: 60000
+      });
+    }
+  );
+
+  // Register WebSocket service as singleton
+  registerService.singleton(
+    SERVICE_NAMES.WEBSOCKET,
+    () => {
+      return WebSocketService.getInstance();
+    }
+  );
+
+  // Register ResourceAnalyticsService
+  registerService.singleton(
+    SERVICE_NAMES.RESOURCE_ANALYTICS,
+    () => {
+      const db = container.resolve<DatabaseService>(SERVICE_NAMES.DATABASE);
+      // ResourceAnalyticsService constructor needs to be adjusted to accept Pool
+      return new ResourceAnalyticsService(db.getPool());
+    }
+  );
+
+  // Register AvailabilityPatternService
+  registerService.singleton(
+    SERVICE_NAMES.AVAILABILITY_PATTERN,
+    () => {
+      const db = container.resolve<DatabaseService>(SERVICE_NAMES.DATABASE);
+      const cache = container.resolve<CacheService>(SERVICE_NAMES.CACHE);
+      const ws = container.resolve<WebSocketService>(SERVICE_NAMES.WEBSOCKET);
+      return new AvailabilityPatternService(db.getPool(), cache, ws);
+    }
+  );
+
+  // Register ScenarioPlanner
+  registerService.singleton(
+    SERVICE_NAMES.SCENARIO_PLANNER,
+    () => {
+      const db = container.resolve<DatabaseService>(SERVICE_NAMES.DATABASE);
+      const cache = container.resolve<CacheService>(SERVICE_NAMES.CACHE);
+      const ws = container.resolve<WebSocketService>(SERVICE_NAMES.WEBSOCKET);
+      const availability = container.resolve<AvailabilityPatternService>(SERVICE_NAMES.AVAILABILITY_PATTERN);
+      const analytics = container.resolve<ResourceAnalyticsService>(SERVICE_NAMES.RESOURCE_ANALYTICS);
+      return new ScenarioPlanner(db.getPool(), cache, ws, availability, analytics);
+    }
+  );
 }
 
 /**
@@ -96,6 +161,11 @@ export const Services = {
   allocation: () => container.resolve<AllocationServiceWrapper>(SERVICE_NAMES.ALLOCATION),
   dependency: () => container.resolve<DependencyService>(SERVICE_NAMES.DEPENDENCY),
   scheduleManagement: () => container.resolve<ScheduleManagementService>(SERVICE_NAMES.SCHEDULE_MANAGEMENT),
+  cache: () => container.resolve<CacheService>(SERVICE_NAMES.CACHE),
+  websocket: () => container.resolve<WebSocketService>(SERVICE_NAMES.WEBSOCKET),
+  availabilityPattern: () => container.resolve<AvailabilityPatternService>(SERVICE_NAMES.AVAILABILITY_PATTERN),
+  scenarioPlanner: () => container.resolve<ScenarioPlanner>(SERVICE_NAMES.SCENARIO_PLANNER),
+  resourceAnalytics: () => container.resolve<ResourceAnalyticsService>(SERVICE_NAMES.RESOURCE_ANALYTICS),
 };
 
 /**
