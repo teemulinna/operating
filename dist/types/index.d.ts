@@ -7,7 +7,8 @@ export interface Employee {
     position: string;
     hireDate: Date;
     isActive: boolean;
-    defaultHours: number;
+    weeklyCapacity: number;
+    salary?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -155,7 +156,8 @@ export interface CreateEmployeeInput {
     departmentId: string;
     position: string;
     hireDate: Date;
-    defaultHours?: number;
+    weeklyCapacity?: number;
+    salary?: number;
 }
 export interface UpdateEmployeeInput {
     firstName?: string;
@@ -164,8 +166,8 @@ export interface UpdateEmployeeInput {
     departmentId?: string;
     position?: string;
     isActive?: boolean;
-    defaultHours?: number;
-    maxCapacityHours?: number;
+    weeklyCapacity?: number;
+    salary?: number;
 }
 export interface CreateDepartmentInput {
     name: string;
@@ -302,7 +304,9 @@ export interface UtilizationSummary {
     conflictsCount: number;
 }
 export declare enum OverAllocationSeverity {
-    WARNING = "warning",
+    LOW = "low",
+    MEDIUM = "medium",
+    HIGH = "high",
     CRITICAL = "critical"
 }
 export interface OverAllocationWarning {
@@ -327,6 +331,7 @@ export interface OverAllocationSummary {
     hasOverAllocations: boolean;
     totalWarnings: number;
     totalCritical: number;
+    criticalCount?: number;
     warnings: OverAllocationWarning[];
     weeklyBreakdown: Array<{
         weekStartDate: Date;
@@ -334,6 +339,9 @@ export interface OverAllocationSummary {
         warningCount: number;
         criticalCount: number;
     }>;
+    totalEmployees?: number;
+    overAllocatedCount?: number;
+    averageUtilization?: number;
 }
 export interface UpdateResourceAllocationInput {
     allocatedHours?: number;

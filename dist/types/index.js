@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DatabaseError = exports.OverAllocationSeverity = exports.AllocationStatus = exports.RequirementPriority = exports.ProjectPriority = exports.ProjectStatus = exports.ProficiencyLevel = exports.SkillCategory = void 0;
-// Enums
 var SkillCategory;
 (function (SkillCategory) {
     SkillCategory["TECHNICAL"] = "technical";
@@ -40,7 +39,6 @@ var RequirementPriority;
     RequirementPriority["REQUIRED"] = "required";
     RequirementPriority["CRITICAL"] = "critical";
 })(RequirementPriority || (exports.RequirementPriority = RequirementPriority = {}));
-// Allocation-specific enums and interfaces
 var AllocationStatus;
 (function (AllocationStatus) {
     AllocationStatus["TENTATIVE"] = "tentative";
@@ -48,10 +46,11 @@ var AllocationStatus;
     AllocationStatus["COMPLETED"] = "completed";
     AllocationStatus["CANCELLED"] = "cancelled";
 })(AllocationStatus || (exports.AllocationStatus = AllocationStatus = {}));
-// Over-allocation Warning Types
 var OverAllocationSeverity;
 (function (OverAllocationSeverity) {
-    OverAllocationSeverity["WARNING"] = "warning";
+    OverAllocationSeverity["LOW"] = "low";
+    OverAllocationSeverity["MEDIUM"] = "medium";
+    OverAllocationSeverity["HIGH"] = "high";
     OverAllocationSeverity["CRITICAL"] = "critical";
 })(OverAllocationSeverity || (exports.OverAllocationSeverity = OverAllocationSeverity = {}));
 class DatabaseError extends Error {
@@ -61,10 +60,10 @@ class DatabaseError extends Error {
         if (code !== undefined) {
             this.code = code;
         }
-        // Maintains proper stack trace for where our error was thrown (only available on V8)
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, DatabaseError);
         }
     }
 }
 exports.DatabaseError = DatabaseError;
+//# sourceMappingURL=index.js.map

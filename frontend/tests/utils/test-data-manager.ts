@@ -263,7 +263,7 @@ export class TestDataManager {
         email: `test.user.${timestamp}.${index}@test-automation.com`,
         position: `Test Position ${index}`,
         department: 'Test Department',
-        defaultHoursPerWeek: 40
+        weeklyCapacity: 40
       };
     }
 

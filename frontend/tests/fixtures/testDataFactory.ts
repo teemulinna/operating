@@ -7,7 +7,7 @@ export interface TestEmployee {
   email: string;
   position: string;
   departmentId: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
   salary: number;
 }
 
@@ -64,7 +64,7 @@ export class TestDataFactory {
       email: overrides.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@test-${this.employeeCounter++}.com`,
       position: overrides.position || faker.person.jobTitle(),
       departmentId: overrides.departmentId || department.id,
-      defaultHoursPerWeek: overrides.defaultHoursPerWeek || faker.number.int({ min: 20, max: 40 }),
+      weeklyCapacity: overrides.weeklyCapacity || faker.number.int({ min: 20, max: 40 }),
       salary: overrides.salary || faker.number.int({ min: 40000, max: 120000 }),
       ...overrides
     };
@@ -152,7 +152,7 @@ export class TestDataFactory {
           email: 'john.doe@test.com',
           position: 'Software Engineer',
           departmentId: DEPARTMENTS[0].id,
-          defaultHoursPerWeek: 40,
+          weeklyCapacity: 40,
           salary: 100000
         },
         {
@@ -161,7 +161,7 @@ export class TestDataFactory {
           email: 'jane.smith@test.com',
           position: 'Product Manager',
           departmentId: DEPARTMENTS[1].id,
-          defaultHoursPerWeek: 40,
+          weeklyCapacity: 40,
           salary: 120000
         }
       ],
@@ -190,7 +190,7 @@ export class TestDataFactory {
         invalidEmail: this.createEmployee({ email: 'invalid-email' }),
         emptyFirstName: this.createEmployee({ firstName: '' }),
         emptyLastName: this.createEmployee({ lastName: '' }),
-        invalidHours: this.createEmployee({ defaultHoursPerWeek: 0 }),
+        invalidHours: this.createEmployee({ weeklyCapacity: 0 }),
         negativeSalary: this.createEmployee({ salary: -1000 })
       },
       project: {

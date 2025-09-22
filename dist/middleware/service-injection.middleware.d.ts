@@ -3,14 +3,14 @@ import { DatabaseService } from '../database/database.service';
 import { DepartmentService } from '../services/department.service';
 import { EmployeeService } from '../services/employee.service';
 import { SkillService } from '../services/skill.service';
-import { AllocationService } from '../services/allocation.service';
+import { AllocationServiceWrapper } from '../services/allocation-service-wrapper';
 export interface RequestWithServices extends Request {
     services: {
         database: DatabaseService;
         department: DepartmentService;
         employee: EmployeeService;
         skill: SkillService;
-        allocation: AllocationService;
+        allocation: AllocationServiceWrapper;
     };
 }
 export declare const serviceInjectionMiddleware: (req: Request, res: Response, next: NextFunction) => Promise<void>;

@@ -7,7 +7,6 @@ const exportController_1 = require("../controllers/exportController");
 const validate_middleware_1 = require("../middleware/validate.middleware");
 const router = (0, express_1.Router)();
 exports.exportRoutes = router;
-// Validation rules
 const csvExportValidation = [
     (0, express_validator_1.body)('filters')
         .optional()
@@ -149,16 +148,8 @@ const bulkUpdateValidation = [
         .isObject()
         .withMessage('Updates must be an object'),
 ];
-// Routes
-/**
- * @route GET /api/export/employees/csv
- * @description Export employee data as CSV (simple GET request)
- * @access Public
- * @query {string} [filters] - Filter criteria as query params
- */
 router.get('/employees/csv', async (req, res) => {
     try {
-        // Simple CSV export for employees - just return basic structure for testing
         const csvHeaders = ['ID', 'First Name', 'Last Name', 'Email', 'Position', 'Department', 'Status'];
         const csvRows = [
             ['emp-1', 'John', 'Doe', 'john.doe@example.com', 'Developer', 'Engineering', 'available'],
@@ -175,14 +166,8 @@ router.get('/employees/csv', async (req, res) => {
         res.status(500).json({ error: 'Failed to export employees', message: error.message });
     }
 });
-/**
- * @route GET /api/export/projects/csv
- * @description Export projects data as CSV
- * @access Public
- */
 router.get('/projects/csv', async (req, res) => {
     try {
-        // Simple CSV export for projects - just return basic structure for testing
         const csvHeaders = ['ID', 'Name', 'Description', 'Status', 'Start Date', 'End Date', 'Budget', 'Created Date'];
         const csvRows = [
             ['sample-id-1', 'Sample Project 1', 'Sample Description 1', 'active', '2024-01-01', '2024-12-31', '50000', '2024-01-01'],
@@ -198,14 +183,8 @@ router.get('/projects/csv', async (req, res) => {
         res.status(500).json({ error: 'Failed to export projects', message: error.message });
     }
 });
-/**
- * @route GET /api/export/allocations/csv
- * @description Export allocations data as CSV
- * @access Public
- */
 router.get('/allocations/csv', async (req, res) => {
     try {
-        // Simple CSV export for allocations - just return basic structure for testing
         const csvHeaders = ['ID', 'Employee Name', 'Project Name', 'Role', 'Allocated Hours', 'Start Date', 'End Date', 'Status'];
         const csvRows = [
             ['sample-id-1', 'John Doe', 'Sample Project 1', 'Developer', '40', '2024-01-01', '2024-12-31', 'active'],
@@ -221,24 +200,9 @@ router.get('/allocations/csv', async (req, res) => {
         res.status(500).json({ error: 'Failed to export allocations', message: error.message });
     }
 });
-/**
- * @route POST /api/export/employees/csv
- * @description Export filtered employee data as CSV (with POST filters)
- * @access Public
- * @body {Object} [filters] - Filter criteria for employees
- * @body {Array} [fields] - Array of fields to include in export
- */
 router.post('/employees/csv', csvExportValidation, validate_middleware_1.validateRequest, (req, res) => exportController_1.ExportController.exportEmployeesCSV(req, res));
-/**
- * @route POST /api/export/projects/csv
- * @description Export filtered project data as CSV
- * @access Public
- * @body {Object} [filters] - Filter criteria for projects
- * @body {Array} [fields] - Array of fields to include in export
- */
 router.post('/projects/csv', async (req, res) => {
     try {
-        // Simple CSV export for projects
         const csvHeaders = ['ID', 'Name', 'Description', 'Status', 'Start Date', 'End Date', 'Budget', 'Created Date'];
         const csvRows = [
             ['sample-id-1', 'Sample Project 1', 'Sample Description 1', 'active', '2024-01-01', '2024-12-31', '50000', '2024-01-01'],
@@ -254,16 +218,8 @@ router.post('/projects/csv', async (req, res) => {
         res.status(500).json({ error: 'Failed to export projects', message: error.message });
     }
 });
-/**
- * @route POST /api/export/allocations/csv
- * @description Export filtered allocation data as CSV
- * @access Public
- * @body {Object} [filters] - Filter criteria for allocations
- * @body {Array} [fields] - Array of fields to include in export
- */
 router.post('/allocations/csv', async (req, res) => {
     try {
-        // Simple CSV export for allocations
         const csvHeaders = ['ID', 'Employee Name', 'Project Name', 'Role', 'Allocated Hours', 'Start Date', 'End Date', 'Status'];
         const csvRows = [
             ['sample-id-1', 'John Doe', 'Sample Project 1', 'Developer', '40', '2024-01-01', '2024-12-31', 'active'],
@@ -279,59 +235,13 @@ router.post('/allocations/csv', async (req, res) => {
         res.status(500).json({ error: 'Failed to export allocations', message: error.message });
     }
 });
-/**
- * @route POST /api/export/employees/excel
- * @description Export filtered employee data as Excel workbook
- * @access Public
- * @body {Object} [filters] - Filter criteria for employees
- * @body {boolean} [includeCharts] - Whether to include charts in the export
- * @body {Array} [worksheets] - Array of worksheets to include
- */
 router.post('/employees/excel', excelExportValidation, validate_middleware_1.validateRequest, (req, res) => exportController_1.ExportController.exportEmployeesExcel(req, res));
-/**
- * @route POST /api/export/capacity-report/pdf
- * @description Generate PDF capacity planning report
- * @access Public
- * @body {Object} dateRange - Date range for the report
- * @body {Array} [includeDepartments] - Array of department UUIDs to include
- * @body {string} [reportType] - Type of report (daily, weekly, monthly, quarterly, annual)
- * @body {boolean} [includeCharts] - Whether to include charts in the report
- * @body {boolean} [includeProjections] - Whether to include capacity projections
- */
 router.post('/capacity-report/pdf', pdfReportValidation, validate_middleware_1.validateRequest, (req, res) => exportController_1.ExportController.generateCapacityReportPDF(req, res));
-/**
- * @route POST /api/export/schedule
- * @description Schedule automated reports
- * @access Public
- * @body {string} reportType - Type of report to schedule
- * @body {string} frequency - How often to run the report
- * @body {string} format - Output format (csv, excel, pdf)
- * @body {Array} recipients - Array of email addresses to send reports to
- * @body {Object} [filters] - Filter criteria to apply to scheduled reports
- * @body {string} [startDate] - When to start the schedule
- */
 router.post('/schedule', scheduleReportValidation, validate_middleware_1.validateRequest, (req, res) => exportController_1.ExportController.scheduleReport(req, res));
-/**
- * @route POST /api/integration/external/sync
- * @description Sync data with external project management tools
- * @access Public
- * @body {Array} targetSystems - Array of system names to sync with
- * @body {string} syncType - Type of data to sync
- * @body {Object} data - Data to sync to external systems
- */
 router.post('/external/sync', externalSyncValidation, validate_middleware_1.validateRequest, (req, res) => exportController_1.ExportController.syncWithExternalTools(req, res));
-/**
- * @route PUT /api/employees/bulk-update
- * @description Bulk update employee data
- * @access Public
- * @body {Array} updates - Array of update objects with employeeId and updates
- */
 router.put('/bulk-update', bulkUpdateValidation, validate_middleware_1.validateRequest, async (req, res) => {
     try {
-        // This route is handled by the availability controller for capacity updates
-        // but can be extended for other bulk operations
         const { updates } = req.body;
-        // Transform updates to availability format if they contain capacity data
         const availabilityUpdates = updates.filter((update) => update.updates.capacity !== undefined ||
             update.updates.status !== undefined ||
             update.updates.availableHours !== undefined ||
@@ -340,11 +250,9 @@ router.put('/bulk-update', bulkUpdateValidation, validate_middleware_1.validateR
             ...update.updates
         }));
         if (availabilityUpdates.length > 0) {
-            // Use the availability controller for capacity-related updates
             req.body = { updates: availabilityUpdates };
             return await require('../controllers/availabilityController').AvailabilityController.bulkUpdateAvailability(req, res);
         }
-        // Handle other bulk updates here (position changes, department transfers, etc.)
         res.json({
             success: true,
             message: 'No availability updates to process',
@@ -360,3 +268,4 @@ router.put('/bulk-update', bulkUpdateValidation, validate_middleware_1.validateR
         });
     }
 });
+//# sourceMappingURL=exportRoutes.js.map

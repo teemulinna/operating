@@ -46,7 +46,9 @@ export function EmployeeManagement() {
         ]);
         
         setEmployees(employeesData.data || []);
-        setDepartments(departmentsData.data || []);
+        // API returns departments array directly, not wrapped in data property
+        console.log('Departments API response:', departmentsData);
+        setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
       } catch (err) {
         console.error('Error fetching data:', err);
         showToast('Failed to load data', 'error');
@@ -70,7 +72,21 @@ export function EmployeeManagement() {
       if (!response.ok) throw new Error('Failed to create employee');
       
       const result = await response.json();
-      setEmployees(prev => [...prev, result.data]);
+      // POST endpoint returns the employee directly, not wrapped in data
+      const newEmployee = result.data || result;
+
+      // Add department name to the new employee
+      const department = departments.find(d => d.id === newEmployee.departmentId);
+      if (department) {
+        newEmployee.departmentName = department.name;
+      }
+
+      // Ensure weeklyCapacity is included (API might not return it)
+      if (newEmployee.weeklyCapacity === undefined) {
+        newEmployee.weeklyCapacity = formData.weeklyCapacity;
+      }
+
+      setEmployees(prev => [...prev, newEmployee]);
       showToast('Employee created successfully', 'success');
       setIsFormOpen(false);
       setSelectedEmployee(null);
@@ -95,7 +111,21 @@ export function EmployeeManagement() {
       if (!response.ok) throw new Error('Failed to update employee');
       
       const result = await response.json();
-      setEmployees(prev => prev.map(emp => emp.id === selectedEmployee.id ? result.data : emp));
+      // PUT endpoint returns the employee directly, not wrapped in data
+      const updatedEmployee = result.data || result;
+
+      // Add department name to the updated employee
+      const department = departments.find(d => d.id === updatedEmployee.departmentId);
+      if (department) {
+        updatedEmployee.departmentName = department.name;
+      }
+
+      // Ensure weeklyCapacity is included (API might not return it)
+      if (updatedEmployee.weeklyCapacity === undefined) {
+        updatedEmployee.weeklyCapacity = formData.weeklyCapacity;
+      }
+
+      setEmployees(prev => prev.map(emp => emp.id === selectedEmployee.id ? updatedEmployee : emp));
       showToast('Employee updated successfully', 'success');
       setIsFormOpen(false);
       setSelectedEmployee(null);

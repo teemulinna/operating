@@ -13,9 +13,6 @@ class ExportController {
         this.pool = pool;
         console.log('✅ ExportController initialized successfully');
     }
-    /**
-     * Export employees as CSV
-     */
     static async exportEmployeesCSV(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -28,7 +25,6 @@ class ExportController {
                 return;
             }
             const { filters = {}, fields = ['firstName', 'lastName', 'email', 'position', 'departmentName', 'status'] } = req.body;
-            // Build query based on filters
             let whereConditions = ['e.is_active = true'];
             const values = [];
             if (filters.status && filters.status !== 'all') {
@@ -81,7 +77,6 @@ class ExportController {
             }
             const result = await this.pool.query(query, values);
             const employees = result.rows;
-            // Map field names for CSV headers
             const fieldMapping = {
                 firstName: 'First Name',
                 lastName: 'Last Name',
@@ -96,9 +91,7 @@ class ExportController {
                 createdAt: 'Created At',
                 updatedAt: 'Updated At'
             };
-            // Generate CSV headers
             const csvHeaders = fields.map((field) => fieldMapping[field] || field).join(',');
-            // Generate CSV rows
             const csvRows = employees.map(employee => {
                 return fields.map((field) => {
                     let value;
@@ -130,7 +123,6 @@ class ExportController {
                         default:
                             value = employee[field];
                     }
-                    // Escape CSV values
                     if (value === null || value === undefined) {
                         return '';
                     }
@@ -158,9 +150,6 @@ class ExportController {
             });
         }
     }
-    /**
-     * Export projects as CSV
-     */
     static async exportProjectsCSV(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -173,7 +162,6 @@ class ExportController {
                 return;
             }
             const { filters = {}, fields = ['name', 'status', 'startDate', 'endDate', 'budget', 'description'] } = req.body;
-            // Build query based on filters
             let whereConditions = ['p.is_active = true'];
             const values = [];
             if (filters.status && filters.status !== 'all') {
@@ -208,7 +196,6 @@ class ExportController {
       `;
             const result = await this.pool.query(query, values);
             const projects = result.rows;
-            // Map field names for CSV headers
             const fieldMapping = {
                 name: 'Project Name',
                 description: 'Description',
@@ -220,9 +207,7 @@ class ExportController {
                 createdAt: 'Created At',
                 updatedAt: 'Updated At'
             };
-            // Generate CSV headers
             const csvHeaders = fields.map((field) => fieldMapping[field] || field).join(',');
-            // Generate CSV rows
             const csvRows = projects.map(project => {
                 return fields.map((field) => {
                     let value;
@@ -245,7 +230,6 @@ class ExportController {
                         default:
                             value = project[field];
                     }
-                    // Escape CSV values
                     if (value === null || value === undefined) {
                         return '';
                     }
@@ -273,9 +257,6 @@ class ExportController {
             });
         }
     }
-    /**
-     * Export allocations as CSV
-     */
     static async exportAllocationsCSV(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -288,7 +269,6 @@ class ExportController {
                 return;
             }
             const { filters = {}, fields = ['employeeName', 'projectName', 'plannedHoursPerWeek', 'startDate', 'endDate', 'status'] } = req.body;
-            // Build query based on filters
             let whereConditions = ['ra.status = \'active\''];
             const values = [];
             if (filters.employeeId) {
@@ -331,7 +311,6 @@ class ExportController {
       `;
             const result = await this.pool.query(query, values);
             const allocations = result.rows;
-            // Map field names for CSV headers
             const fieldMapping = {
                 employeeName: 'Employee Name',
                 employeeEmail: 'Employee Email',
@@ -347,9 +326,7 @@ class ExportController {
                 createdAt: 'Created At',
                 updatedAt: 'Updated At'
             };
-            // Generate CSV headers
             const csvHeaders = fields.map((field) => fieldMapping[field] || field).join(',');
-            // Generate CSV rows
             const csvRows = allocations.map(allocation => {
                 return fields.map((field) => {
                     let value;
@@ -364,7 +341,6 @@ class ExportController {
                             value = allocation.project_name;
                             break;
                         case 'plannedHoursPerWeek':
-                            // Calculate hours per week if not available
                             if (allocation.planned_hours_per_week) {
                                 value = allocation.planned_hours_per_week;
                             }
@@ -396,7 +372,6 @@ class ExportController {
                         default:
                             value = allocation[field];
                     }
-                    // Escape CSV values
                     if (value === null || value === undefined) {
                         return '';
                     }
@@ -424,9 +399,6 @@ class ExportController {
             });
         }
     }
-    /**
-     * Export employees as Excel
-     */
     static async exportEmployeesExcel(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -438,11 +410,7 @@ class ExportController {
                 });
                 return;
             }
-            const { filters = {}, 
-            // _includeCharts = false,
-            // _worksheets = ['employees'],
-            fields = ['firstName', 'lastName', 'email', 'position', 'departmentName', 'status'] } = req.body;
-            // Build query based on filters (same logic as CSV export)
+            const { filters = {}, fields = ['firstName', 'lastName', 'email', 'position', 'departmentName', 'status'] } = req.body;
             let whereConditions = ['e.is_active = true'];
             const values = [];
             if (filters.status && filters.status !== 'all') {
@@ -486,13 +454,10 @@ class ExportController {
       `;
             const result = await this.pool.query(query, values);
             const employees = result.rows;
-            // Create Excel workbook
             const workbook = new exceljs_1.default.Workbook();
             workbook.creator = 'Resource Management System';
             workbook.created = new Date();
-            // Create worksheet
             const worksheet = workbook.addWorksheet('Employees');
-            // Map field names for headers
             const fieldMapping = {
                 firstName: 'First Name',
                 lastName: 'Last Name',
@@ -507,10 +472,8 @@ class ExportController {
                 createdAt: 'Created At',
                 updatedAt: 'Updated At'
             };
-            // Add headers
             const headers = fields.map((field) => fieldMapping[field] || field);
             const headerRow = worksheet.addRow(headers);
-            // Style the header row
             headerRow.eachCell((cell) => {
                 cell.font = { bold: true, color: { argb: 'FFFFFF' } };
                 cell.fill = {
@@ -525,7 +488,6 @@ class ExportController {
                     right: { style: 'thin' }
                 };
             });
-            // Add data rows
             employees.forEach(employee => {
                 const rowData = fields.map((field) => {
                     switch (field) {
@@ -550,7 +512,6 @@ class ExportController {
                     }
                 });
                 const dataRow = worksheet.addRow(rowData);
-                // Style data rows
                 dataRow.eachCell((cell) => {
                     cell.border = {
                         top: { style: 'thin' },
@@ -560,14 +521,12 @@ class ExportController {
                     };
                 });
             });
-            // Auto-fit columns
             worksheet.columns.forEach(column => {
                 if (column.header) {
                     const maxLength = Math.max(column.header.length, ...column.values?.map(v => (v ? v.toString().length : 0)) || [0]);
                     column.width = Math.min(Math.max(maxLength + 2, 10), 50);
                 }
             });
-            // Generate Excel buffer
             const buffer = await workbook.xlsx.writeBuffer();
             const timestamp = new Date().toISOString().split('T')[0];
             const filename = `employees_export_${timestamp}.xlsx`;
@@ -585,9 +544,6 @@ class ExportController {
             });
         }
     }
-    /**
-     * Generate PDF capacity planning report
-     */
     static async generateCapacityReportPDF(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -600,7 +556,6 @@ class ExportController {
                 return;
             }
             const { dateRange, includeDepartments = [], reportType = 'quarterly', includeCharts = true, includeProjections = true } = req.body;
-            // Get capacity data for report
             let whereConditions = ['e.is_active = true'];
             const values = [];
             if (includeDepartments.length > 0) {
@@ -625,7 +580,6 @@ class ExportController {
       `;
             const result = await this.pool.query(query, values);
             const capacityData = result.rows;
-            // Create PDF document
             const doc = new pdfkit_1.default();
             const chunks = [];
             doc.on('data', (chunk) => chunks.push(chunk));
@@ -638,14 +592,12 @@ class ExportController {
                 res.setHeader('Content-Length', pdfData.length);
                 res.send(pdfData);
             });
-            // Add content to PDF
             doc.fontSize(20).text('Capacity Planning Report', 50, 50);
             doc.fontSize(14).text(`Report Type: ${reportType}`, 50, 80);
             doc.text(`Generated: ${new Date().toLocaleDateString()}`, 50, 100);
             if (dateRange) {
                 doc.text(`Date Range: ${dateRange.startDate} - ${dateRange.endDate}`, 50, 120);
             }
-            // Add summary section
             doc.fontSize(16).text('Department Summary', 50, 160);
             let yPosition = 190;
             const totalEmployees = capacityData.reduce((sum, dept) => sum + parseInt(dept.total_employees), 0);
@@ -655,10 +607,8 @@ class ExportController {
             yPosition += 20;
             doc.text(`Average Capacity: ${avgCapacity.toFixed(1)}%`, 50, yPosition);
             yPosition += 30;
-            // Add department details table
             doc.fontSize(14).text('Department Details', 50, yPosition);
             yPosition += 30;
-            // Table headers
             doc.fontSize(10);
             doc.text('Department', 50, yPosition);
             doc.text('Total Employees', 150, yPosition);
@@ -667,12 +617,10 @@ class ExportController {
             doc.text('Busy', 390, yPosition);
             doc.text('Unavailable', 450, yPosition);
             yPosition += 20;
-            // Draw line under headers
             doc.moveTo(50, yPosition).lineTo(520, yPosition).stroke();
             yPosition += 10;
-            // Add department data
             capacityData.forEach(dept => {
-                if (yPosition > 720) { // Check if we need a new page
+                if (yPosition > 720) {
                     doc.addPage();
                     yPosition = 50;
                 }
@@ -684,7 +632,6 @@ class ExportController {
                 doc.text(dept.unavailable_count.toString(), 450, yPosition);
                 yPosition += 20;
             });
-            // Add capacity distribution chart (simple text representation)
             if (includeCharts && yPosition < 650) {
                 yPosition += 30;
                 doc.fontSize(14).text('Capacity Distribution', 50, yPosition);
@@ -704,7 +651,6 @@ class ExportController {
                     yPosition += 30;
                 });
             }
-            // Add projections if requested
             if (includeProjections && yPosition < 650) {
                 yPosition += 30;
                 doc.fontSize(14).text('Capacity Projections', 50, yPosition);
@@ -720,7 +666,6 @@ class ExportController {
                     }
                 });
             }
-            // Add footer
             doc.fontSize(8).text(`Generated by Resource Management System on ${new Date().toLocaleString()}`, 50, 750);
             doc.end();
         }
@@ -733,9 +678,6 @@ class ExportController {
             });
         }
     }
-    /**
-     * Schedule automated reports
-     */
     static async scheduleReport(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -747,10 +689,7 @@ class ExportController {
                 });
                 return;
             }
-            const { reportType, frequency, format, recipients, filters
-            // startDate
-             } = req.body;
-            // Calculate next run time based on frequency
+            const { reportType, frequency, format, recipients, filters } = req.body;
             const now = new Date();
             let nextRun;
             switch (frequency) {
@@ -766,7 +705,6 @@ class ExportController {
                 default:
                     nextRun = new Date(now.getTime() + 24 * 60 * 60 * 1000);
             }
-            // Create schedule record
             const scheduleQuery = `
         INSERT INTO report_schedules (
           report_type, frequency, format, recipients, filters, next_run, is_active, created_at
@@ -809,9 +747,6 @@ class ExportController {
             });
         }
     }
-    /**
-     * Sync data with external project management tools
-     */
     static async syncWithExternalTools(req, res) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
@@ -827,8 +762,6 @@ class ExportController {
             const syncResults = [];
             for (const system of targetSystems) {
                 try {
-                    // Mock external API integration
-                    // In production, you would make actual API calls to JIRA, Asana, etc.
                     let syncResult;
                     switch (system.toLowerCase()) {
                         case 'jira':
@@ -860,7 +793,6 @@ class ExportController {
                     });
                 }
             }
-            // Log sync attempt
             const logQuery = `
         INSERT INTO external_sync_log (
           target_systems, sync_type, sync_data, results, created_at
@@ -887,12 +819,7 @@ class ExportController {
             });
         }
     }
-    /**
-     * Mock JIRA integration
-     */
     static async syncWithJira(_syncType, data) {
-        // In production, implement actual JIRA API integration
-        // Example: await jiraClient.updateIssueCapacity(data.issueId, data.capacity);
         return {
             recordsProcessed: 1,
             details: {
@@ -902,12 +829,7 @@ class ExportController {
             }
         };
     }
-    /**
-     * Mock Asana integration
-     */
     static async syncWithAsana(_syncType, data) {
-        // In production, implement actual Asana API integration
-        // Example: await asanaClient.updateUserCapacity(data.userId, data.capacity);
         return {
             recordsProcessed: 1,
             details: {
@@ -917,12 +839,7 @@ class ExportController {
             }
         };
     }
-    /**
-     * Mock Trello integration
-     */
     static async syncWithTrello(_syncType, data) {
-        // In production, implement actual Trello API integration
-        // Example: await trelloClient.updateBoardMemberCapacity(data.boardId, data.memberId, data.capacity);
         return {
             recordsProcessed: 1,
             details: {
@@ -934,3 +851,4 @@ class ExportController {
     }
 }
 exports.ExportController = ExportController;
+//# sourceMappingURL=exportController.js.map

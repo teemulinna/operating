@@ -30,10 +30,10 @@ class ProjectModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') { // Unique constraint violation
+            if (error.code === '23505') {
                 throw new types_1.DatabaseError(`Project with name '${input.name}' already exists`);
             }
-            if (error.code === '23503') { // Foreign key constraint violation
+            if (error.code === '23503') {
                 throw new types_1.DatabaseError('Invalid manager ID or client ID');
             }
             throw error;
@@ -44,7 +44,6 @@ class ProjectModel {
       SELECT * FROM projects 
       WHERE id = $1
     `;
-        // Ensure database is connected and use fallback
         if (!this.db.isConnected()) {
             await this.db.connect();
         }
@@ -124,7 +123,6 @@ class ProjectModel {
       WHERE p.id = $1 AND p.is_active = true
       GROUP BY p.id, m.id, m.first_name, m.last_name, m.email, m.position
     `;
-        // Ensure database is connected and use fallback
         if (!this.db.isConnected()) {
             await this.db.connect();
         }
@@ -182,7 +180,6 @@ class ProjectModel {
         }
         const whereClause = whereConditions.join(' AND ');
         const offset = (page - 1) * limit;
-        // Get total count
         const countQuery = `
       SELECT COUNT(DISTINCT p.id) as total
       FROM projects p
@@ -190,7 +187,6 @@ class ProjectModel {
     `;
         const countResult = await this.pool.query(countQuery, values);
         const total = parseInt(countResult.rows[0].total);
-        // Get paginated results
         values.push(limit, offset);
         const dataQuery = `
       SELECT DISTINCT p.*
@@ -283,10 +279,10 @@ class ProjectModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') { // Unique constraint violation
+            if (error.code === '23505') {
                 throw new types_1.DatabaseError(`Project with name '${updates.name}' already exists`);
             }
-            if (error.code === '23503') { // Foreign key constraint violation
+            if (error.code === '23503') {
                 throw new types_1.DatabaseError('Invalid manager ID or client ID');
             }
             throw error;
@@ -299,7 +295,6 @@ class ProjectModel {
       WHERE id = $1 AND is_active = true
       RETURNING *
     `;
-        // Ensure database is connected and use fallback
         if (!this.db.isConnected()) {
             await this.db.connect();
         }
@@ -371,7 +366,6 @@ class ProjectModel {
         }));
     }
     static async getProjectTimeline(projectId) {
-        // This would be extended with a project_milestones table in a full implementation
         const query = `
       SELECT 
         ra.start_date as date,
@@ -419,7 +413,6 @@ class ProjectModel {
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
-        // Only set optional properties if they have values
         if (row.actual_hours !== null && row.actual_hours !== undefined) {
             project.actualHours = parseFloat(row.actual_hours);
         }
@@ -434,3 +427,4 @@ class ProjectModel {
 }
 exports.ProjectModel = ProjectModel;
 ProjectModel.db = database_service_1.DatabaseService.getInstance();
+//# sourceMappingURL=Project.js.map

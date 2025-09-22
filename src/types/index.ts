@@ -8,7 +8,8 @@ export interface Employee {
   position: string;
   hireDate: Date;
   isActive: boolean;
-  defaultHours: number;
+  weeklyCapacity: number;  // Individual employee's weekly work capacity in hours (0-168)
+  salary?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -172,7 +173,8 @@ export interface CreateEmployeeInput {
   departmentId: string;
   position: string;
   hireDate: Date;
-  defaultHours?: number;
+  weeklyCapacity?: number;  // Defaults to 40 if not specified
+  salary?: number;
 }
 
 export interface UpdateEmployeeInput {
@@ -182,8 +184,8 @@ export interface UpdateEmployeeInput {
   departmentId?: string;
   position?: string;
   isActive?: boolean;
-  defaultHours?: number;
-  maxCapacityHours?: number;
+  weeklyCapacity?: number;
+  salary?: number;
 }
 
 export interface CreateDepartmentInput {
@@ -352,7 +354,7 @@ export interface OverAllocationWarning {
   employeeName: string;
   weekStartDate: Date;
   weekEndDate: Date;
-  defaultHours: number;
+  weeklyCapacity: number;
   allocatedHours: number;
   overAllocationHours: number;
   utilizationRate: number;

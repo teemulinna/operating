@@ -6,7 +6,7 @@ export interface ProjectAllocation {
     endDate?: string;
 }
 export interface MultiProjectAssignmentData {
-    employeeId: number;
+    employeeId: string;
     projectAllocations: ProjectAllocation[];
     startDate: string;
     endDate?: string;
@@ -14,7 +14,7 @@ export interface MultiProjectAssignmentData {
 }
 export interface MultiProjectAssignment {
     id: number;
-    employeeId: number;
+    employeeId: string;
     employeeName: string;
     employeeEmail: string;
     totalAllocation: number;
@@ -36,7 +36,7 @@ export interface MultiProjectAssignment {
     updatedAt: string;
 }
 export interface EmployeeUtilization {
-    employeeId: number;
+    employeeId: string;
     employeeName: string;
     totalAllocation: number;
     availableCapacity: number;
@@ -57,16 +57,16 @@ export declare class MultiProjectAssignmentService {
     createMultiProjectAssignment(data: MultiProjectAssignmentData): Promise<MultiProjectAssignment>;
     updateMultiProjectAssignment(assignmentId: number, updateData: Partial<MultiProjectAssignmentData>): Promise<MultiProjectAssignment>;
     getMultiProjectAssignmentById(assignmentId: number): Promise<MultiProjectAssignment>;
-    getAssignmentsByEmployee(employeeId: number): Promise<MultiProjectAssignment[]>;
+    getAssignmentsByEmployee(employeeId: string): Promise<MultiProjectAssignment[]>;
     getAssignmentsByProject(projectId: number): Promise<MultiProjectAssignment[]>;
     getAssignments(filters?: {
         status?: string;
         startDate?: string;
         endDate?: string;
-        employeeId?: number;
+        employeeId: string;
         projectId?: number;
     }): Promise<MultiProjectAssignment[]>;
-    getEmployeeUtilization(employeeId: number): Promise<EmployeeUtilization>;
+    getEmployeeUtilization(employeeId: string): Promise<EmployeeUtilization>;
     private validateAssignmentData;
     private validateProjectsAndRoles;
     private validateNoConflicts;

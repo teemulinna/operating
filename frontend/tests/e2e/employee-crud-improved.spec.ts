@@ -65,8 +65,8 @@ test.describe('Employee CRUD - Improved with Data Management', () => {
       await expect(page.locator('[data-testid="employee-default-hours"]')).toBeVisible();
       
       // Default hours should have default value
-      const defaultHours = page.locator('[data-testid="employee-default-hours"]');
-      await expect(defaultHours).toHaveValue('40');
+      const weeklyCapacity = page.locator('[data-testid="employee-default-hours"]');
+      await expect(weeklyCapacity).toHaveValue('40');
       
       // Submit button should be present
       await expect(page.locator('[data-testid="submit-employee"]')).toBeVisible();

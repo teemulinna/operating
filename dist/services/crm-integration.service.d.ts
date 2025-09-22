@@ -33,5 +33,53 @@ export declare class CRMIntegrationService {
     private getProjectById;
     private updateProjectCRMId;
     private createOrUpdateProjectFromCRM;
+    syncFromCRM(crmSystemId: string, options?: {
+        entityTypes?: string[];
+        since?: Date;
+        dryRun?: boolean;
+    }): Promise<{
+        success: boolean;
+        syncedRecords: number;
+        errors: string[];
+        conflicts: Array<{
+            recordId: string;
+            field: string;
+            reason: string;
+        }>;
+    }>;
+    syncToCRM(crmSystemId: string, options?: {
+        projectIds?: string[];
+        since?: Date;
+        dryRun?: boolean;
+    }): Promise<{
+        success: boolean;
+        syncedRecords: number;
+        errors: string[];
+        conflicts: Array<{
+            recordId: string;
+            field: string;
+            reason: string;
+        }>;
+    }>;
+    mapCRMData(crmData: any, crmSystemId: string): Promise<any>;
+    handleWebhook(crmSystemId: string, payload: any): Promise<{
+        success: boolean;
+        message: string;
+        processedRecords?: number;
+    }>;
+    getLastSyncStatus(crmSystemId: string): Promise<{
+        lastSyncAt: string | null;
+        status: 'success' | 'failed' | 'pending' | 'never';
+        details?: {
+            syncedRecords?: number;
+            errors?: string[];
+            duration?: number;
+        };
+    }>;
+    private parseWebhookPayload;
+    private handleProjectEvent;
+    private handleProjectDeletion;
+    private logWebhookEvent;
+    private updateLastSyncTimestamp;
 }
 //# sourceMappingURL=crm-integration.service.d.ts.map

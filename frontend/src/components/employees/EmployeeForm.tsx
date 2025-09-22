@@ -12,7 +12,7 @@ interface EmployeeFormData {
   email: string;
   position: string;
   departmentId: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
   salary: number;
 }
 
@@ -22,7 +22,7 @@ interface ValidationErrors {
   email?: string;
   position?: string;
   departmentId?: string;
-  defaultHoursPerWeek?: string;
+  weeklyCapacity?: string;
   salary?: string;
   general?: string;
 }
@@ -46,7 +46,7 @@ export function EmployeeForm({ onSubmit, onCancel, isSubmitting, initialData }: 
     email: initialData?.email || '',
     position: initialData?.position || '',
     departmentId: initialData?.departmentId || '',
-    defaultHoursPerWeek: initialData?.defaultHoursPerWeek || 40,
+    weeklyCapacity: initialData?.weeklyCapacity || 40,
     salary: initialData?.salary || 0,
   });
 
@@ -54,68 +54,49 @@ export function EmployeeForm({ onSubmit, onCancel, isSubmitting, initialData }: 
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [departmentsLoading, setDepartmentsLoading] = useState(true);
 
-  // Load departments with fallback for demo purposes
+  // Load departments from API
   useEffect(() => {
     const loadDepartments = async () => {
       setDepartmentsLoading(true);
       try {
-        // Try multiple possible backend ports
-        const ports = [3001, 3000, 3002, 3003];
-        let response = null;
-        let lastError = null;
-
-        for (const port of ports) {
-          try {
-            console.log(`Trying to fetch departments from port ${port}...`);
-            response = await fetch(`http://localhost:${port}/api/departments`, {
-              timeout: 2000,
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              console.log(`Successfully fetched departments from port ${port}:`, data);
-              
-              // Handle different response formats
-              const departments = data.data || data || [];
-              setDepartments(departments);
-              return; // Success, exit early
-            }
-          } catch (error) {
-            lastError = error;
-            console.log(`Port ${port} failed:`, error.message);
-            continue;
+        // Fetch from the correct backend port
+        const response = await fetch('http://localhost:3001/api/departments', {
+          headers: {
+            'Content-Type': 'application/json',
           }
-        }
+        });
 
-        // If all ports failed, use fallback departments for demo
-        console.warn('All backend ports failed, using fallback departments');
-        const fallbackDepartments = [
-          { id: '1', name: 'Engineering' },
-          { id: '2', name: 'Marketing' },
-          { id: '3', name: 'Sales' },
-          { id: '4', name: 'Human Resources' },
-          { id: '5', name: 'Finance' },
-          { id: '6', name: 'Operations' },
-        ];
-        setDepartments(fallbackDepartments);
-        
+        console.log('Department fetch response status:', response.status);
+        console.log('Department fetch response ok:', response.ok);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Successfully fetched departments:', data);
+          console.log('Is array?', Array.isArray(data));
+          console.log('Data length:', data.length);
+
+          // The API returns the departments array directly
+          if (Array.isArray(data) && data.length > 0) {
+            console.log('Setting departments to state:', data);
+            setDepartments(data);
+          } else if (Array.isArray(data)) {
+            console.error('Departments array is empty');
+            setDepartments([]);
+          } else {
+            console.error('Unexpected department data format:', data);
+            setDepartments([]);
+          }
+        } else {
+          console.error('Failed to fetch departments:', response.status);
+          console.error('Response text:', await response.text());
+          setDepartments([]);
+        }
       } catch (error) {
-        console.error('Failed to load departments:', error);
-        // Use fallback departments
-        const fallbackDepartments = [
-          { id: '1', name: 'Engineering' },
-          { id: '2', name: 'Marketing' },
-          { id: '3', name: 'Sales' },
-          { id: '4', name: 'Human Resources' },
-          { id: '5', name: 'Finance' },
-          { id: '6', name: 'Operations' },
-        ];
-        setDepartments(fallbackDepartments);
+        console.error('Failed to load departments - Exception:', error);
+        setDepartments([]);
       } finally {
         setDepartmentsLoading(false);
+        console.log('Departments loading finished');
       }
     };
     loadDepartments();
@@ -150,8 +131,8 @@ export function EmployeeForm({ onSubmit, onCancel, isSubmitting, initialData }: 
       newErrors.salary = 'Salary must be greater than 0';
     }
 
-    if (formData.defaultHoursPerWeek <= 0 || formData.defaultHoursPerWeek > 100) {
-      newErrors.defaultHoursPerWeek = 'Hours per week must be between 1 and 100';
+    if (formData.weeklyCapacity <= 0 || formData.weeklyCapacity > 100) {
+      newErrors.weeklyCapacity = 'Hours per week must be between 1 and 100';
     }
 
     setErrors(newErrors);
@@ -287,6 +268,9 @@ export function EmployeeForm({ onSubmit, onCancel, isSubmitting, initialData }: 
       {/* Department */}
       <div>
         <Label htmlFor="departmentId">Department *</Label>
+        {console.log('Render - departmentsLoading:', departmentsLoading)}
+        {console.log('Render - departments:', departments)}
+        {console.log('Render - departments length:', departments.length)}
         {departmentsLoading ? (
           <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
             <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
@@ -323,22 +307,22 @@ export function EmployeeForm({ onSubmit, onCancel, isSubmitting, initialData }: 
         )}
       </div>
 
-      {/* Default Hours per Week */}
+      {/* Weekly Capacity */}
       <div>
-        <Label htmlFor="defaultHoursPerWeek">Default Hours per Week *</Label>
+        <Label htmlFor="weeklyCapacity">Weekly Capacity *</Label>
         <Input
-          id="defaultHoursPerWeek"
+          id="weeklyCapacity"
           data-testid="employee-hours"
           type="number"
           min="1"
           max="100"
-          value={formData.defaultHoursPerWeek}
-          onChange={(e) => handleInputChange('defaultHoursPerWeek', parseInt(e.target.value) || 0)}
-          className={errors.defaultHoursPerWeek ? 'border-red-500' : ''}
+          value={formData.weeklyCapacity}
+          onChange={(e) => handleInputChange('weeklyCapacity', parseInt(e.target.value) || 0)}
+          className={errors.weeklyCapacity ? 'border-red-500' : ''}
           disabled={isSubmitting}
         />
-        {errors.defaultHoursPerWeek && (
-          <p className="mt-1 text-sm text-red-600">{errors.defaultHoursPerWeek}</p>
+        {errors.weeklyCapacity && (
+          <p className="mt-1 text-sm text-red-600">{errors.weeklyCapacity}</p>
         )}
       </div>
 

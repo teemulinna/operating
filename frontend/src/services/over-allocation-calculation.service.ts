@@ -4,7 +4,7 @@ import { format, parseISO, isSameWeek, startOfWeek, endOfWeek } from 'date-fns';
 export interface EmployeeCapacity {
   employeeId: string;
   employeeName: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
   capacity: number;
 }
 
@@ -23,7 +23,7 @@ export interface WeeklyAllocation {
 export interface OverAllocationSummary {
   employeeId: string;
   employeeName: string;
-  defaultHours: number;
+  weeklyCapacity: number;
   weeklyAllocations: WeeklyAllocation[];
   hasOverAllocation: boolean;
   maxUtilizationRate: number;
@@ -40,7 +40,7 @@ class OverAllocationCalculationService {
   calculateEmployeeOverAllocation(
     employeeId: string,
     employeeName: string,
-    defaultHours: number,
+    weeklyCapacity: number,
     allocations: Allocation[],
     dateRange?: { start: Date; end: Date }
   ): OverAllocationSummary {
@@ -48,7 +48,7 @@ class OverAllocationCalculationService {
     const employeeAllocations = allocations.filter(alloc => alloc.employeeId === employeeId);
 
     // Group allocations by week
-    const weeklyData = this.groupAllocationsByWeek(employeeAllocations, defaultHours, dateRange);
+    const weeklyData = this.groupAllocationsByWeek(employeeAllocations, weeklyCapacity, dateRange);
 
     // Calculate summary metrics
     const hasOverAllocation = weeklyData.some(week => week.isOverAllocated);
@@ -62,13 +62,13 @@ class OverAllocationCalculationService {
     const severity = this.calculateSeverity(maxUtilizationRate, hasOverAllocation);
 
     // Generate warnings and suggestions
-    const warnings = this.generateWarnings(weeklyData, defaultHours);
-    const suggestions = this.generateSuggestions(weeklyData, defaultHours);
+    const warnings = this.generateWarnings(weeklyData, weeklyCapacity);
+    const suggestions = this.generateSuggestions(weeklyData, weeklyCapacity);
 
     return {
       employeeId,
       employeeName,
-      defaultHours,
+      weeklyCapacity,
       weeklyAllocations: weeklyData,
       hasOverAllocation,
       maxUtilizationRate,
@@ -91,7 +91,7 @@ class OverAllocationCalculationService {
       this.calculateEmployeeOverAllocation(
         employee.employeeId,
         employee.employeeName,
-        employee.defaultHoursPerWeek,
+        employee.weeklyCapacity,
         allocations,
         dateRange
       )
@@ -104,7 +104,7 @@ class OverAllocationCalculationService {
   calculateWeeklyOverAllocation(
     employeeId: string,
     weekStart: Date,
-    defaultHours: number,
+    weeklyCapacity: number,
     allocations: Allocation[]
   ): WeeklyAllocation {
     const weekEnd = endOfWeek(weekStart);
@@ -127,9 +127,9 @@ class OverAllocationCalculationService {
       0
     );
 
-    const utilizationRate = defaultHours > 0 ? (totalHours / defaultHours) * 100 : 0;
+    const utilizationRate = weeklyCapacity > 0 ? (totalHours / weeklyCapacity) * 100 : 0;
     const isOverAllocated = utilizationRate > 100;
-    const overAllocationHours = Math.max(0, totalHours - defaultHours);
+    const overAllocationHours = Math.max(0, totalHours - weeklyCapacity);
 
     return {
       weekStart,
@@ -137,7 +137,7 @@ class OverAllocationCalculationService {
       employeeId,
       allocations: weekAllocations,
       totalHours,
-      capacity: defaultHours,
+      capacity: weeklyCapacity,
       utilizationRate,
       isOverAllocated,
       overAllocationHours
@@ -149,7 +149,7 @@ class OverAllocationCalculationService {
    */
   private groupAllocationsByWeek(
     allocations: Allocation[],
-    defaultHours: number,
+    weeklyCapacity: number,
     dateRange?: { start: Date; end: Date }
   ): WeeklyAllocation[] {
     const weeks = new Map<string, Allocation[]>();
@@ -188,9 +188,9 @@ class OverAllocationCalculationService {
         0
       );
       
-      const utilizationRate = defaultHours > 0 ? (totalHours / defaultHours) * 100 : 0;
+      const utilizationRate = weeklyCapacity > 0 ? (totalHours / weeklyCapacity) * 100 : 0;
       const isOverAllocated = utilizationRate > 100;
-      const overAllocationHours = Math.max(0, totalHours - defaultHours);
+      const overAllocationHours = Math.max(0, totalHours - weeklyCapacity);
 
       return {
         weekStart,
@@ -198,7 +198,7 @@ class OverAllocationCalculationService {
         employeeId: weekAllocations[0]?.employeeId || '',
         allocations: weekAllocations,
         totalHours,
-        capacity: defaultHours,
+        capacity: weeklyCapacity,
         utilizationRate,
         isOverAllocated,
         overAllocationHours
@@ -231,7 +231,7 @@ class OverAllocationCalculationService {
   /**
    * Generate warning messages
    */
-  private generateWarnings(weeklyData: WeeklyAllocation[], defaultHours: number): string[] {
+  private generateWarnings(weeklyData: WeeklyAllocation[], weeklyCapacity: number): string[] {
     const warnings: string[] = [];
     const overAllocatedWeeks = weeklyData.filter(week => week.isOverAllocated);
 
@@ -270,7 +270,7 @@ class OverAllocationCalculationService {
   /**
    * Generate resolution suggestions
    */
-  private generateSuggestions(weeklyData: WeeklyAllocation[], defaultHours: number): string[] {
+  private generateSuggestions(weeklyData: WeeklyAllocation[], weeklyCapacity: number): string[] {
     const suggestions: string[] = [];
     const overAllocatedWeeks = weeklyData.filter(week => week.isOverAllocated);
 

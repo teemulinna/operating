@@ -139,7 +139,6 @@ class DepartmentService {
     }
     async getDepartmentAnalytics() {
         const queries = [
-            // Department overview
             `SELECT 
         d.id,
         d.name,
@@ -151,7 +150,6 @@ class DepartmentService {
       LEFT JOIN employees e ON d.id = e.department_id AND e.is_active = true
       GROUP BY d.id, d.name
       ORDER BY employee_count DESC`,
-            // Department growth
             `SELECT 
         d.name as department,
         DATE_TRUNC('month', e.hire_date) as month,
@@ -161,7 +159,6 @@ class DepartmentService {
       WHERE e.hire_date >= CURRENT_DATE - INTERVAL '12 months'
       GROUP BY d.id, d.name, month
       ORDER BY d.name, month`,
-            // Skills by department
             `SELECT 
         d.name as department,
         skill,
@@ -182,3 +179,4 @@ class DepartmentService {
     }
 }
 exports.DepartmentService = DepartmentService;
+//# sourceMappingURL=department.service.js.map

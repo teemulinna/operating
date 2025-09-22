@@ -14,7 +14,8 @@ export interface Employee {
   email: string;
   position: string;
   departmentId: string;
-  defaultHoursPerWeek: number;
+  departmentName?: string;
+  weeklyCapacity: number;
   salary: number;
   skills?: string[];
   isActive: boolean;
@@ -35,7 +36,7 @@ export interface CreateEmployeeData {
   email: string;
   position: string;
   departmentId: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
   salary: number;
   skills?: string[];
 }
@@ -50,7 +51,7 @@ export interface EmployeeFormData {
   email: string;
   position: string;
   departmentId: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
   salary: number;
   skills: string[];
 }
@@ -61,7 +62,7 @@ export interface EmployeeValidationErrors {
   email?: string;
   position?: string;
   departmentId?: string;
-  defaultHoursPerWeek?: string;
+  weeklyCapacity?: string;
   salary?: string;
   skills?: string;
 }

@@ -7,7 +7,7 @@ class WebSocketService {
     constructor() {
         this.io = null;
         this.activeUsers = new Map();
-        this.userSockets = new Map(); // userId -> Set of socketIds
+        this.userSockets = new Map();
         this.databaseService = database_service_1.DatabaseService.getInstance();
     }
     static getInstance() {
@@ -34,19 +34,12 @@ class WebSocketService {
     }
     handleConnection(socket) {
         console.log(`🔌 Client connected: ${socket.id}`);
-        // Handle user joining resource room
         socket.on('join-resource-room', this.handleJoinResourceRoom.bind(this, socket));
-        // Handle user presence updates
         socket.on('user-presence-update', this.handlePresenceUpdate.bind(this, socket));
-        // Handle cursor position updates
         socket.on('cursor-position-update', this.handleCursorUpdate.bind(this, socket));
-        // Handle resource selection updates
         socket.on('selection-update', this.handleSelectionUpdate.bind(this, socket));
-        // Handle resource allocation updates
         socket.on('resource-allocation-update', this.handleResourceAllocationUpdate.bind(this, socket));
-        // Handle disconnection
         socket.on('disconnect', this.handleDisconnect.bind(this, socket));
-        // Handle errors
         socket.on('error', (error) => {
             console.error(`WebSocket error from ${socket.id}:`, error);
         });
@@ -54,21 +47,17 @@ class WebSocketService {
     async handleJoinResourceRoom(socket, data) {
         try {
             const { userId } = data;
-            // Get user information from database
             const user = await this.databaseService.query('SELECT name, email FROM employees WHERE id = $1', [userId]);
             if (!user.rows.length) {
                 socket.emit('error', { message: 'User not found' });
                 return;
             }
             const userInfo = user.rows[0];
-            // Join the resource allocation room
             socket.join('resource-allocation');
-            // Track user sockets
             if (!this.userSockets.has(userId)) {
                 this.userSockets.set(userId, new Set());
             }
             this.userSockets.get(userId).add(socket.id);
-            // Create presence record
             const presence = {
                 userId,
                 socketId: socket.id,
@@ -80,7 +69,6 @@ class WebSocketService {
                 isActive: true
             };
             this.activeUsers.set(socket.id, presence);
-            // Notify other users about new presence
             socket.to('resource-allocation').emit('user-presence-updated', {
                 type: 'user_joined',
                 user: {
@@ -93,7 +81,6 @@ class WebSocketService {
                 },
                 timestamp: new Date().toISOString()
             });
-            // Send current active users to the new user
             const activeUsersArray = Array.from(this.activeUsers.values())
                 .filter(user => user.userId !== userId)
                 .map(user => ({
@@ -121,7 +108,6 @@ class WebSocketService {
         if (location) {
             presence.location = location;
         }
-        // Broadcast presence update
         socket.to('resource-allocation').emit('user-presence-updated', {
             type: 'presence_update',
             user: {
@@ -142,7 +128,6 @@ class WebSocketService {
             return;
         const { x, y, elementId } = data;
         presence.lastActivity = new Date();
-        // Broadcast cursor position to other users
         socket.to('resource-allocation').emit('cursor-position-updated', {
             userId: presence.userId,
             userName: presence.userName,
@@ -158,7 +143,6 @@ class WebSocketService {
             return;
         const { elementId, action, metadata } = data;
         presence.lastActivity = new Date();
-        // Broadcast selection update to other users
         socket.to('resource-allocation').emit('selection-updated', {
             userId: presence.userId,
             userName: presence.userName,
@@ -167,20 +151,15 @@ class WebSocketService {
             metadata,
             timestamp: new Date().toISOString()
         });
-        // Check for conflicts (multiple users selecting same element)
         if (action === 'select') {
             this.checkForSelectionConflicts(elementId, presence);
         }
     }
     checkForSelectionConflicts(elementId, currentUser) {
         const conflictingUsers = [];
-        // Check all active users for conflicts
         this.activeUsers.forEach(user => {
-            // Note: In a real implementation, you'd track current selections per user
-            // This is a simplified version for demonstration
         });
         if (conflictingUsers.length > 0) {
-            // Notify about conflict
             this.io?.to('resource-allocation').emit('selection-conflict', {
                 elementId,
                 users: conflictingUsers.map(u => ({
@@ -198,14 +177,12 @@ class WebSocketService {
             if (!presence)
                 return;
             const { employeeId, utilizationRate, reason } = data;
-            // Get employee information
             const employee = await this.databaseService.query('SELECT name FROM employees WHERE id = $1', [employeeId]);
             if (!employee.rows.length) {
                 socket.emit('error', { message: 'Employee not found' });
                 return;
             }
             const employeeName = employee.rows[0].name;
-            // Update capacity in database
             await this.databaseService.query(`
         INSERT INTO capacity (employee_id, utilization_rate, week_start_date, updated_at, updated_by)
         VALUES ($1, $2, date_trunc('week', CURRENT_DATE), NOW(), $3)
@@ -215,7 +192,6 @@ class WebSocketService {
           updated_at = NOW(),
           updated_by = $3
       `, [employeeId, utilizationRate, presence.userId]);
-            // Broadcast the update to all connected clients
             this.io?.to('resource-allocation').emit('resource-allocation-updated', {
                 employeeId,
                 employeeName,
@@ -224,7 +200,6 @@ class WebSocketService {
                 reason,
                 timestamp: new Date().toISOString()
             });
-            // Send notification about the update
             this.io?.to('resource-allocation').emit('notification', {
                 id: `allocation-${employeeId}-${Date.now()}`,
                 type: 'resource_allocation',
@@ -252,13 +227,11 @@ class WebSocketService {
     handleDisconnect(socket) {
         const presence = this.activeUsers.get(socket.id);
         if (presence) {
-            // Remove from user sockets tracking
             const userSocketSet = this.userSockets.get(presence.userId);
             if (userSocketSet) {
                 userSocketSet.delete(socket.id);
                 if (userSocketSet.size === 0) {
                     this.userSockets.delete(presence.userId);
-                    // Notify others that user left (only if they have no other active sockets)
                     socket.to('resource-allocation').emit('user-presence-updated', {
                         type: 'user_left',
                         user: {
@@ -269,7 +242,6 @@ class WebSocketService {
                         },
                         timestamp: new Date().toISOString()
                     });
-                    // Send notification
                     socket.to('resource-allocation').emit('notification', {
                         id: `user-left-${presence.userId}-${Date.now()}`,
                         type: 'user_left',
@@ -285,7 +257,6 @@ class WebSocketService {
             console.log(`👤 User ${presence.userName} disconnected`);
         }
     }
-    // Public methods for other services to emit events
     broadcastResourceUpdate(data) {
         this.io?.to('resource-allocation').emit('resource-allocation-updated', data);
     }
@@ -310,3 +281,4 @@ class WebSocketService {
     }
 }
 exports.WebSocketService = WebSocketService;
+//# sourceMappingURL=websocket.service.js.map

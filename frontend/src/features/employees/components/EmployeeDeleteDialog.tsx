@@ -54,7 +54,7 @@ export function EmployeeDeleteDialog({
             <div className="text-sm space-y-1">
               <div><strong>Position:</strong> {employee.position}</div>
               <div><strong>Email:</strong> {employee.email}</div>
-              <div><strong>Hours/Week:</strong> {employee.defaultHoursPerWeek}</div>
+              <div><strong>Hours/Week:</strong> {employee.weeklyCapacity}</div>
             </div>
           </div>
           <p className="text-red-600 text-sm font-medium">

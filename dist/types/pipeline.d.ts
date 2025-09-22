@@ -26,12 +26,13 @@ export interface CRMSystemConfig {
     updatedAt: string;
 }
 export interface CRMSyncSettings {
-    autoSync: boolean;
+    autoSync?: boolean;
     syncInterval: number;
-    syncDirection: 'bidirectional' | 'crm-to-system' | 'system-to-crm';
-    fieldMappings: CRMFieldMapping[];
-    filters: CRMSyncFilters;
-    conflictResolution: 'crm-wins' | 'system-wins' | 'manual' | 'timestamp';
+    syncDirection?: 'bidirectional' | 'crm-to-system' | 'system-to-crm';
+    fieldMappings?: CRMFieldMapping[];
+    filters?: CRMSyncFilters;
+    conflictResolution?: 'crm-wins' | 'system-wins' | 'manual' | 'timestamp';
+    entities?: string[];
 }
 export interface CRMFieldMapping {
     systemField: string;
@@ -184,8 +185,8 @@ export interface PipelineTrend {
 export interface CRMSyncOperation {
     id: string;
     crmSystemId: string;
-    operation: 'sync' | 'import' | 'export' | 'validate';
-    direction: 'bidirectional' | 'to-crm' | 'from-crm';
+    operation: 'sync' | 'import' | 'export' | 'validate' | 'sync_projects';
+    direction: 'bidirectional' | 'to_crm' | 'from_crm' | 'to-crm' | 'from-crm';
     status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
     progress: {
         total: number;
@@ -257,12 +258,12 @@ export interface UpdatePipelineProjectRequest extends Partial<CreatePipelineProj
 }
 export interface CRMSyncRequest {
     crmSystemId: string;
-    operation: 'sync' | 'import' | 'export';
-    direction?: 'bidirectional' | 'to-crm' | 'from-crm';
+    operation: 'sync' | 'import' | 'export' | 'sync_projects';
+    direction?: 'bidirectional' | 'to_crm' | 'from_crm' | 'to-crm' | 'from-crm';
     filters?: {
         dateRange?: {
-            start: string;
-            end: string;
+            start: string | Date;
+            end: string | Date;
         };
         stages?: PipelineStage[];
         recordIds?: string[];

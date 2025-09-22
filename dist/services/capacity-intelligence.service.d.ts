@@ -9,7 +9,7 @@ interface ProjectDetails {
     duration?: number;
 }
 interface ResourceDetails {
-    employeeIds?: number[];
+    employeeIds?: string[];
     skills?: string[];
     hoursPerWeek?: number;
     department?: string;
@@ -219,7 +219,20 @@ export declare class CapacityIntelligenceService {
     private getCapacityRecommendations;
     private assessRiskFactors;
     private mapBottleneckRow;
+    private safeJsonParse;
+    private detectCurrentBottlenecks;
+    private predictFutureBottlenecks;
+    private mergeBottlenecks;
+    private calculateSeverity;
+    private calculateUtilizationSeverity;
+    private estimateBottleneckDuration;
+    private generateSkillBottleneckActions;
+    private generateDepartmentBottleneckActions;
+    private getHigherSeverity;
     private calculateTrend;
+    private calculateLinearTrend;
+    private formatPredictionPeriod;
+    private storePredictions;
     private getScenarioMultiplier;
     private getPeriodsCount;
     private getPeriodName;
@@ -227,16 +240,23 @@ export declare class CapacityIntelligenceService {
     private generateTimeframePeriods;
     private estimateProjectDemand;
     private estimateResourceCapacity;
-    private predictBottlenecks;
+    private predictScenarioBottlenecks;
     private generateScenarioRecommendations;
     private assessScenarioRisks;
     private generateBottleneckSummary;
+    private storeScenarioAnalysis;
     private analyzeSeasonality;
     private calculateUtilizationTrend;
+    private calculateStandardDeviation;
+    private calculateTrendCorrelation;
+    private formatPeriod;
+    private getDefaultUtilizationPatterns;
     private identifyAnomalies;
     private analyzeDemandTrend;
     private estimateTimeToFill;
     private assessBusinessImpact;
+    private calculateForecastConfidence;
+    private calculateSkillGapSeverity;
     private findTrainingCandidates;
     private estimateTrainingTime;
 }

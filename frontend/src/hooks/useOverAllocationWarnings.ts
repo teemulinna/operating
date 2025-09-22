@@ -13,8 +13,8 @@ export interface UseOverAllocationWarningsReturn {
   loading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
-  calculateOverAllocation: (periods: AllocationPeriod[], defaultHours: number) => OverAllocationCalculation;
-  calculateOverAllocationWithOverlaps: (periods: AllocationPeriod[], defaultHours: number) => OverAllocationCalculation & { hasOverlap: boolean; maxUtilizationRate: number };
+  calculateOverAllocation: (periods: AllocationPeriod[], weeklyCapacity: number) => OverAllocationCalculation;
+  calculateOverAllocationWithOverlaps: (periods: AllocationPeriod[], weeklyCapacity: number) => OverAllocationCalculation & { hasOverlap: boolean; maxUtilizationRate: number };
 }
 
 export function useOverAllocationWarnings(
@@ -60,11 +60,11 @@ export function useOverAllocationWarnings(
   }, [fetchWarnings]);
 
   // Calculate over-allocation for given periods
-  const calculateOverAllocation = useCallback((periods: AllocationPeriod[], defaultHours: number): OverAllocationCalculation => {
+  const calculateOverAllocation = useCallback((periods: AllocationPeriod[], weeklyCapacity: number): OverAllocationCalculation => {
     if (periods.length === 0) {
       return {
         totalAllocatedHours: 0,
-        defaultHours,
+        weeklyCapacity,
         overAllocationHours: 0,
         utilizationRate: 0,
         isOverAllocated: false
@@ -72,13 +72,13 @@ export function useOverAllocationWarnings(
     }
 
     const totalAllocatedHours = periods.reduce((sum, period) => sum + period.allocatedHours, 0);
-    const utilizationRate = (totalAllocatedHours / defaultHours) * 100;
-    const overAllocationHours = Math.max(0, totalAllocatedHours - defaultHours);
+    const utilizationRate = (totalAllocatedHours / weeklyCapacity) * 100;
+    const overAllocationHours = Math.max(0, totalAllocatedHours - weeklyCapacity);
     const isOverAllocated = utilizationRate > 100;
 
     return {
       totalAllocatedHours,
-      defaultHours,
+      weeklyCapacity,
       overAllocationHours,
       utilizationRate,
       isOverAllocated
@@ -87,13 +87,13 @@ export function useOverAllocationWarnings(
 
   // Calculate over-allocation with overlap detection
   const calculateOverAllocationWithOverlaps = useCallback((
-    periods: AllocationPeriod[], 
-    defaultHours: number
+    periods: AllocationPeriod[],
+    weeklyCapacity: number
   ): OverAllocationCalculation & { hasOverlap: boolean; maxUtilizationRate: number } => {
     if (periods.length === 0) {
       return {
         totalAllocatedHours: 0,
-        defaultHours,
+        weeklyCapacity,
         overAllocationHours: 0,
         utilizationRate: 0,
         isOverAllocated: false,
@@ -118,19 +118,19 @@ export function useOverAllocationWarnings(
         if (period1.startDate < period2.endDate && period2.startDate < period1.endDate) {
           hasOverlap = true;
           const overlapHours = period1.allocatedHours + period2.allocatedHours;
-          const overlapUtilization = (overlapHours / defaultHours) * 100;
+          const overlapUtilization = (overlapHours / weeklyCapacity) * 100;
           maxUtilizationInOverlap = Math.max(maxUtilizationInOverlap, overlapUtilization);
         }
       }
     }
 
-    const utilizationRate = (totalAllocatedHours / defaultHours) * 100;
+    const utilizationRate = (totalAllocatedHours / weeklyCapacity) * 100;
     const maxUtilizationRate = Math.max(utilizationRate, maxUtilizationInOverlap);
 
     return {
       totalAllocatedHours,
-      defaultHours,
-      overAllocationHours: Math.max(0, totalAllocatedHours - defaultHours),
+      weeklyCapacity,
+      overAllocationHours: Math.max(0, totalAllocatedHours - weeklyCapacity),
       utilizationRate,
       isOverAllocated: utilizationRate > 100 || hasOverlap,
       hasOverlap,

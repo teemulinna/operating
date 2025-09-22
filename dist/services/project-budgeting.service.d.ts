@@ -49,7 +49,7 @@ export interface ProjectCost {
     amount: number;
     currency: string;
     costDate: Date;
-    employeeId?: number;
+    employeeId: string;
     hoursWorked?: number;
     hourlyRate?: number;
     description?: string;

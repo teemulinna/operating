@@ -101,7 +101,7 @@ class SkillsManagementService {
         const result = await this.db.query(query, [employeeId]);
         return result.rows.map(this.mapEmployeeSkillWithSkill);
     }
-    async updateEmployeeSkill(employeeId, skillId, updates) {
+    async updateEmployeeSkill(employeeId, updates) {
         const updateFields = [];
         const params = [];
         let paramIndex = 1;

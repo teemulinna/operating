@@ -26,7 +26,7 @@ export function EmployeeFormModal({
     email: employee?.email || '',
     position: employee?.position || '',
     departmentId: employee?.departmentId || '',
-    defaultHoursPerWeek: employee?.defaultHoursPerWeek || 40,
+    weeklyCapacity: employee?.weeklyCapacity || 40,
     salary: employee?.salary || 50000,
     skills: employee?.skills || []
   });
@@ -42,7 +42,7 @@ export function EmployeeFormModal({
         email: employee.email,
         position: employee.position,
         departmentId: employee.departmentId,
-        defaultHoursPerWeek: employee.defaultHoursPerWeek,
+        weeklyCapacity: employee.weeklyCapacity,
         salary: employee.salary,
         skills: employee.skills || []
       });
@@ -54,7 +54,7 @@ export function EmployeeFormModal({
         email: '',
         position: '',
         departmentId: '',
-        defaultHoursPerWeek: 40,
+        weeklyCapacity: 40,
         salary: 50000,
         skills: []
       });
@@ -195,20 +195,20 @@ export function EmployeeFormModal({
           {/* Work Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="defaultHoursPerWeek">Hours per Week *</Label>
+              <Label htmlFor="weeklyCapacity">Hours per Week *</Label>
               <Input
-                id="defaultHoursPerWeek"
+                id="weeklyCapacity"
                 type="number"
                 min="1"
-                max="80"
-                value={formData.defaultHoursPerWeek}
-                onChange={(e) => handleInputChange('defaultHoursPerWeek', parseInt(e.target.value) || 0)}
+                max="168"
+                value={formData.weeklyCapacity}
+                onChange={(e) => handleInputChange('weeklyCapacity', parseInt(e.target.value) || 0)}
                 placeholder="40"
-                data-testid="employee-hours"
+                data-testid="employee-weekly-capacity"
                 disabled={isSubmitting}
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">Standard working hours (1-80)</p>
+              <p className="text-xs text-gray-500 mt-1">Weekly working hours (1-168)</p>
             </div>
             
             <div>

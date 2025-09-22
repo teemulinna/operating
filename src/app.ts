@@ -25,7 +25,7 @@ import { exportRoutes } from './routes/exportRoutes';
 import analyticsRoutes from './routes/analytics.routes';
 import reportingRoutes from './routes/reporting.routes';
 import allocationTemplatesRoutes from './routes/allocation-templates.routes';
-import { mlOptimizationRoutes } from './routes/ml-optimization.routes';
+// import { mlOptimizationRoutes } from './routes/ml-optimization.routes'; // Temporarily disabled
 import optimizationRoutes from './routes/optimization.routes';
 import overAllocationWarningsRoutes from './routes/over-allocation-warnings.routes';
 // Temporarily disabled project-tasks routes due to Sequelize compatibility
@@ -196,7 +196,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api', scenarioRoutes);
 // AI and Intelligence Routes
 app.use('/api/forecasting', forecastingRoutes);
-app.use('/api/ml-optimization', mlOptimizationRoutes);
+// app.use('/api/ml-optimization', mlOptimizationRoutes); // Temporarily disabled
 app.use('/api/optimization', optimizationRoutes);
 app.use('/api/matching', skillMatchingRoutes);
 app.use('/api/skills-matching', skillsMatchingRoutes);

@@ -9,7 +9,7 @@ import { DatabaseService } from '../database/database.service';
 const dbService = DatabaseService.getInstance();
 import { Logger } from '../utils/logger';
 import { EventEmitter } from 'events';
-import MLRecommendationEngine from './ml-recommendation-engine.service';
+// import MLRecommendationEngine from './ml-recommendation-engine.service'; // Temporarily disabled
 import SkillsMatchingService from './skills-matching.service';
 import OptimizationEngine from './optimization-engine.service';
 

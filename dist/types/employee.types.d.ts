@@ -5,6 +5,7 @@ export interface Employee {
     email: string;
     position: string;
     departmentId: string;
+    weeklyCapacity: number;
     salary: number;
     hireDate?: string;
     skills?: string[];
@@ -18,6 +19,7 @@ export interface CreateEmployeeRequest {
     email: string;
     position: string;
     departmentId: string;
+    weeklyCapacity?: number;
     salary: number;
     skills?: string[];
 }
@@ -27,6 +29,7 @@ export interface UpdateEmployeeRequest {
     email?: string;
     position?: string;
     departmentId?: string;
+    weeklyCapacity?: number;
     salary?: number;
     skills?: string[];
     isActive?: boolean;

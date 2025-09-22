@@ -95,8 +95,7 @@ class PipelineManagementService {
         }
         return this.mapRowToPipelineProject(result.rows[0]);
     }
-    async updatePipelineProject(data) {
-        const { id, ...updateData } = data;
+    async updatePipelineProject(id, updateData) {
         const setClauses = [];
         const values = [];
         let paramIndex = 1;
@@ -135,24 +134,50 @@ class PipelineManagementService {
         }
     }
     async getPipelineAnalytics(filters) {
-        // This is a simplified implementation - in production would be more complex
         const projects = await this.getPipelineProjects(filters);
         const totalValue = projects.projects.reduce((sum, p) => sum + p.estimatedValue, 0);
         const weightedValue = projects.projects.reduce((sum, p) => sum + (p.estimatedValue * p.probability / 100), 0);
+        const averageProbability = projects.projects.length > 0
+            ? projects.projects.reduce((sum, p) => sum + p.probability, 0) / projects.projects.length / 100
+            : 0;
+        const projectsByStage = projects.projects.reduce((acc, p) => {
+            acc[p.stage] = (acc[p.stage] || 0) + 1;
+            return acc;
+        }, {});
+        const wonCount = projects.projects.filter(p => p.stage === 'won').length;
+        const lostCount = projects.projects.filter(p => p.stage === 'lost').length;
+        const winRate = (wonCount + lostCount) > 0 ? wonCount / (wonCount + lostCount) : 0;
+        const clientData = projects.projects.reduce((acc, p) => {
+            if (!acc[p.clientName]) {
+                acc[p.clientName] = { value: 0, count: 0 };
+            }
+            acc[p.clientName].value += p.estimatedValue;
+            acc[p.clientName].count += 1;
+            return acc;
+        }, {});
+        const topClients = Object.entries(clientData)
+            .map(([name, data]) => ({ name, ...data }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
         return {
             totalValue,
             weightedValue,
+            averageProbability,
+            projectsByStage,
+            winRate,
+            averageCycleTime: 30,
+            topClients,
             conversionRates: [],
             forecastAccuracy: [],
             resourceDemandForecast: [],
             capacityUtilization: [],
             winLossAnalysis: {
                 totalOpportunities: projects.total,
-                wonCount: projects.projects.filter(p => p.stage === 'won').length,
-                lostCount: projects.projects.filter(p => p.stage === 'lost').length,
-                winRate: 0,
+                wonCount,
+                lostCount,
+                winRate,
                 avgDealSize: totalValue / projects.total || 0,
-                avgSalesCycle: 0,
+                avgSalesCycle: 30,
                 lossReasons: [],
                 competitorAnalysis: []
             },
@@ -178,7 +203,7 @@ class PipelineManagementService {
             return fallback;
         };
         return {
-            id: row.id,
+            id: String(row.id),
             crmId: row.crm_id,
             crmSource: row.crm_source,
             name: row.name,
@@ -207,8 +232,47 @@ class PipelineManagementService {
             availabilityScore: parseFloat(row.availability_score || 0)
         };
     }
+    async getWinLossRates(filters) {
+        const projects = await this.getPipelineProjects(filters || {});
+        const wonCount = projects.projects.filter(p => p.stage === 'won').length;
+        const lostCount = projects.projects.filter(p => p.stage === 'lost').length;
+        const totalDeals = wonCount + lostCount;
+        return {
+            winRate: totalDeals > 0 ? wonCount / totalDeals : 0,
+            lossRate: totalDeals > 0 ? lostCount / totalDeals : 0,
+            totalDeals
+        };
+    }
+    async getPipelineHistory(startDate, endDate) {
+        const projects = await this.getPipelineProjects({});
+        return projects.projects.map(p => ({
+            date: new Date(p.createdAt),
+            stage: p.stage,
+            count: 1,
+            value: p.estimatedValue
+        })).filter(entry => {
+            return entry.date >= startDate && entry.date <= endDate;
+        });
+    }
+    async getPipelineMetrics() {
+        const projects = await this.getPipelineProjects({});
+        const avgProbability = projects.projects.length > 0
+            ? projects.projects.reduce((sum, p) => sum + p.probability, 0) / projects.projects.length
+            : 0;
+        const stageDistribution = projects.projects.reduce((acc, p) => {
+            acc[p.stage] = (acc[p.stage] || 0) + 1;
+            return acc;
+        }, {});
+        return {
+            totalProjects: projects.total,
+            totalValue: projects.projects.reduce((sum, p) => sum + p.estimatedValue, 0),
+            avgProbability,
+            stageDistribution
+        };
+    }
     camelToSnake(str) {
         return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     }
 }
 exports.PipelineManagementService = PipelineManagementService;
+//# sourceMappingURL=pipeline-management.service.js.map

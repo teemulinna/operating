@@ -12,7 +12,7 @@ interface Employee {
   name?: string;
   position?: string;
   departmentName?: string;
-  defaultHoursPerWeek?: number;
+  weeklyCapacity?: number;
   capacity?: number;
   email?: string;
 }
@@ -33,7 +33,7 @@ export function EmployeeCapacityCard({
   onClick
 }: EmployeeCapacityCardProps) {
   const employeeName = employee.name || `${employee.firstName || ''} ${employee.lastName || ''}`.trim() || `Employee ${employee.id}`;
-  const capacity = employee.capacity || employee.defaultHoursPerWeek || 40;
+  const capacity = employee.capacity || employee.weeklyCapacity || 40;
   
   const isOverAllocated = overAllocationSummary?.hasOverAllocation || false;
   const utilizationRate = overAllocationSummary?.maxUtilizationRate || 0;

@@ -99,7 +99,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
             }`}
             data-testid={`project-priority-${project.id}`}
           >
-            {project.priority.charAt(0).toUpperCase() + project.priority.slice(1)}
+            {project.priority ? project.priority.charAt(0).toUpperCase() + project.priority.slice(1) : 'Medium'}
           </span>
         </div>
 

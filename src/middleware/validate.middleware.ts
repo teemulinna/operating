@@ -74,10 +74,10 @@ export const validateCreateEmployee = [
     .isFloat({ min: 0, max: 10000000 })
     .withMessage('Salary must be a positive number less than 10,000,000'),
   
-  body('defaultHoursPerWeek')
+  body('weeklyCapacity')
     .optional()
     .isInt({ min: 1, max: 100 })
-    .withMessage('Default hours per week must be between 1 and 100'),
+    .withMessage('Weekly capacity must be between 1 and 100'),
 
   body('skills')
     .optional()

@@ -35,7 +35,7 @@ export function EmployeeForm({
       email: formData.get('email') as string,
       position: formData.get('position') as string,
       departmentId: formData.get('departmentId') as string,
-      defaultHoursPerWeek: parseInt(formData.get('defaultHours') as string) || 40,
+      weeklyCapacity: parseInt(formData.get('weeklyCapacity') as string) || 40,
       salary: parseFloat(formData.get('salary') as string) || 0,
       skills: editingEmployee?.skills || []
     };
@@ -149,14 +149,14 @@ export function EmployeeForm({
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Default Hours per Week *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Weekly Capacity *</label>
               <input
-                name="defaultHours"
+                name="weeklyCapacity"
                 type="number"
                 min="1"
                 max="80"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                defaultValue={editingEmployee?.defaultHoursPerWeek || 40}
+                defaultValue={editingEmployee?.weeklyCapacity || 40}
                 data-testid="employee-default-hours"
                 required
               />

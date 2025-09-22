@@ -4,7 +4,6 @@ exports.SkillController = void 0;
 const skill_service_1 = require("../services/skill.service");
 class SkillController {
     constructor() {
-        // GET /api/skills - Get all skills with optional filters
         this.getSkills = async (req, res, next) => {
             try {
                 const search = req.query.search;
@@ -19,7 +18,6 @@ class SkillController {
                 next(error);
             }
         };
-        // POST /api/skills - Create a new skill
         this.createSkill = async (req, res, next) => {
             try {
                 const skillData = req.body;
@@ -30,7 +28,6 @@ class SkillController {
                 next(error);
             }
         };
-        // GET /api/skills/:id - Get skill by ID
         this.getSkillById = async (req, res, next) => {
             try {
                 const id = req.params.id;
@@ -44,7 +41,6 @@ class SkillController {
                 next(error);
             }
         };
-        // PUT /api/skills/:id - Update skill
         this.updateSkill = async (req, res, next) => {
             try {
                 const id = req.params.id;
@@ -56,7 +52,6 @@ class SkillController {
                 next(error);
             }
         };
-        // DELETE /api/skills/:id - Delete skill
         this.deleteSkill = async (req, res, next) => {
             try {
                 const id = req.params.id;
@@ -70,7 +65,6 @@ class SkillController {
                 next(error);
             }
         };
-        // GET /api/skills/popular - Get skills sorted by usage count
         this.getPopularSkills = async (req, res, next) => {
             try {
                 const limit = req.query.limit ? parseInt(req.query.limit) : 20;
@@ -84,7 +78,6 @@ class SkillController {
                 next(error);
             }
         };
-        // GET /api/skills/analytics - Get skill analytics
         this.getSkillAnalytics = async (_req, res, next) => {
             try {
                 const analytics = await this.skillService.getSkillAnalytics();
@@ -94,7 +87,6 @@ class SkillController {
                 next(error);
             }
         };
-        // GET /api/skills/:id/employees - Get employees with specific skill
         this.getEmployeesBySkill = async (req, res, next) => {
             try {
                 const skillId = req.params.id;
@@ -107,7 +99,6 @@ class SkillController {
                 next(error);
             }
         };
-        // GET /api/skills/recommendations/:employeeId - Get skill recommendations for employee
         this.getSkillRecommendations = async (req, res, next) => {
             try {
                 const employeeId = req.params.employeeId;
@@ -126,3 +117,4 @@ class SkillController {
     }
 }
 exports.SkillController = SkillController;
+//# sourceMappingURL=skill.controller.js.map

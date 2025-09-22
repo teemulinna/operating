@@ -97,8 +97,8 @@ const AllocationBlock = ({
   const widthPercent = (duration / totalDays) * 100;
 
   // Calculate utilization percentage
-  const utilizationPercent = employee.defaultHours > 0 ? 
-    Math.round((allocation.allocatedHours / employee.defaultHours) * 100) : 0;
+  const utilizationPercent = employee.weeklyCapacity > 0 ? 
+    Math.round((allocation.allocatedHours / employee.weeklyCapacity) * 100) : 0;
 
   // Determine color based on project or utilization
   const getBlockColor = () => {

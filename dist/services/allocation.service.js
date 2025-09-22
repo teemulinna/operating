@@ -43,12 +43,10 @@ class AllocationService {
         this.db = db;
     }
     async createAllocation(input, force = false) {
-        // Validate input data
         const validationErrors = this.validateAllocationInput(input);
         if (validationErrors.length > 0) {
             throw new Error(`Validation failed: ${validationErrors.map(e => e.message).join(', ')}`);
         }
-        // Validate that employee and project exist
         const employeeResult = await this.db.query('SELECT id FROM employees WHERE id = $1', [input.employeeId]);
         if (employeeResult.rows.length === 0) {
             throw new Error('Employee not found');
@@ -57,11 +55,9 @@ class AllocationService {
         if (projectResult.rows.length === 0) {
             throw new Error('Project not found');
         }
-        // Check for overlapping allocations unless forced
         if (!force) {
             await this.validateBusinessRules(input);
         }
-        // Insert allocation into database
         const query = `
       INSERT INTO resource_allocations (
         employee_id, project_id, start_date, end_date,
@@ -100,7 +96,6 @@ class AllocationService {
     async getAllocations(filters = {}) {
         const { employeeId, page = 1, limit = 50 } = filters;
         if (employeeId) {
-            // Get allocations for specific employee
             const result = await this.db.query('SELECT * FROM resource_allocations WHERE employee_id = $1 ORDER BY start_date', [employeeId]);
             return {
                 data: result.rows,
@@ -109,7 +104,6 @@ class AllocationService {
                 limit
             };
         }
-        // Get all allocations
         const result = await this.db.query('SELECT * FROM resource_allocations ORDER BY start_date LIMIT $1 OFFSET $2', [limit, (page - 1) * limit]);
         return {
             data: result.rows,
@@ -119,7 +113,6 @@ class AllocationService {
         };
     }
     static async getProjectAllocations(projectId, filters = {}, page = 1, limit = 50) {
-        // Validate project exists
         const project = await Project_1.ProjectModel.findById(projectId);
         if (!project) {
             throw new types_1.DatabaseError('Project not found');
@@ -130,11 +123,9 @@ class AllocationService {
         return working_allocation_model_1.WorkingAllocationModel.findAll(filters, page, limit);
     }
     async updateAllocation(id, updates) {
-        // Build update fields
         const updateFields = [];
         const queryParams = [];
         let paramIndex = 1;
-        // Map camelCase to snake_case fields
         const fieldMapping = {
             allocationPercentage: 'allocation_percentage',
             billableRate: 'billable_rate',
@@ -187,7 +178,6 @@ class AllocationService {
                     Math.max(startDate.getTime(), conflict.startDate.getTime())) / (1000 * 60 * 60 * 24);
                 suggestions.push(`Conflict with "${conflict.projectName}" (${conflict.startDate.toISOString().split('T')[0]} to ${conflict.endDate.toISOString().split('T')[0]}, ${daysOverlap} days overlap)`);
             }
-            // Suggest alternative dates
             if (conflicts.length > 0) {
                 const latestEndDate = Math.max(...conflicts.map(c => c.endDate.getTime()));
                 const suggestedStartDate = new Date(latestEndDate + 24 * 60 * 60 * 1000);
@@ -202,20 +192,17 @@ class AllocationService {
     }
     static async validateCapacity(employeeId, allocatedHours, startDate, endDate, excludeAllocationId) {
         const warnings = [];
-        const maxCapacityHours = 40; // Standard 40-hour work week
-        // Get current allocations for the employee in the date range
+        const maxCapacityHours = 40;
         const metrics = await working_allocation_model_1.WorkingAllocationModel.getUtilizationMetrics(employeeId, startDate, endDate);
         const employeeMetrics = metrics.find(m => m.employeeId === employeeId);
         const currentAllocatedHours = employeeMetrics?.totalAllocatedHours || 0;
         const utilizationRate = ((currentAllocatedHours + allocatedHours) / maxCapacityHours) * 100;
-        // Check for over-allocation
         if (utilizationRate > 100) {
             warnings.push(`Over-allocation detected: ${utilizationRate.toFixed(1)}% capacity (${currentAllocatedHours + allocatedHours}/${maxCapacityHours} hours)`);
         }
         else if (utilizationRate > 80) {
             warnings.push(`High utilization: ${utilizationRate.toFixed(1)}% capacity`);
         }
-        // Check for conflicts
         const conflicts = await working_allocation_model_1.WorkingAllocationModel.checkOverlaps(employeeId, startDate, endDate, excludeAllocationId);
         if (conflicts.length > 0) {
             warnings.push(`${conflicts.length} scheduling conflict(s) detected`);
@@ -321,7 +308,6 @@ class AllocationService {
         return errors;
     }
     async validateBusinessRules(input) {
-        // Check if project dates are valid
         const projectResult = await this.db.query('SELECT start_date, end_date FROM projects WHERE id = $1', [input.projectId]);
         if (projectResult.rows.length > 0) {
             const project = projectResult.rows[0];
@@ -332,7 +318,6 @@ class AllocationService {
                 throw new Error('Allocation end date cannot be after project end date');
             }
         }
-        // Check if employee is active
         const employeeResult = await this.db.query('SELECT is_active FROM employees WHERE id = $1', [input.employeeId]);
         if (employeeResult.rows.length > 0) {
             const employee = employeeResult.rows[0];
@@ -340,7 +325,6 @@ class AllocationService {
                 throw new Error('Cannot allocate to inactive employee');
             }
         }
-        // Check for overlapping allocations
         if (input.startDate && input.endDate) {
             const overlapResult = await this.db.query(`
         SELECT id FROM resource_allocations
@@ -357,11 +341,7 @@ class AllocationService {
             }
         }
     }
-    /**
-     * Check for over-allocation warnings when creating an allocation
-     */
     static async checkOverAllocationWarnings(employeeId, startDate, endDate, allocatedHours) {
-        // Get weeks that overlap with the allocation period
         const warnings = [];
         const weeks = over_allocation_warning_service_1.OverAllocationWarningService['getWeeksBetween'](startDate, endDate);
         for (const week of weeks) {
@@ -372,20 +352,13 @@ class AllocationService {
         }
         return warnings;
     }
-    /**
-     * Get over-allocation summary for schedule view
-     */
     static async getOverAllocationSummary(startDate, endDate) {
         return over_allocation_warning_service_1.OverAllocationWarningService.getScheduleViewWarnings(startDate, endDate);
     }
-    /**
-     * Export allocations to CSV format using real database data
-     */
     static async exportAllocationsToCSV(options = {}) {
         const { AllocationCSVExportService } = await Promise.resolve().then(() => __importStar(require('./allocation-csv-export.service')));
         return AllocationCSVExportService.exportAllocationsToCSV(options);
     }
-    // Static method wrappers for route compatibility
     static async getEmployeeAllocations(employeeId, filters = {}, page = 1, limit = 50) {
         return working_allocation_model_1.WorkingAllocationModel.findByEmployeeId(employeeId, filters, page, limit);
     }
@@ -406,3 +379,4 @@ class AllocationService {
     }
 }
 exports.AllocationService = AllocationService;
+//# sourceMappingURL=allocation.service.js.map

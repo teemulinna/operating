@@ -8,13 +8,11 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const api_error_1 = require("../utils/api-error");
 const authMiddleware = (req, _res, next) => {
     try {
-        // Always skip auth in development - the environment detection wasn't working reliably
         const isDevelopment = process.env.NODE_ENV === 'development' ||
             process.env.NODE_ENV === 'test' ||
             !process.env.JWT_SECRET ||
             process.env.JWT_SECRET === 'dev-secret-key-should-not-be-used-in-production';
         if (isDevelopment) {
-            // Set a default development user
             req.user = {
                 id: 'dev-user-1',
                 email: 'dev@company.com',
@@ -30,7 +28,6 @@ const authMiddleware = (req, _res, next) => {
         if (!token) {
             throw new api_error_1.ApiError(401, 'Access token missing');
         }
-        // JWT token validation
         const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
         try {
             const decoded = jsonwebtoken_1.default.verify(token, JWT_SECRET);
@@ -60,13 +57,11 @@ const authMiddleware = (req, _res, next) => {
 exports.authMiddleware = authMiddleware;
 const requireRole = (roles) => {
     return (req, _res, next) => {
-        // In development mode, always allow access
         const isDevelopment = process.env.NODE_ENV === 'development' ||
             process.env.NODE_ENV === 'test' ||
             !process.env.JWT_SECRET ||
             process.env.JWT_SECRET === 'dev-secret-key-should-not-be-used-in-production';
         if (isDevelopment) {
-            // Set a default development user if not set
             if (!req.user) {
                 req.user = {
                     id: 'dev-user-1',
@@ -92,7 +87,8 @@ const generateToken = (user) => {
         userId: user.id,
         email: user.email,
         role: user.role,
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
     }, JWT_SECRET);
 };
 exports.generateToken = generateToken;
+//# sourceMappingURL=auth.middleware.js.map

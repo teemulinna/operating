@@ -1,11 +1,13 @@
 import { Pool } from 'pg';
 import { Skill, CreateSkillInput, UpdateSkillInput, SkillCategory } from '../types';
 import { PaginatedResponse } from '../types/employee.types';
+import { DatabaseService } from '../database/database.service';
 export declare class SkillService {
     private static pool;
     private static initialized;
+    private db;
     static initialize(pool: Pool): void;
-    constructor();
+    constructor(db?: DatabaseService);
     private static ensureInitialized;
     getSkills(search?: string, category?: SkillCategory): Promise<Skill[]>;
     createSkill(skillData: CreateSkillInput): Promise<Skill>;
@@ -17,10 +19,18 @@ export declare class SkillService {
         employeeCount: number;
     }>>;
     getEmployeesBySkill(skillId: string, page?: number, limit?: number): Promise<PaginatedResponse<any>>;
-    getSkillRecommendations(employeeId: string, limit?: number): Promise<Array<{
-        skill: Skill;
+    getSkillRecommendations(employeeId: string): Promise<{
+        skill: {
+            id: any;
+            name: any;
+            description: any;
+            category: any;
+            isActive: any;
+            createdAt: any;
+            updatedAt: any;
+        };
         relevanceScore: number;
-    }>>;
+    }[]>;
     getSkillAnalytics(): Promise<{
         totalSkills: number;
         skillsByCategory: Record<SkillCategory, number>;

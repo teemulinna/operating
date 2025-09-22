@@ -6,7 +6,7 @@ interface Employee {
   id: string;
   firstName: string;
   lastName: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
 }
 
 interface Project {
@@ -55,18 +55,22 @@ const WeeklyScheduleGrid: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [employeesData, projectsData, allocationsData] = await Promise.all([
-          apiService.getEmployees(),
+        // Fetch employees directly from the API to get all fields including weeklyCapacity
+        const [employeesRes, projectsData, allocationsData] = await Promise.all([
+          fetch('http://localhost:3001/api/employees'),
           apiService.getProjects(),
           apiService.getAllocations()
         ]);
 
+        const employeesJson = await employeesRes.json();
+        const employeesData = employeesJson.data || [];
+
         // Map API data to local interfaces
-        const mappedEmployees: Employee[] = (employeesData || []).map((emp: ApiEmployee) => ({
-          id: emp.id.toString(),
-          firstName: emp.name.split(' ')[0] || emp.name,
-          lastName: emp.name.split(' ').slice(1).join(' ') || '',
-          defaultHoursPerWeek: emp.capacity || 40
+        const mappedEmployees: Employee[] = employeesData.map((emp: any) => ({
+          id: emp.id,
+          firstName: emp.firstName,
+          lastName: emp.lastName,
+          weeklyCapacity: Number(emp.weeklyCapacity) || 40
         }));
 
         const mappedProjects: Project[] = (projectsData || []).map((proj: ApiProject) => ({
@@ -187,7 +191,7 @@ const WeeklyScheduleGrid: React.FC = () => {
             {employees.map((employee) => {
               const employeeAllocations = getEmployeeAllocations(employee.id);
               const totalHours = employeeAllocations.reduce((sum, alloc) => sum + alloc.allocatedHours, 0);
-              const isOverAllocated = totalHours > employee.defaultHoursPerWeek;
+              const isOverAllocated = totalHours > employee.weeklyCapacity;
 
               return (
                 <tr key={employee.id} className="border-b border-gray-100 hover:bg-gray-50">
@@ -197,11 +201,11 @@ const WeeklyScheduleGrid: React.FC = () => {
                         {employee.firstName} {employee.lastName}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {employee.defaultHoursPerWeek}h/week capacity
+                        {employee.weeklyCapacity}h/week capacity
                       </div>
                       {isOverAllocated && (
                         <div className="mt-1 text-xs text-red-600 font-medium" data-testid={`overallocation-warning-${employee.id}`}>
-                          ⚠️ Over-allocated: {totalHours}h / {employee.defaultHoursPerWeek}h
+                          ⚠️ Over-allocated: {totalHours}h / {employee.weeklyCapacity}h
                         </div>
                       )}
                     </div>
@@ -239,7 +243,7 @@ const WeeklyScheduleGrid: React.FC = () => {
                         {totalHours}h
                       </div>
                       <div className="text-sm text-gray-500">
-                        {((totalHours / employee.defaultHoursPerWeek) * 100).toFixed(0)}%
+                        {((totalHours / employee.weeklyCapacity) * 100).toFixed(0)}%
                       </div>
                     </div>
                   </td>

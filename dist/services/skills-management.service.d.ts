@@ -8,7 +8,7 @@ export interface Skill {
 }
 export interface EmployeeSkill {
     id?: number;
-    employeeId: number;
+    employeeId: string;
     skillId: number;
     proficiencyLevel: number;
     certificationLevel?: string;
@@ -107,7 +107,7 @@ export declare class SkillsManagementService {
         page?: number;
         limit?: number;
     }): Promise<PaginatedResponse<Skill>>;
-    assignSkillToEmployee(employeeId: number, skillAssignment: {
+    assignSkillToEmployee(employeeId: string, skillAssignment: {
         skillId: number;
         proficiencyLevel: number;
         certificationLevel?: string;
@@ -115,17 +115,17 @@ export declare class SkillsManagementService {
         lastUsed?: Date;
         notes?: string;
     }): Promise<EmployeeSkill>;
-    getEmployeeSkills(employeeId: number): Promise<EmployeeSkill[]>;
-    updateEmployeeSkill(employeeId: number, skillId: number, updates: {
+    getEmployeeSkills(employeeId: string): Promise<EmployeeSkill[]>;
+    updateEmployeeSkill(employeeId: string, updates: {
         proficiencyLevel?: number;
         certificationLevel?: string;
         yearsOfExperience?: number;
         lastUsed?: Date;
         notes?: string;
     }): Promise<EmployeeSkill>;
-    performSkillGapAnalysis(employeeId: number): Promise<SkillGapAnalysis>;
+    performSkillGapAnalysis(employeeId: string): Promise<SkillGapAnalysis>;
     getSkillAnalytics(): Promise<SkillAnalytics>;
-    getTrainingRecommendations(employeeId: number): Promise<{
+    getTrainingRecommendations(employeeId: string): Promise<{
         recommendations: TrainingRecommendation[];
     }>;
     private mapSkillRow;

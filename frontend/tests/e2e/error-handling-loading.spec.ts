@@ -93,7 +93,7 @@ test.describe('Error Handling and Loading States', () => {
     await page.getByTestId('employee-email').fill(testEmployee.email);
     await page.getByTestId('employee-position').fill(testEmployee.position);
     await page.getByTestId('employee-department').selectOption(testEmployee.departmentId);
-    await page.getByTestId('employee-hours').fill(testEmployee.defaultHoursPerWeek.toString());
+    await page.getByTestId('employee-hours').fill(testEmployee.weeklyCapacity.toString());
     await page.getByTestId('employee-salary').fill(testEmployee.salary.toString());
     
     // Submit form
@@ -204,7 +204,7 @@ test.describe('Error Handling and Loading States', () => {
     await page.getByTestId('employee-email').fill(testEmployee.email);
     await page.getByTestId('employee-position').fill(testEmployee.position);
     await page.getByTestId('employee-department').selectOption(testEmployee.departmentId);
-    await page.getByTestId('employee-hours').fill(testEmployee.defaultHoursPerWeek.toString());
+    await page.getByTestId('employee-hours').fill(testEmployee.weeklyCapacity.toString());
     await page.getByTestId('employee-salary').fill(testEmployee.salary.toString());
     
     await page.getByTestId('employee-form-submit').click();
@@ -335,7 +335,7 @@ test.describe('Error Handling and Loading States', () => {
     await page.getByTestId('employee-email').fill(testEmployee.email);
     await page.getByTestId('employee-position').fill(testEmployee.position);
     await page.getByTestId('employee-department').selectOption(testEmployee.departmentId);
-    await page.getByTestId('employee-hours').fill(testEmployee.defaultHoursPerWeek.toString());
+    await page.getByTestId('employee-hours').fill(testEmployee.weeklyCapacity.toString());
     await page.getByTestId('employee-salary').fill(testEmployee.salary.toString());
     
     await page.getByTestId('employee-form-submit').click();

@@ -140,7 +140,7 @@ export class ResourceAllocationModel {
         position: row.employee.position,
         hireDate: row.employee.hireDate,
         isActive: row.employee.isActive,
-        defaultHours: row.employee.defaultHours || 40,
+        weeklyCapacity: row.employee.weeklyCapacity || 40,
         createdAt: row.employee.createdAt || new Date(),
         updatedAt: row.employee.updatedAt || new Date()
       }

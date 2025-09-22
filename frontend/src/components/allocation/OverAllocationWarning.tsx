@@ -10,7 +10,7 @@ interface Project {
 interface OverAllocationWarningProps {
   employeeName: string;
   totalHours: number;
-  defaultHours: number;
+  weeklyCapacity: number;
   projects: Project[];
   onResolve?: () => void;
   className?: string;
@@ -91,16 +91,16 @@ const generateSuggestions = (projects: Project[], overageHours: number): string[
 export function OverAllocationWarning({ 
   employeeName,
   totalHours,
-  defaultHours,
+  weeklyCapacity,
   projects,
   onResolve,
   className = ""
 }: OverAllocationWarningProps) {
-  const overageHours = totalHours - defaultHours;
+  const overageHours = totalHours - weeklyCapacity;
   const severity = getSeverity(overageHours);
   const config = severityConfig[severity];
   const shouldAnimate = severity === 'critical';
-  const utilizationRate = Math.round((totalHours / defaultHours) * 100);
+  const utilizationRate = Math.round((totalHours / weeklyCapacity) * 100);
   
   const suggestions = generateSuggestions(projects, overageHours);
 
@@ -129,7 +129,7 @@ export function OverAllocationWarning({
             <div className="flex items-center space-x-4 mb-2">
               <span>📊 {utilizationRate}% capacity</span>
               <span>⏰ {overageHours}h over limit</span>
-              <span>📈 {totalHours}h / {defaultHours}h</span>
+              <span>📈 {totalHours}h / {weeklyCapacity}h</span>
             </div>
             
             <div className="mb-2">

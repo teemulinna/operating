@@ -1,0 +1,294 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link "Dashboard" [ref=e5] [cursor=pointer]:
+      - /url: /
+    - link "Employees" [ref=e6] [cursor=pointer]:
+      - /url: /employees
+    - link "Projects" [ref=e7] [cursor=pointer]:
+      - /url: /projects
+    - link "Allocations" [ref=e8] [cursor=pointer]:
+      - /url: /allocations
+    - link "Schedule" [ref=e9] [cursor=pointer]:
+      - /url: /schedule
+    - link "Enhanced Schedule" [ref=e10] [cursor=pointer]:
+      - /url: /enhanced-schedule
+    - link "Reports" [ref=e11] [cursor=pointer]:
+      - /url: /reports
+    - link "Planning" [ref=e12] [cursor=pointer]:
+      - /url: /planning
+    - link "Team" [ref=e13] [cursor=pointer]:
+      - /url: /team-dashboard
+  - main [ref=e14]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - heading "Employees" [level=1] [ref=e19]
+          - paragraph [ref=e20]: Manage your team members and their information
+        - button "Add Employee" [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e25]:
+            - generic [ref=e27]:
+              - generic [ref=e28]:
+                - generic [ref=e31]: DB
+                - generic [ref=e32]:
+                  - heading "David Brown" [level=3] [ref=e33] [cursor=pointer]
+                  - paragraph [ref=e34]: Backend Developer
+              - generic [ref=e35]:
+                - generic [ref=e36]:
+                  - img [ref=e37]
+                  - generic [ref=e39]: david.brown@company.com
+                - generic [ref=e40]:
+                  - img [ref=e41]
+                  - generic [ref=e43]: Engineering
+              - generic [ref=e45]:
+                - generic [ref=e46]: 25.00h/week
+                - generic [ref=e47]: $95,000
+            - generic [ref=e49]:
+              - button "View" [ref=e50] [cursor=pointer]
+              - button "Edit" [ref=e51] [cursor=pointer]
+              - button "Delete" [ref=e52] [cursor=pointer]
+          - generic [ref=e54]:
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - generic [ref=e60]: TC
+                - generic [ref=e61]:
+                  - heading "Test Capacity" [level=3] [ref=e62] [cursor=pointer]
+                  - paragraph [ref=e63]: Part-Time Developer
+              - generic [ref=e64]:
+                - generic [ref=e65]:
+                  - img [ref=e66]
+                  - generic [ref=e68]: test.capacity@example.com
+                - generic [ref=e69]:
+                  - img [ref=e70]
+                  - generic [ref=e72]: Data Science
+              - generic [ref=e74]:
+                - generic [ref=e75]: 40.00h/week
+                - generic [ref=e76]: $50,000
+            - generic [ref=e78]:
+              - button "View" [ref=e79] [cursor=pointer]
+              - button "Edit" [ref=e80] [cursor=pointer]
+              - button "Delete" [ref=e81] [cursor=pointer]
+          - generic [ref=e83]:
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - generic [ref=e89]: ED
+                - generic [ref=e90]:
+                  - heading "Emily Davis" [level=3] [ref=e91] [cursor=pointer]
+                  - paragraph [ref=e92]: UI Designer
+              - generic [ref=e93]:
+                - generic [ref=e94]:
+                  - img [ref=e95]
+                  - generic [ref=e97]: emily.davis@company.com
+                - generic [ref=e98]:
+                  - img [ref=e99]
+                  - generic [ref=e101]: Design
+              - generic [ref=e103]:
+                - generic [ref=e104]: 40.00h/week
+                - generic [ref=e105]: $90,000
+            - generic [ref=e107]:
+              - button "View" [ref=e108] [cursor=pointer]
+              - button "Edit" [ref=e109] [cursor=pointer]
+              - button "Delete" [ref=e110] [cursor=pointer]
+          - generic [ref=e112]:
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - generic [ref=e118]: JD
+                - generic [ref=e119]:
+                  - heading "John Doe Updated" [level=3] [ref=e120] [cursor=pointer]
+                  - paragraph [ref=e121]: Senior Software Engineer
+              - generic [ref=e122]:
+                - generic [ref=e123]:
+                  - img [ref=e124]
+                  - generic [ref=e126]: john.doe.updated@company.com
+                - generic [ref=e127]:
+                  - img [ref=e128]
+                  - generic [ref=e130]: Engineering
+              - generic [ref=e132]:
+                - generic [ref=e133]: 40.00h/week
+                - generic [ref=e134]: $85,000
+            - generic [ref=e136]:
+              - button "View" [ref=e137] [cursor=pointer]
+              - button "Edit" [ref=e138] [cursor=pointer]
+              - button "Delete" [ref=e139] [cursor=pointer]
+          - generic [ref=e141]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - generic [ref=e147]: MJ
+                - generic [ref=e148]:
+                  - heading "Mike Johnson" [level=3] [ref=e149] [cursor=pointer]
+                  - paragraph [ref=e150]: Product Manager
+              - generic [ref=e151]:
+                - generic [ref=e152]:
+                  - img [ref=e153]
+                  - generic [ref=e155]: mike.johnson@company.com
+                - generic [ref=e156]:
+                  - img [ref=e157]
+                  - generic [ref=e159]: Product
+              - generic [ref=e161]:
+                - generic [ref=e162]: 40.00h/week
+                - generic [ref=e163]: $130,000
+            - generic [ref=e165]:
+              - button "View" [ref=e166] [cursor=pointer]
+              - button "Edit" [ref=e167] [cursor=pointer]
+              - button "Delete" [ref=e168] [cursor=pointer]
+          - generic [ref=e170]:
+            - generic [ref=e172]:
+              - generic [ref=e173]:
+                - generic [ref=e176]: RM
+                - generic [ref=e177]:
+                  - heading "Robert Miller" [level=3] [ref=e178] [cursor=pointer]
+                  - paragraph [ref=e179]: DevOps Engineer
+              - generic [ref=e180]:
+                - generic [ref=e181]:
+                  - img [ref=e182]
+                  - generic [ref=e184]: robert.miller@company.com
+                - generic [ref=e185]:
+                  - img [ref=e186]
+                  - generic [ref=e188]: Engineering
+              - generic [ref=e190]:
+                - generic [ref=e191]: 40.00h/week
+                - generic [ref=e192]: $125,000
+            - generic [ref=e194]:
+              - button "View" [ref=e195] [cursor=pointer]
+              - button "Edit" [ref=e196] [cursor=pointer]
+              - button "Delete" [ref=e197] [cursor=pointer]
+          - generic [ref=e199]:
+            - generic [ref=e201]:
+              - generic [ref=e202]:
+                - generic [ref=e205]: JS
+                - generic [ref=e206]:
+                  - heading "Jane Smith" [level=3] [ref=e207] [cursor=pointer]
+                  - paragraph [ref=e208]: UX Designer
+              - generic [ref=e209]:
+                - generic [ref=e210]:
+                  - img [ref=e211]
+                  - generic [ref=e213]: jane.smith@company.com
+                - generic [ref=e214]:
+                  - img [ref=e215]
+                  - generic [ref=e217]: Design
+              - generic [ref=e219]:
+                - generic [ref=e220]: 40.00h/week
+                - generic [ref=e221]: $95,000
+            - generic [ref=e223]:
+              - button "View" [ref=e224] [cursor=pointer]
+              - button "Edit" [ref=e225] [cursor=pointer]
+              - button "Delete" [ref=e226] [cursor=pointer]
+          - generic [ref=e228]:
+            - generic [ref=e230]:
+              - generic [ref=e231]:
+                - generic [ref=e234]: AT
+                - generic [ref=e235]:
+                  - heading "Amy Taylor" [level=3] [ref=e236] [cursor=pointer]
+                  - paragraph [ref=e237]: Scrum Master
+              - generic [ref=e238]:
+                - generic [ref=e239]:
+                  - img [ref=e240]
+                  - generic [ref=e242]: amy.taylor@company.com
+                - generic [ref=e243]:
+                  - img [ref=e244]
+                  - generic [ref=e246]: Product
+              - generic [ref=e248]:
+                - generic [ref=e249]: 40.00h/week
+                - generic [ref=e250]: $95,000
+            - generic [ref=e252]:
+              - button "View" [ref=e253] [cursor=pointer]
+              - button "Edit" [ref=e254] [cursor=pointer]
+              - button "Delete" [ref=e255] [cursor=pointer]
+          - generic [ref=e257]:
+            - generic [ref=e259]:
+              - generic [ref=e260]:
+                - generic [ref=e263]: AT
+                - generic [ref=e264]:
+                  - heading "API Test" [level=3] [ref=e265] [cursor=pointer]
+                  - paragraph [ref=e266]: API Tester
+              - generic [ref=e267]:
+                - generic [ref=e268]:
+                  - img [ref=e269]
+                  - generic [ref=e271]: api.test.1758478298276@example.com
+                - generic [ref=e272]:
+                  - img [ref=e273]
+                  - generic [ref=e275]: Engineering
+              - generic [ref=e277]:
+                - generic [ref=e278]: 40.00h/week
+                - generic [ref=e279]: $60,000
+            - generic [ref=e281]:
+              - button "View" [ref=e282] [cursor=pointer]
+              - button "Edit" [ref=e283] [cursor=pointer]
+              - button "Delete" [ref=e284] [cursor=pointer]
+          - generic [ref=e286]:
+            - generic [ref=e288]:
+              - generic [ref=e289]:
+                - generic [ref=e292]: AT
+                - generic [ref=e293]:
+                  - heading "API Test" [level=3] [ref=e294] [cursor=pointer]
+                  - paragraph [ref=e295]: API Tester
+              - generic [ref=e296]:
+                - generic [ref=e297]:
+                  - img [ref=e298]
+                  - generic [ref=e300]: api.test.1758478301011@example.com
+                - generic [ref=e301]:
+                  - img [ref=e302]
+                  - generic [ref=e304]: Engineering
+              - generic [ref=e306]:
+                - generic [ref=e307]: 40.00h/week
+                - generic [ref=e308]: $60,000
+            - generic [ref=e310]:
+              - button "View" [ref=e311] [cursor=pointer]
+              - button "Edit" [ref=e312] [cursor=pointer]
+              - button "Delete" [ref=e313] [cursor=pointer]
+        - paragraph [ref=e315]: "Total: 10 employees"
+      - generic [ref=e317]:
+        - generic [ref=e318]:
+          - heading "Add New Employee" [level=2] [ref=e319]
+          - paragraph [ref=e320]: Fill in the details for the new employee
+        - generic [ref=e321]:
+          - generic [ref=e322]:
+            - generic [ref=e323]:
+              - generic [ref=e324]: First Name *
+              - textbox "First Name *" [ref=e325]: Test
+            - generic [ref=e326]:
+              - generic [ref=e327]: Last Name *
+              - textbox "Last Name *" [ref=e328]: Capacity
+          - generic [ref=e329]:
+            - generic [ref=e330]: Email Address *
+            - textbox "Email Address *" [ref=e331]: test.capacity@example.com
+          - generic [ref=e332]:
+            - generic [ref=e333]:
+              - generic [ref=e334]: Position *
+              - textbox "Position *" [ref=e335]: Part-Time Developer
+            - generic [ref=e336]:
+              - generic [ref=e337]: Department *
+              - combobox [ref=e338]:
+                - option "Select department" [disabled]
+                - option "Data Science" [selected]
+                - option "Design"
+                - option "Engineering"
+                - option "Finance"
+                - option "Human Resources"
+                - option "Marketing"
+                - option "Operations"
+                - option "Product"
+                - option "Production Validation"
+                - option "Quality Assurance"
+                - option "Sales"
+          - generic [ref=e339]:
+            - generic [ref=e340]:
+              - generic [ref=e341]: Hours per Week *
+              - spinbutton "Hours per Week *" [ref=e342]: "20"
+              - paragraph [ref=e343]: Weekly working hours (1-168)
+            - generic [ref=e344]:
+              - generic [ref=e345]: Annual Salary *
+              - spinbutton "Annual Salary *" [ref=e346]: "50000"
+              - paragraph [ref=e347]: Annual salary in USD
+          - generic [ref=e348]:
+            - generic [ref=e349]: Skills
+            - textbox "Skills" [ref=e350]
+            - paragraph [ref=e351]: Enter skills separated by commas (optional)
+          - generic [ref=e352]:
+            - button "Cancel" [ref=e353] [cursor=pointer]
+            - button "Create Employee" [ref=e354] [cursor=pointer]
+```

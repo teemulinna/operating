@@ -28,13 +28,13 @@ class ResourceAllocationModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') { // Unique constraint violation
+            if (error.code === '23505') {
                 throw new types_1.DatabaseError('Employee is already allocated to this project for overlapping dates');
             }
-            if (error.code === '23503') { // Foreign key constraint violation
+            if (error.code === '23503') {
                 throw new types_1.DatabaseError('Invalid project ID or employee ID');
             }
-            if (error.code === '23P01') { // Serialization failure (custom check for overlapping)
+            if (error.code === '23P01') {
                 throw new types_1.DatabaseError('Employee has overlapping resource allocation for the specified period');
             }
             throw error;
@@ -118,7 +118,7 @@ class ResourceAllocationModel {
                 position: row.employee.position,
                 hireDate: row.employee.hireDate,
                 isActive: row.employee.isActive,
-                defaultHours: row.employee.defaultHours || 40,
+                weeklyCapacity: row.employee.weeklyCapacity || 40,
                 createdAt: row.employee.createdAt || new Date(),
                 updatedAt: row.employee.updatedAt || new Date()
             }
@@ -223,7 +223,6 @@ class ResourceAllocationModel {
         }
         const whereClause = whereConditions.join(' AND ');
         const offset = (page - 1) * limit;
-        // Get total count
         const countQuery = `
       SELECT COUNT(*) as total
       FROM resource_allocations ra
@@ -231,7 +230,6 @@ class ResourceAllocationModel {
     `;
         const countResult = await this.pool.query(countQuery, values);
         const total = parseInt(countResult.rows[0].total);
-        // Get paginated results
         values.push(limit, offset);
         const dataQuery = `
       SELECT ra.*
@@ -438,7 +436,6 @@ class ResourceAllocationModel {
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
-        // Only set optional properties if they have values
         if (row.hourly_rate !== null && row.hourly_rate !== undefined) {
             allocation.hourlyRate = parseFloat(row.hourly_rate);
         }
@@ -452,3 +449,4 @@ class ResourceAllocationModel {
     }
 }
 exports.ResourceAllocationModel = ResourceAllocationModel;
+//# sourceMappingURL=ResourceAllocation.js.map

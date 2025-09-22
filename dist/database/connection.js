@@ -23,7 +23,6 @@ class DatabaseConnection {
                 query_timeout: 30000
             };
             this.pool = new pg_1.Pool(poolConfig);
-            // Test the connection
             const client = await this.pool.connect();
             await client.query('SELECT NOW()');
             client.release();
@@ -106,3 +105,4 @@ class DatabaseConnection {
     }
 }
 exports.DatabaseConnection = DatabaseConnection;
+//# sourceMappingURL=connection.js.map

@@ -12,7 +12,7 @@ interface Employee {
   firstName?: string;
   lastName?: string;
   name?: string;
-  defaultHoursPerWeek?: number;
+  weeklyCapacity?: number;
   capacity?: number;
 }
 
@@ -63,8 +63,8 @@ export function useRealTimeOverAllocation(
     return employees.map(emp => ({
       employeeId: emp.id,
       employeeName: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || `Employee ${emp.id}`,
-      defaultHoursPerWeek: emp.defaultHoursPerWeek || emp.capacity || 40,
-      capacity: emp.capacity || emp.defaultHoursPerWeek || 40
+      weeklyCapacity: emp.weeklyCapacity || emp.capacity || 40,
+      capacity: emp.capacity || emp.weeklyCapacity || 40
     }));
   }, [employees]);
 
@@ -117,7 +117,7 @@ export function useRealTimeOverAllocation(
     return overAllocationCalculationService.calculateWeeklyOverAllocation(
       employeeId,
       weekStart,
-      employee.defaultHoursPerWeek,
+      employee.weeklyCapacity,
       allocations
     );
   }, [employeeCapacities, allocations]);

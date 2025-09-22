@@ -5,7 +5,6 @@ const project_service_1 = require("../services/project.service");
 const resource_assignment_service_1 = require("../services/resource-assignment.service");
 const api_error_1 = require("../utils/api-error");
 const websocket_service_1 = require("../websocket/websocket.service");
-// import { logger } from '../utils/logger';
 class ProjectController {
     constructor() {
         this.createProject = async (req, res, next) => {
@@ -23,7 +22,6 @@ class ProjectController {
                 };
                 const project = await this.projectService.createProject(projectData);
                 console.log(`Project created: ${project.name} (ID: ${project.id})`);
-                // Emit real-time event for project creation
                 this.webSocketService.sendNotification({
                     id: `project-created-${project.id}-${Date.now()}`,
                     type: 'project_created',
@@ -82,7 +80,6 @@ class ProjectController {
                 if (!project) {
                     throw new api_error_1.ApiError(404, 'Project not found');
                 }
-                // Return project without roles/assignments for now since those tables don't exist yet
                 res.json({
                     success: true,
                     data: {
@@ -137,11 +134,6 @@ class ProjectController {
                 if (isNaN(projectId)) {
                     throw new api_error_1.ApiError(400, 'Invalid project ID');
                 }
-                // Check if project has active assignments (skip for now since table doesn't exist)
-                // const activeAssignments = await this.assignmentService.getActiveAssignments(projectId);
-                // if (activeAssignments.length > 0) {
-                //   throw new ApiError(400, 'Cannot delete project with active resource assignments');
-                // }
                 await this.projectService.deleteProject(projectId);
                 console.log(`Project deleted: ID ${projectId}`);
                 res.status(204).send();
@@ -150,7 +142,6 @@ class ProjectController {
                 next(error);
             }
         };
-        // Project Roles Management
         this.addProjectRole = async (req, res, next) => {
             try {
                 const projectId = parseInt(req.params.id || '');
@@ -197,7 +188,6 @@ class ProjectController {
                 next(error);
             }
         };
-        // Resource Assignments
         this.assignEmployeeToProject = async (req, res, next) => {
             try {
                 const projectId = parseInt(req.params.id || '');
@@ -249,3 +239,4 @@ class ProjectController {
     }
 }
 exports.ProjectController = ProjectController;
+//# sourceMappingURL=project.controller.js.map

@@ -137,7 +137,6 @@ class CRMIntegrationService {
                     details: { error: 'NOT_FOUND' }
                 };
             }
-            // Check if the CRM type is supported
             if (!adapter_factory_1.CRMAdapterFactory.isSupported(crmSystem.type)) {
                 return {
                     success: false,
@@ -209,7 +208,6 @@ class CRMIntegrationService {
                 dueDate: project.estimatedEndDate,
                 labels: project.tags || []
             });
-            // Update project with CRM ID
             await this.updateProjectCRMId(projectId, crmProject.id, crmSystemId);
             return {
                 success: true,
@@ -246,7 +244,6 @@ class CRMIntegrationService {
                     error: 'Project not found in CRM'
                 };
             }
-            // Create or update project in our system
             const projectId = await this.createOrUpdateProjectFromCRM(crmProject, crmSystemId);
             return {
                 success: true,
@@ -370,13 +367,11 @@ class CRMIntegrationService {
         await this.db.query(query, [crmId, crmSystemId, projectId]);
     }
     async createOrUpdateProjectFromCRM(crmProject, crmSystemId) {
-        // Check if project already exists by CRM ID
         const existingQuery = 'SELECT id FROM projects WHERE crm_id = $1 AND crm_system_id = $2';
         const existing = await this.db.query(existingQuery, [crmProject.id, crmSystemId]);
         if (existing.rows.length > 0) {
-            // Update existing project
             const updateQuery = `
-        UPDATE projects 
+        UPDATE projects
         SET name = $1, description = $2, status = $3, updated_at = NOW()
         WHERE id = $4
         RETURNING id
@@ -390,9 +385,8 @@ class CRMIntegrationService {
             return result.rows[0].id;
         }
         else {
-            // Create new project
             const insertQuery = `
-        INSERT INTO projects 
+        INSERT INTO projects
         (name, description, status, crm_id, crm_system_id, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
         RETURNING id
@@ -407,5 +401,351 @@ class CRMIntegrationService {
             return result.rows[0].id;
         }
     }
+    async syncFromCRM(crmSystemId, options) {
+        const result = {
+            success: false,
+            syncedRecords: 0,
+            errors: [],
+            conflicts: []
+        };
+        try {
+            const crmSystem = await this.getCRMSystemById(crmSystemId);
+            if (!crmSystem) {
+                result.errors.push('CRM system not found');
+                return result;
+            }
+            if (!adapter_factory_1.CRMAdapterFactory.isSupported(crmSystem.type)) {
+                result.errors.push(`CRM type '${crmSystem.type}' is not supported`);
+                return result;
+            }
+            const adapter = adapter_factory_1.CRMAdapterFactory.getAdapter(crmSystem);
+            const connectionTest = await adapter.testConnection();
+            if (!connectionTest.success) {
+                result.errors.push(`CRM connection failed: ${connectionTest.message}`);
+                return result;
+            }
+            const crmProjects = await adapter.listProjects({
+                limit: 1000
+            });
+            for (const crmProject of crmProjects) {
+                try {
+                    const mappedData = await this.mapCRMData(crmProject, crmSystemId);
+                    if (!options?.dryRun) {
+                        await this.createOrUpdateProjectFromCRM(mappedData, crmSystemId);
+                    }
+                    result.syncedRecords++;
+                }
+                catch (error) {
+                    result.errors.push(`Failed to sync project ${crmProject.id}: ${error.message}`);
+                }
+            }
+            if (!options?.dryRun) {
+                await this.updateLastSyncTimestamp(crmSystemId);
+            }
+            result.success = result.errors.length === 0;
+            return result;
+        }
+        catch (error) {
+            result.errors.push(`Sync failed: ${error.message}`);
+            return result;
+        }
+    }
+    async syncToCRM(crmSystemId, options) {
+        const result = {
+            success: false,
+            syncedRecords: 0,
+            errors: [],
+            conflicts: []
+        };
+        try {
+            const crmSystem = await this.getCRMSystemById(crmSystemId);
+            if (!crmSystem) {
+                result.errors.push('CRM system not found');
+                return result;
+            }
+            if (!adapter_factory_1.CRMAdapterFactory.isSupported(crmSystem.type)) {
+                result.errors.push(`CRM type '${crmSystem.type}' is not supported`);
+                return result;
+            }
+            const adapter = adapter_factory_1.CRMAdapterFactory.getAdapter(crmSystem);
+            const connectionTest = await adapter.testConnection();
+            if (!connectionTest.success) {
+                result.errors.push(`CRM connection failed: ${connectionTest.message}`);
+                return result;
+            }
+            let query = 'SELECT * FROM projects WHERE 1=1';
+            const params = [];
+            if (options?.projectIds && options.projectIds.length > 0) {
+                query += ` AND id = ANY($${params.length + 1})`;
+                params.push(options.projectIds);
+            }
+            if (options?.since) {
+                query += ` AND updated_at >= $${params.length + 1}`;
+                params.push(options.since);
+            }
+            const projectsResult = await this.db.query(query, params);
+            const projects = projectsResult.rows;
+            for (const project of projects) {
+                try {
+                    const projectData = {
+                        name: project.name,
+                        description: project.description,
+                        priority: project.priority,
+                        dueDate: project.estimated_end_date,
+                        labels: project.tags || []
+                    };
+                    if (!options?.dryRun) {
+                        if (project.crm_id && project.crm_system_id === crmSystemId) {
+                            await adapter.updateProject(project.crm_id, projectData);
+                        }
+                        else {
+                            const crmProject = await adapter.createProject(projectData);
+                            await this.updateProjectCRMId(project.id, crmProject.id, crmSystemId);
+                        }
+                    }
+                    result.syncedRecords++;
+                }
+                catch (error) {
+                    result.errors.push(`Failed to sync project ${project.id}: ${error.message}`);
+                }
+            }
+            if (!options?.dryRun) {
+                await this.updateLastSyncTimestamp(crmSystemId);
+            }
+            result.success = result.errors.length === 0;
+            return result;
+        }
+        catch (error) {
+            result.errors.push(`Sync failed: ${error.message}`);
+            return result;
+        }
+    }
+    async mapCRMData(crmData, crmSystemId) {
+        try {
+            const crmSystem = await this.getCRMSystemById(crmSystemId);
+            if (!crmSystem) {
+                throw new Error('CRM system not found');
+            }
+            const mappings = crmSystem.syncSettings?.fieldMappings || [];
+            const mappedData = {};
+            const defaultMappings = [
+                { systemField: 'name', crmField: 'name', dataType: 'string' },
+                { systemField: 'description', crmField: 'description', dataType: 'string' },
+                { systemField: 'status', crmField: 'status', dataType: 'string' },
+                { systemField: 'priority', crmField: 'priority', dataType: 'string' },
+                { systemField: 'created_at', crmField: 'createdAt', dataType: 'date' },
+                { systemField: 'updated_at', crmField: 'updatedAt', dataType: 'date' }
+            ];
+            const allMappings = [...mappings, ...defaultMappings];
+            for (const mapping of allMappings) {
+                if (crmData.hasOwnProperty(mapping.crmField)) {
+                    let value = crmData[mapping.crmField];
+                    switch (mapping.dataType) {
+                        case 'date':
+                            value = value ? new Date(value).toISOString() : null;
+                            break;
+                        case 'number':
+                            value = value ? parseFloat(value) : null;
+                            break;
+                        case 'boolean':
+                            value = Boolean(value);
+                            break;
+                        case 'array':
+                            value = Array.isArray(value) ? value : (value ? [value] : []);
+                            break;
+                        case 'object':
+                            value = typeof value === 'object' ? value : {};
+                            break;
+                        default:
+                            value = value ? String(value) : null;
+                    }
+                    const fullMapping = mapping;
+                    if (fullMapping.transform) {
+                        try {
+                            const transformFn = new Function('value', `return ${fullMapping.transform}`);
+                            value = transformFn(value);
+                        }
+                        catch (error) {
+                            console.warn(`Transform failed for field ${mapping.systemField}:`, error);
+                        }
+                    }
+                    mappedData[mapping.systemField] = value;
+                }
+            }
+            mappedData.id = crmData.id;
+            return mappedData;
+        }
+        catch (error) {
+            throw new Error(`Data mapping failed: ${error.message}`);
+        }
+    }
+    async handleWebhook(crmSystemId, payload) {
+        try {
+            const crmSystem = await this.getCRMSystemById(crmSystemId);
+            if (!crmSystem) {
+                return {
+                    success: false,
+                    message: 'CRM system not found'
+                };
+            }
+            await this.logWebhookEvent(crmSystemId, payload);
+            const parsedEvents = await this.parseWebhookPayload(crmSystem.type, payload);
+            let processedRecords = 0;
+            for (const event of parsedEvents) {
+                try {
+                    switch (event.type) {
+                        case 'project.created':
+                        case 'project.updated':
+                            await this.handleProjectEvent(crmSystemId, event);
+                            processedRecords++;
+                            break;
+                        case 'project.deleted':
+                            await this.handleProjectDeletion(crmSystemId, event.data.id);
+                            processedRecords++;
+                            break;
+                        default:
+                            console.log(`Unhandled webhook event type: ${event.type}`);
+                    }
+                }
+                catch (error) {
+                    console.error(`Failed to process webhook event:`, error);
+                }
+            }
+            return {
+                success: true,
+                message: `Processed ${processedRecords} events`,
+                processedRecords
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                message: `Webhook processing failed: ${error.message}`
+            };
+        }
+    }
+    async getLastSyncStatus(crmSystemId) {
+        try {
+            const query = `
+        SELECT * FROM crm_sync_operations
+        WHERE crm_system_id = $1
+        ORDER BY started_at DESC
+        LIMIT 1
+      `;
+            const result = await this.db.query(query, [crmSystemId]);
+            if (result.rows.length === 0) {
+                return {
+                    lastSyncAt: null,
+                    status: 'never'
+                };
+            }
+            const operation = this.mapRowToSyncOperation(result.rows[0]);
+            let status;
+            switch (operation.status) {
+                case 'completed':
+                    status = operation.results.errors.length > 0 ? 'failed' : 'success';
+                    break;
+                case 'failed':
+                    status = 'failed';
+                    break;
+                case 'pending':
+                case 'running':
+                    status = 'pending';
+                    break;
+                default:
+                    status = 'failed';
+            }
+            return {
+                lastSyncAt: operation.startedAt || null,
+                status,
+                details: {
+                    syncedRecords: operation.results.created + operation.results.updated,
+                    errors: operation.results.errors.map(e => e.error),
+                    duration: operation.duration
+                }
+            };
+        }
+        catch (error) {
+            console.error('Failed to get last sync status:', error);
+            return {
+                lastSyncAt: null,
+                status: 'failed',
+                details: {
+                    errors: [error.message]
+                }
+            };
+        }
+    }
+    async parseWebhookPayload(crmType, payload) {
+        const events = [];
+        if (payload.events && Array.isArray(payload.events)) {
+            events.push(...payload.events);
+        }
+        else if (payload.event_type || payload.type) {
+            events.push({
+                type: payload.event_type || payload.type,
+                data: payload.data || payload
+            });
+        }
+        return events;
+    }
+    async handleProjectEvent(crmSystemId, event) {
+        try {
+            const crmSystem = await this.getCRMSystemById(crmSystemId);
+            if (!crmSystem || !adapter_factory_1.CRMAdapterFactory.isSupported(crmSystem.type)) {
+                return;
+            }
+            const adapter = adapter_factory_1.CRMAdapterFactory.getAdapter(crmSystem);
+            const crmProject = await adapter.getProject(event.data.id);
+            if (crmProject) {
+                const mappedData = await this.mapCRMData(crmProject, crmSystemId);
+                await this.createOrUpdateProjectFromCRM(mappedData, crmSystemId);
+            }
+        }
+        catch (error) {
+            console.error(`Failed to handle project event:`, error);
+            throw error;
+        }
+    }
+    async handleProjectDeletion(crmSystemId, crmProjectId) {
+        try {
+            const query = `
+        UPDATE projects
+        SET status = 'deleted', updated_at = NOW()
+        WHERE crm_id = $1 AND crm_system_id = $2
+      `;
+            await this.db.query(query, [crmProjectId, crmSystemId]);
+        }
+        catch (error) {
+            console.error(`Failed to handle project deletion:`, error);
+            throw error;
+        }
+    }
+    async logWebhookEvent(crmSystemId, payload) {
+        try {
+            const query = `
+        INSERT INTO webhook_logs (crm_system_id, payload, received_at)
+        VALUES ($1, $2, NOW())
+      `;
+            await this.db.query(query, [crmSystemId, JSON.stringify(payload)]);
+        }
+        catch (error) {
+            console.error('Failed to log webhook event:', error);
+        }
+    }
+    async updateLastSyncTimestamp(crmSystemId) {
+        try {
+            const query = `
+        UPDATE crm_systems
+        SET last_sync_at = NOW(), updated_at = NOW()
+        WHERE id = $1
+      `;
+            await this.db.query(query, [crmSystemId]);
+        }
+        catch (error) {
+            console.error('Failed to update last sync timestamp:', error);
+        }
+    }
 }
 exports.CRMIntegrationService = CRMIntegrationService;
+//# sourceMappingURL=crm-integration.service.js.map

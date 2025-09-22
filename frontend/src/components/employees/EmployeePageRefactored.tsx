@@ -12,7 +12,7 @@ interface Employee {
   position: string;
   departmentId: string;
   departmentName?: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
   salary: number;
 }
 
@@ -47,7 +47,7 @@ const employeeValidationRules: ValidationRule<Employee>[] = [
     message: 'Department is required' 
   },
   {
-    field: 'defaultHoursPerWeek',
+    field: 'weeklyCapacity',
     required: true,
     min: 1,
     max: 80,
@@ -127,7 +127,7 @@ function EmployeePageRefactored() {
       email: formData.get('email') as string,
       position: formData.get('position') as string,
       departmentId: formData.get('departmentId') as string,
-      defaultHoursPerWeek: parseInt(formData.get('defaultHours') as string) || 40,
+      weeklyCapacity: parseInt(formData.get('weeklyCapacity') as string) || 40,
       salary: parseFloat(formData.get('salary') as string) || 0
     };
 
@@ -305,14 +305,14 @@ function EmployeePageRefactored() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Default Hours per Week *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Weekly Capacity *</label>
                   <input
-                    name="defaultHours"
+                    name="weeklyCapacity"
                     type="number"
                     min="1"
                     max="80"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    defaultValue={editingItem?.defaultHoursPerWeek || 40}
+                    defaultValue={editingItem?.weeklyCapacity || 40}
                     data-testid="employee-default-hours"
                     required
                   />

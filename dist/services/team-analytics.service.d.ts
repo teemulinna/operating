@@ -14,7 +14,7 @@ export interface TeamAnalyticsDashboard {
             trend: 'up' | 'down' | 'stable';
         }>;
         byEmployee: Array<{
-            employeeId: number;
+            employeeId: string;
             name: string;
             utilization: number;
             productivity: number;
@@ -142,7 +142,7 @@ export interface BurnoutRiskAssessment {
         }>;
     };
     highRiskEmployees: Array<{
-        employeeId: number;
+        employeeId: string;
         name: string;
         riskScore: number;
         riskFactors: Array<{

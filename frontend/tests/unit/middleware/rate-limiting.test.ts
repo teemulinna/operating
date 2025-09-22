@@ -31,11 +31,13 @@ const createTestApp = (environment: string = 'test', enableRateLimit?: string) =
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req) => {
+      // Use the built-in ipKeyGenerator from express-rate-limit for proper IPv6 handling
+      const ipKey = req.ip || req.connection?.remoteAddress || 'unknown';
       if (isTest || isPlaywrightTest) {
-        return `test-${req.ip || 'localhost'}`;
+        return `test-${ipKey}`;
       }
-      // Use default key generator to handle IPv6 properly
-      return req.ip || 'localhost';
+      // Normalize IPv6 addresses
+      return ipKey.replace(/^::ffff:/, ''); // Remove IPv6 prefix from IPv4 addresses
     },
     skip: (req) => {
       const userAgent = req.get('User-Agent') || '';

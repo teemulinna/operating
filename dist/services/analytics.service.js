@@ -5,9 +5,6 @@ class AnalyticsService {
     static initialize(pool) {
         this.pool = pool;
     }
-    /**
-     * Get team utilization data by department with REAL calculations
-     */
     static async getTeamUtilizationData(filters = {}) {
         const startTime = Date.now();
         let query = `
@@ -65,7 +62,6 @@ class AnalyticsService {
         LEFT JOIN resource_allocations ra_prev ON e.id = ra_prev.employee_id 
           AND ra_prev.is_active = true
     `;
-        // Calculate previous period dates
         if (filters.dateFrom && filters.dateTo) {
             const dateFrom = new Date(filters.dateFrom);
             const dateTo = new Date(filters.dateTo);
@@ -76,7 +72,6 @@ class AnalyticsService {
             query += ` AND ra_prev.start_date <= $${values.length} AND ra_prev.end_date >= $${values.length - 1}`;
         }
         else {
-            // Default to previous 30 days
             values.push(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
             query += ` AND ra_prev.start_date <= $${values.length} AND ra_prev.end_date >= $${values.length - 1}`;
         }
@@ -121,9 +116,6 @@ class AnalyticsService {
             }
         };
     }
-    /**
-     * Get capacity trends over time with REAL data
-     */
     static async getCapacityTrends(filters = {}) {
         const startTime = Date.now();
         const aggregationPeriod = filters.aggregationPeriod || 'weekly';
@@ -212,12 +204,8 @@ class AnalyticsService {
             }
         };
     }
-    /**
-     * Get comprehensive resource allocation metrics with REAL calculations
-     */
     static async getResourceAllocationMetrics(filters = {}) {
         const startTime = Date.now();
-        // Get basic company metrics with real utilization calculation
         const companyMetricsQuery = `
       SELECT 
         COUNT(DISTINCT e.id) as total_employees,
@@ -237,7 +225,6 @@ class AnalyticsService {
     `;
         const companyResult = await this.pool.query(companyMetricsQuery);
         const companyMetrics = companyResult.rows[0];
-        // Get over/under utilized employees using real data
         const utilizationStatsQuery = `
       SELECT 
         COUNT(CASE WHEN utilization > 1.0 THEN 1 END) as overutilized,
@@ -264,11 +251,8 @@ class AnalyticsService {
             overutilized: parseInt(utilizationResult.rows[0].overutilized) || 0,
             underutilized: parseInt(utilizationResult.rows[0].underutilized) || 0
         };
-        // Get skill gaps
         const skillGaps = await this.getSkillGapAnalysis(filters);
-        // Get department performance
         const departmentPerformance = await this.getDepartmentPerformance(filters);
-        // Generate capacity forecast
         const capacityForecast = await this.generateCapacityForecast(filters);
         const data = {
             totalEmployees: parseInt(companyMetrics.total_employees) || 0,
@@ -294,9 +278,6 @@ class AnalyticsService {
             }
         };
     }
-    /**
-     * Get skills gap analysis with REAL data
-     */
     static async getSkillGapAnalysis(filters = {}) {
         const startTime = Date.now();
         const query = `
@@ -351,7 +332,7 @@ class AnalyticsService {
             availableExperts: parseInt(row.experts) || 0,
             gapPercentage: parseFloat(row.gap_percentage) || 0,
             criticalityLevel: row.criticality_level,
-            affectedDepartments: [] // Could be populated with additional query
+            affectedDepartments: []
         }));
         return {
             data,
@@ -367,9 +348,6 @@ class AnalyticsService {
             }
         };
     }
-    /**
-     * Get department performance metrics with REAL calculations
-     */
     static async getDepartmentPerformance(filters = {}) {
         const startTime = Date.now();
         const query = `
@@ -452,9 +430,6 @@ class AnalyticsService {
             }
         };
     }
-    /**
-     * Compare two departments with REAL data
-     */
     static async compareDepartments(departmentAId, departmentBId, filters = {}) {
         const departmentMetricsA = await this.getDepartmentMetrics(departmentAId, filters);
         const departmentMetricsB = await this.getDepartmentMetrics(departmentBId, filters);
@@ -472,12 +447,8 @@ class AnalyticsService {
             comparisons
         };
     }
-    /**
-     * Generate capacity forecast using historical data trends
-     */
     static async generateCapacityForecast(filters) {
         const startTime = Date.now();
-        // Get historical utilization data for trend analysis
         const historicalQuery = `
       SELECT 
         DATE_TRUNC('month', ra.start_date) as month,
@@ -495,7 +466,6 @@ class AnalyticsService {
         const historicalData = historicalResult.rows;
         const data = [];
         const today = new Date();
-        // Calculate average growth rate from historical data
         let avgGrowthRate = 0;
         if (historicalData.length > 1) {
             const growthRates = [];
@@ -509,7 +479,6 @@ class AnalyticsService {
             avgGrowthRate = growthRates.length > 0 ?
                 growthRates.reduce((sum, rate) => sum + rate, 0) / growthRates.length : 0;
         }
-        // Get current capacity baseline
         const currentCapacityQuery = `
       SELECT 
         SUM(COALESCE(ra.allocated_hours, 0)) as current_demand,
@@ -527,14 +496,14 @@ class AnalyticsService {
         for (let i = 1; i <= 12; i++) {
             const futureDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
             const projectedDemand = currentDemand * (1 + avgGrowthRate * i);
-            const projectedCapacity = currentCapacity * (1 + 0.02 * i); // Assume 2% capacity growth per month
+            const projectedCapacity = currentCapacity * (1 + 0.02 * i);
             data.push({
                 period: futureDate,
                 predictedDemand: Math.round(projectedDemand),
                 availableCapacity: Math.round(projectedCapacity),
                 capacityGap: Math.round(projectedDemand - projectedCapacity),
                 recommendedActions: this.generateRecommendations(projectedDemand - projectedCapacity),
-                confidence: Math.max(0.5, 1 - (i * 0.05)) // Confidence decreases over time
+                confidence: Math.max(0.5, 1 - (i * 0.05))
             });
         }
         return {
@@ -551,9 +520,6 @@ class AnalyticsService {
             }
         };
     }
-    /**
-     * Helper methods
-     */
     static getDateFormat(period) {
         switch (period) {
             case 'daily':
@@ -664,3 +630,4 @@ class AnalyticsService {
     }
 }
 exports.AnalyticsService = AnalyticsService;
+//# sourceMappingURL=analytics.service.js.map

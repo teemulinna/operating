@@ -7,6 +7,7 @@ export declare class EmployeeController {
     getEmployeeById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     createEmployee: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     updateEmployee: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    checkEmployeeDeletionConstraints: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     deleteEmployee: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     bulkImportEmployees: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     exportEmployees: (req: Request, res: Response, next: NextFunction) => Promise<void>;

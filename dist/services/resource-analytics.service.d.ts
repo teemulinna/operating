@@ -8,7 +8,7 @@ export interface UtilizationReport {
     trends: UtilizationTrend[];
 }
 export interface EmployeeUtilization {
-    employeeId: number;
+    employeeId: string;
     employeeName: string;
     totalCapacity: number;
     allocatedHours: number;
@@ -59,7 +59,7 @@ export interface SkillRecommendation {
     reasoning: string;
 }
 export interface TrainingNeed {
-    employeeId: number;
+    employeeId: string;
     employeeName: string;
     skillsToTrain: string[];
     priority: number;
@@ -92,7 +92,7 @@ export interface AllocationOptimization {
 }
 export interface OptimizationSuggestion {
     type: 'reassignment' | 'capacity_adjustment' | 'skill_development' | 'hiring';
-    employeeId: number;
+    employeeId: string;
     fromProjectId?: number;
     toProjectId?: number;
     adjustment?: number;

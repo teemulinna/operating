@@ -7,7 +7,6 @@ class ApiError extends Error {
         this.statusCode = statusCode;
         this.details = details;
         this.name = 'ApiError';
-        // Maintains proper stack trace for where error was thrown
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, ApiError);
         }
@@ -41,3 +40,4 @@ class ApiError extends Error {
     }
 }
 exports.ApiError = ApiError;
+//# sourceMappingURL=api-error.js.map

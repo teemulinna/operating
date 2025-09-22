@@ -11,7 +11,7 @@ const mockEmployees = [
     firstName: 'John',
     lastName: 'Doe',
     name: 'John Doe',
-    defaultHoursPerWeek: 40,
+    weeklyCapacity: 40,
     capacity: 40
   },
   {
@@ -19,7 +19,7 @@ const mockEmployees = [
     firstName: 'Jane',
     lastName: 'Smith',
     name: 'Jane Smith',
-    defaultHoursPerWeek: 35,
+    weeklyCapacity: 35,
     capacity: 35
   },
   {
@@ -27,7 +27,7 @@ const mockEmployees = [
     firstName: 'Mike',
     lastName: 'Johnson', 
     name: 'Mike Johnson',
-    defaultHoursPerWeek: 40,
+    weeklyCapacity: 40,
     capacity: 40
   }
 ];

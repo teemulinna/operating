@@ -7,7 +7,6 @@ const csv_helper_1 = require("../utils/csv-helper");
 const websocket_service_1 = require("../websocket/websocket.service");
 class EmployeeController {
     constructor() {
-        // GET /api/employees
         this.getEmployees = async (req, res, next) => {
             try {
                 const query = {
@@ -30,7 +29,6 @@ class EmployeeController {
                 next(error);
             }
         };
-        // GET /api/employees/:id
         this.getEmployeeById = async (req, res, next) => {
             try {
                 const id = req.params.id;
@@ -44,27 +42,24 @@ class EmployeeController {
                 next(error);
             }
         };
-        // POST /api/employees
         this.createEmployee = async (req, res, next) => {
             try {
                 const requestData = req.body;
-                // Transform frontend request to backend format
                 const employeeData = {
                     firstName: requestData.firstName,
                     lastName: requestData.lastName,
                     email: requestData.email,
                     position: requestData.position,
                     departmentId: requestData.departmentId,
+                    weeklyCapacity: requestData.weeklyCapacity || 40,
                     salary: requestData.salary,
                     skills: requestData.skills || []
                 };
-                // Check for duplicate email
                 const existingEmployee = await this.employeeService.getEmployeeByEmail(employeeData.email);
                 if (existingEmployee) {
                     throw api_error_1.ApiError.conflict('An employee with this email already exists');
                 }
                 const newEmployee = await this.employeeService.createEmployee(employeeData);
-                // Emit real-time event for employee creation
                 this.webSocketService.sendNotification({
                     id: `employee-created-${newEmployee.id}-${Date.now()}`,
                     type: 'employee_created',
@@ -81,17 +76,17 @@ class EmployeeController {
                 next(error);
             }
         };
-        // PUT /api/employees/:id
         this.updateEmployee = async (req, res, next) => {
             try {
                 const id = req.params.id;
-                const updateData = req.body;
-                // Check if employee exists
+                const updateData = {
+                    ...req.body,
+                    weeklyCapacity: req.body.weeklyCapacity !== undefined ? req.body.weeklyCapacity : undefined
+                };
                 const existingEmployee = await this.employeeService.getEmployeeById(id);
                 if (!existingEmployee) {
                     throw api_error_1.ApiError.notFound('Employee');
                 }
-                // Check for duplicate email if email is being updated
                 if (updateData.email && updateData.email !== existingEmployee.email) {
                     const duplicateEmployee = await this.employeeService.getEmployeeByEmail(updateData.email);
                     if (duplicateEmployee) {
@@ -99,7 +94,6 @@ class EmployeeController {
                     }
                 }
                 const updatedEmployee = await this.employeeService.updateEmployee(id, updateData);
-                // Emit real-time event for employee update
                 this.webSocketService.sendNotification({
                     id: `employee-updated-${updatedEmployee.id}-${Date.now()}`,
                     type: 'employee_updated',
@@ -116,26 +110,41 @@ class EmployeeController {
                 next(error);
             }
         };
-        // DELETE /api/employees/:id
+        this.checkEmployeeDeletionConstraints = async (req, res, next) => {
+            try {
+                const id = req.params.id;
+                const constraints = await this.employeeService.checkEmployeeDeletionConstraints(id);
+                res.status(200).json(constraints);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
         this.deleteEmployee = async (req, res, next) => {
             try {
                 const id = req.params.id;
-                // Check if employee exists
                 const existingEmployee = await this.employeeService.getEmployeeById(id);
                 if (!existingEmployee) {
                     throw api_error_1.ApiError.notFound('Employee');
                 }
+                const constraints = await this.employeeService.checkEmployeeDeletionConstraints(id);
+                if (!constraints.canDelete) {
+                    throw api_error_1.ApiError.conflict(`Cannot delete employee: ${constraints.blockers.join(', ')}`);
+                }
                 await this.employeeService.deleteEmployee(id);
-                // Emit real-time event for employee deletion
                 this.webSocketService.sendNotification({
                     id: `employee-deleted-${id}-${Date.now()}`,
                     type: 'employee_deleted',
                     title: 'Employee Removed',
-                    message: `${existingEmployee.firstName} ${existingEmployee.lastName} has been removed from the team`,
+                    message: `${existingEmployee.firstName} ${existingEmployee.lastName} has been removed from the team. ${constraints.warnings.length > 0 ? 'Impact: ' + constraints.warnings.join(', ') : ''}`,
                     timestamp: new Date().toISOString(),
                     isRead: false,
                     priority: 'high',
-                    data: { employeeId: id, deletedEmployee: existingEmployee }
+                    data: {
+                        employeeId: id,
+                        deletedEmployee: existingEmployee,
+                        constraints: constraints
+                    }
                 });
                 res.status(204).send();
             }
@@ -143,7 +152,6 @@ class EmployeeController {
                 next(error);
             }
         };
-        // POST /api/employees/bulk-import
         this.bulkImportEmployees = async (req, res, next) => {
             try {
                 if (!req.file) {
@@ -161,11 +169,9 @@ class EmployeeController {
                 next(error);
             }
         };
-        // GET /api/employees/export
         this.exportEmployees = async (req, res, next) => {
             try {
                 const query = {
-                    // Export all employees (no pagination)
                     limit: 10000,
                     search: req.query.search,
                     departmentId: req.query.departmentId || undefined,
@@ -187,7 +193,6 @@ class EmployeeController {
                 next(error);
             }
         };
-        // GET /api/employees/analytics
         this.getEmployeeAnalytics = async (_req, res, next) => {
             try {
                 const analytics = await this.employeeService.getEmployeeAnalytics();
@@ -202,3 +207,4 @@ class EmployeeController {
     }
 }
 exports.EmployeeController = EmployeeController;
+//# sourceMappingURL=employee.controller.js.map

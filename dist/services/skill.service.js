@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SkillService = void 0;
 const Skill_1 = require("../models/Skill");
 const EmployeeSkill_1 = require("../models/EmployeeSkill");
+const database_service_1 = require("../database/database.service");
 class SkillService {
     static initialize(pool) {
         this.pool = pool;
@@ -10,11 +11,8 @@ class SkillService {
         EmployeeSkill_1.EmployeeSkillModel.initialize(pool);
         this.initialized = true;
     }
-    constructor() {
-        // Ensure static initialization has occurred
-        if (!SkillService.initialized) {
-            throw new Error('SkillService must be initialized with a database pool before use');
-        }
+    constructor(db) {
+        this.db = db || database_service_1.DatabaseService.getInstance();
     }
     static ensureInitialized() {
         if (!this.initialized || !this.pool) {
@@ -57,7 +55,7 @@ class SkillService {
       ORDER BY employee_count DESC, s.name
       LIMIT $1
     `;
-        const result = await SkillService.pool.query(query, [limit]);
+        const result = await this.db.query(query, [limit]);
         return result.rows.map((row) => ({
             skill: {
                 id: row.id,
@@ -74,17 +72,15 @@ class SkillService {
     async getEmployeesBySkill(skillId, page = 1, limit = 10) {
         SkillService.ensureInitialized();
         const offset = (page - 1) * limit;
-        // Get total count
         const countQuery = `
       SELECT COUNT(*) as total
       FROM employee_skills es
       JOIN employees e ON es.employee_id = e.id
       WHERE es.skill_id = $1 AND es.is_active = true AND e.is_active = true
     `;
-        const countResult = await SkillService.pool.query(countQuery, [skillId]);
+        const countResult = await this.db.query(countQuery, [skillId]);
         const totalItems = parseInt(countResult.rows[0].total);
         const totalPages = Math.ceil(totalItems / limit);
-        // Get employees with their skill proficiency
         const dataQuery = `
       SELECT 
         e.id,
@@ -105,7 +101,7 @@ class SkillService {
       ORDER BY es.proficiency_level DESC, e.last_name, e.first_name
       LIMIT $2 OFFSET $3
     `;
-        const result = await SkillService.pool.query(dataQuery, [skillId, limit, offset]);
+        const result = await this.db.query(dataQuery, [skillId, limit, offset]);
         return {
             data: result.rows.map(row => ({
                 id: row.id,
@@ -130,9 +126,8 @@ class SkillService {
             }
         };
     }
-    async getSkillRecommendations(employeeId, limit = 5) {
+    async getSkillRecommendations(employeeId) {
         SkillService.ensureInitialized();
-        // Get skills that peers in same department have but this employee doesn't
         const query = `
       WITH employee_context AS (
         SELECT department_id, position_title
@@ -173,7 +168,7 @@ class SkillService {
         (peer_count * 10 + avg_proficiency * 5) as relevance_score
       FROM peer_skills
     `;
-        const result = await SkillService.pool.query(query, [employeeId, limit]);
+        const result = await this.db.query(query, [employeeId]);
         return result.rows.map((row) => ({
             skill: {
                 id: row.id,
@@ -189,9 +184,7 @@ class SkillService {
     }
     async getSkillAnalytics() {
         SkillService.ensureInitialized();
-        // Get skill statistics using the model
         const statistics = await Skill_1.SkillModel.getStatistics();
-        // Get additional analytics with real database queries
         const skillsByDepartmentQuery = `
       SELECT 
         d.name as department_name,
@@ -251,3 +244,4 @@ class SkillService {
 }
 exports.SkillService = SkillService;
 SkillService.initialized = false;
+//# sourceMappingURL=skill.service.js.map

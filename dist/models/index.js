@@ -43,11 +43,9 @@ const Budget_1 = require("./Budget");
 Object.defineProperty(exports, "BudgetModel", { enumerable: true, get: function () { return Budget_1.BudgetModel; } });
 const ResourceCost_1 = require("./ResourceCost");
 Object.defineProperty(exports, "ResourceCostModel", { enumerable: true, get: function () { return ResourceCost_1.ResourceCostModel; } });
-// Import services that need initialization
 const analytics_service_1 = require("../services/analytics.service");
 const skill_service_1 = require("../services/skill.service");
 function initializeModels(pool) {
-    // Initialize models
     Department_1.DepartmentModel.initialize(pool);
     Skill_1.SkillModel.initialize(pool);
     Employee_1.EmployeeModel.initialize(pool);
@@ -58,16 +56,12 @@ function initializeModels(pool) {
     working_allocation_model_1.WorkingAllocationModel.initialize();
     SkillRequirement_1.SkillRequirementModel.initialize(pool);
     ProjectTemplateModel_1.ProjectTemplateModel.initialize(pool);
-    // Note: ProjectTask and TaskDependency models use PostgreSQL directly
-    // No additional initialization needed as they use the same pool
     console.log('🔧 ProjectTask and TaskDependency models are ready (PostgreSQL direct)');
-    // Initialize new budget models
     Budget_1.BudgetModel.initialize(pool);
     ResourceCost_1.ResourceCostModel.initialize(pool);
-    // Initialize services
     analytics_service_1.AnalyticsService.initialize(pool);
     skill_service_1.SkillService.initialize(pool);
 }
-// Re-export types for convenience
 __exportStar(require("../types"), exports);
 __exportStar(require("../types/task-dependency.types"), exports);
+//# sourceMappingURL=index.js.map

@@ -10,9 +10,6 @@ class CapacityController {
 }
 exports.CapacityController = CapacityController;
 _a = CapacityController;
-/**
- * Get capacity data for all employees
- */
 CapacityController.getAllCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -39,9 +36,6 @@ CapacityController.getAllCapacity = (0, async_handler_1.asyncHandler)(async (req
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Get capacity data for a specific employee
- */
 CapacityController.getEmployeeCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { employeeId } = req.params;
     const { dateFrom, dateTo } = req.query;
@@ -49,7 +43,6 @@ CapacityController.getEmployeeCapacity = (0, async_handler_1.asyncHandler)(async
         throw new api_error_1.ApiError(400, 'Employee ID is required');
     }
     const capacityData = await CapacityHistory_1.CapacityHistoryModel.findByEmployee(employeeId, dateFrom ? new Date(dateFrom) : undefined, dateTo ? new Date(dateTo) : undefined);
-    // Get utilization summary for the employee
     const summary = await CapacityHistory_1.CapacityHistoryModel.getUtilizationSummary(employeeId, dateFrom ? new Date(dateFrom) : undefined, dateTo ? new Date(dateTo) : undefined);
     res.json({
         success: true,
@@ -61,9 +54,6 @@ CapacityController.getEmployeeCapacity = (0, async_handler_1.asyncHandler)(async
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Create new capacity entry
- */
 CapacityController.createCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -84,9 +74,6 @@ CapacityController.createCapacity = (0, async_handler_1.asyncHandler)(async (req
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Update capacity entry
- */
 CapacityController.updateCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -106,9 +93,6 @@ CapacityController.updateCapacity = (0, async_handler_1.asyncHandler)(async (req
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Delete capacity entry
- */
 CapacityController.deleteCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { id } = req.params;
     if (!id) {
@@ -122,9 +106,6 @@ CapacityController.deleteCapacity = (0, async_handler_1.asyncHandler)(async (req
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Bulk create capacity entries
- */
 CapacityController.bulkCreateCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -134,7 +115,6 @@ CapacityController.bulkCreateCapacity = (0, async_handler_1.asyncHandler)(async 
     if (!Array.isArray(entries) || entries.length === 0) {
         throw new api_error_1.ApiError(400, 'Entries array is required and cannot be empty');
     }
-    // Process entries and convert date strings
     const processedEntries = entries.map(entry => ({
         ...entry,
         date: new Date(entry.date)
@@ -148,9 +128,6 @@ CapacityController.bulkCreateCapacity = (0, async_handler_1.asyncHandler)(async 
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Get capacity utilization summary
- */
 CapacityController.getUtilizationSummary = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { employeeId, dateFrom, dateTo } = req.query;
     const summary = await CapacityHistory_1.CapacityHistoryModel.getUtilizationSummary(employeeId, dateFrom ? new Date(dateFrom) : undefined, dateTo ? new Date(dateTo) : undefined);
@@ -161,9 +138,6 @@ CapacityController.getUtilizationSummary = (0, async_handler_1.asyncHandler)(asy
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Get team capacity trends
- */
 CapacityController.getTeamCapacityTrends = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { departmentId, dateFrom, dateTo } = req.query;
     const trends = await CapacityHistory_1.CapacityHistoryModel.getTeamCapacityTrends(departmentId, dateFrom ? new Date(dateFrom) : undefined, dateTo ? new Date(dateTo) : undefined);
@@ -175,9 +149,6 @@ CapacityController.getTeamCapacityTrends = (0, async_handler_1.asyncHandler)(asy
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Get overutilized employees
- */
 CapacityController.getOverutilizedEmployees = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { threshold = 0.9, dateFrom, dateTo } = req.query;
     const overutilizedEmployees = await CapacityHistory_1.CapacityHistoryModel.getOverutilizedEmployees(parseFloat(threshold), dateFrom ? new Date(dateFrom) : undefined, dateTo ? new Date(dateTo) : undefined);
@@ -190,9 +161,6 @@ CapacityController.getOverutilizedEmployees = (0, async_handler_1.asyncHandler)(
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Get capacity data for a specific date
- */
 CapacityController.getCapacityByDate = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { employeeId, date } = req.params;
     if (!employeeId || !date) {
@@ -208,9 +176,6 @@ CapacityController.getCapacityByDate = (0, async_handler_1.asyncHandler)(async (
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Get capacity data by department name
- */
 CapacityController.getDepartmentCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { departmentName } = req.params;
     const { dateFrom, dateTo } = req.query;
@@ -226,9 +191,6 @@ CapacityController.getDepartmentCapacity = (0, async_handler_1.asyncHandler)(asy
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Update employee capacity by employee ID
- */
 CapacityController.updateEmployeeCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -239,11 +201,9 @@ CapacityController.updateEmployeeCapacity = (0, async_handler_1.asyncHandler)(as
     if (!employeeId) {
         throw new api_error_1.ApiError(400, 'Employee ID is required');
     }
-    // Check if capacity entry exists for this employee and date
     const existingEntry = await CapacityHistory_1.CapacityHistoryModel.findByEmployeeAndDate(employeeId, new Date(date));
     let updatedEntry;
     if (existingEntry) {
-        // Update existing entry
         updatedEntry = await CapacityHistory_1.CapacityHistoryModel.update(existingEntry.id, {
             availableHours,
             allocatedHours,
@@ -251,7 +211,6 @@ CapacityController.updateEmployeeCapacity = (0, async_handler_1.asyncHandler)(as
         });
     }
     else {
-        // Create new entry
         updatedEntry = await CapacityHistory_1.CapacityHistoryModel.create({
             employeeId,
             date: new Date(date),
@@ -267,9 +226,6 @@ CapacityController.updateEmployeeCapacity = (0, async_handler_1.asyncHandler)(as
         timestamp: new Date().toISOString()
     });
 });
-/**
- * Bulk import capacity entries from CSV-like data
- */
 CapacityController.bulkImportCapacity = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -292,7 +248,6 @@ CapacityController.bulkImportCapacity = (0, async_handler_1.asyncHandler)(async 
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];
             try {
-                // Check if entry exists
                 const existingEntry = await CapacityHistory_1.CapacityHistoryModel.findByEmployeeAndDate(entry.employeeId, new Date(entry.date));
                 if (existingEntry) {
                     if (updateExisting) {
@@ -344,9 +299,6 @@ CapacityController.bulkImportCapacity = (0, async_handler_1.asyncHandler)(async 
         client.release();
     }
 });
-/**
- * Export capacity data to CSV format
- */
 CapacityController.exportCapacityCSV = (0, async_handler_1.asyncHandler)(async (req, res, _next) => {
     const { employeeId, departmentId, dateFrom, dateTo } = req.query;
     const filters = {};
@@ -357,7 +309,6 @@ CapacityController.exportCapacityCSV = (0, async_handler_1.asyncHandler)(async (
     if (dateTo)
         filters.dateTo = new Date(dateTo);
     const capacityData = await CapacityHistory_1.CapacityHistoryModel.getCapacityWithEmployeeDetails(filters, departmentId);
-    // Generate CSV content
     const csvHeaders = [
         'Employee ID',
         'Employee Name',
@@ -383,10 +334,10 @@ CapacityController.exportCapacityCSV = (0, async_handler_1.asyncHandler)(async (
     const csvContent = [csvHeaders, ...csvRows]
         .map(row => row.map(cell => `"${(cell ?? '').toString().replace(/"/g, '""')}"`).join(','))
         .join('\n');
-    // Set headers for file download
     const filename = `capacity-export-${new Date().toISOString().split('T')[0]}.csv`;
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
     res.setHeader('Content-Length', Buffer.byteLength(csvContent));
     res.send(csvContent);
 });
+//# sourceMappingURL=capacity.controller.js.map

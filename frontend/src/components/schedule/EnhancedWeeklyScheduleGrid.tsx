@@ -11,7 +11,7 @@ interface Employee {
   firstName: string;
   lastName: string;
   name: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
   capacity: number;
 }
 
@@ -96,8 +96,8 @@ const EnhancedWeeklyScheduleGrid: React.FC = () => {
           firstName: emp.firstName || '',
           lastName: emp.lastName || '',
           name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || `Employee ${emp.id}`,
-          defaultHoursPerWeek: emp.defaultHoursPerWeek || 40,
-          capacity: emp.capacity || emp.defaultHoursPerWeek || 40
+          weeklyCapacity: Number(emp.weeklyCapacity) || 40,
+          capacity: emp.capacity || Number(emp.weeklyCapacity) || 40
         }));
 
         // Transform projects data

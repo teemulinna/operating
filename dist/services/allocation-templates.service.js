@@ -9,18 +9,14 @@ class AllocationTemplatesService {
         this.db = database_service_1.DatabaseService.getInstance();
         this.assignmentService = new resource_assignment_service_1.ResourceAssignmentService();
     }
-    // Template CRUD Operations
     async createTemplate(templateData, createdBy) {
         try {
-            // Validate required fields
             if (!templateData.name || !templateData.category) {
                 throw new api_error_1.ApiError(400, 'Template name and category are required');
             }
-            // Validate name length
             if (templateData.name.length < 3) {
                 throw new api_error_1.ApiError(400, 'Template name must be at least 3 characters long');
             }
-            // Check for duplicate template names for the same creator
             const duplicateCheck = await this.db.query('SELECT id FROM allocation_templates WHERE name = $1 AND created_by = $2 AND status != $3', [templateData.name, createdBy, 'archived']);
             if (duplicateCheck.rows.length > 0) {
                 throw new api_error_1.ApiError(409, 'Template with this name already exists');
@@ -64,7 +60,6 @@ class AllocationTemplatesService {
             let whereConditions = [];
             let queryParams = [];
             let paramIndex = 1;
-            // Access control: user can see public templates, organization templates, and their own private templates
             whereConditions.push(`(
         visibility = 'public' OR 
         (visibility = 'organization' AND organization_id IS NOT NULL) OR 
@@ -72,11 +67,9 @@ class AllocationTemplatesService {
       )`);
             queryParams.push(userId);
             paramIndex++;
-            // Filter by active status by default
             whereConditions.push(`status = $${paramIndex}`);
             queryParams.push(filters.status || 'active');
             paramIndex++;
-            // Apply filters
             if (filters.category) {
                 whereConditions.push(`category = $${paramIndex}`);
                 queryParams.push(filters.category);
@@ -98,14 +91,11 @@ class AllocationTemplatesService {
                 paramIndex++;
             }
             const whereClause = whereConditions.join(' AND ');
-            // Count total records
             const countQuery = `SELECT COUNT(*) FROM allocation_templates WHERE ${whereClause}`;
             const countResult = await this.db.query(countQuery, queryParams);
             const total = parseInt(countResult.rows[0].count);
-            // Calculate pagination
             const offset = (pagination.page - 1) * pagination.limit;
             const totalPages = Math.ceil(total / pagination.limit);
-            // Get templates with role count and usage stats
             const query = `
         SELECT 
           t.*,
@@ -154,7 +144,6 @@ class AllocationTemplatesService {
     }
     async getTemplateById(templateId, userId) {
         try {
-            // Get template with access control
             const templateQuery = `
         SELECT 
           t.*,
@@ -177,7 +166,6 @@ class AllocationTemplatesService {
                 throw new api_error_1.ApiError(404, 'Template not found or access denied');
             }
             const template = templateResult.rows[0];
-            // Get template roles
             const rolesQuery = `
         SELECT 
           tr.*,
@@ -208,14 +196,12 @@ class AllocationTemplatesService {
         ORDER BY tr.display_order, tr.created_at
       `;
             const rolesResult = await this.db.query(rolesQuery, [templateId]);
-            // Get template milestones
             const milestonesQuery = `
         SELECT * FROM template_milestones
         WHERE template_id = $1
         ORDER BY week_offset, display_order, created_at
       `;
             const milestonesResult = await this.db.query(milestonesQuery, [templateId]);
-            // Get usage statistics
             const usageQuery = `
         SELECT 
           COUNT(*) as total_uses,
@@ -249,12 +235,10 @@ class AllocationTemplatesService {
     }
     async updateTemplate(templateId, updateData, userId) {
         try {
-            // Check if user owns the template or has organization access
             const existingTemplate = await this.getTemplateById(templateId, userId);
             if (existingTemplate.created_by !== userId) {
                 throw new api_error_1.ApiError(403, 'Access denied: You can only update your own templates');
             }
-            // Build update query
             const updateFields = [];
             const queryParams = [];
             let paramIndex = 1;
@@ -289,12 +273,10 @@ class AllocationTemplatesService {
     }
     async deleteTemplate(templateId, userId) {
         try {
-            // Check ownership
             const template = await this.getTemplateById(templateId, userId);
             if (template.created_by !== userId) {
                 throw new api_error_1.ApiError(403, 'Access denied: You can only delete your own templates');
             }
-            // Soft delete by setting status to archived
             const query = `
         UPDATE allocation_templates 
         SET status = 'archived', updated_at = CURRENT_TIMESTAMP
@@ -313,10 +295,8 @@ class AllocationTemplatesService {
             throw new api_error_1.ApiError(500, 'Failed to delete template');
         }
     }
-    // Template Role Management
     async addTemplateRole(templateId, roleData, userId) {
         try {
-            // Verify template ownership
             await this.getTemplateById(templateId, userId);
             const query = `
         INSERT INTO template_roles (
@@ -341,7 +321,7 @@ class AllocationTemplatesService {
                 roleData.hourly_rate_range,
                 roleData.max_assignments || 1,
                 roleData.is_critical || false,
-                roleData.can_be_remote !== false, // Default to true
+                roleData.can_be_remote !== false,
                 roleData.display_order || 0
             ];
             const result = await this.db.query(query, values);
@@ -355,17 +335,14 @@ class AllocationTemplatesService {
             throw new api_error_1.ApiError(500, 'Failed to add template role');
         }
     }
-    // Template Application Logic
     async applyTemplateToProject(templateId, options, userId) {
         const client = await this.db.getClient();
         try {
             await client.query('BEGIN');
-            // Get template with roles
             const template = await this.getTemplateById(templateId, userId);
             if (!template) {
                 throw new api_error_1.ApiError(404, 'Template not found');
             }
-            // Validate project exists
             const projectCheck = await client.query('SELECT * FROM projects WHERE id = $1', [options.project_id]);
             if (!projectCheck.rows.length) {
                 throw new api_error_1.ApiError(404, 'Project not found');
@@ -378,13 +355,10 @@ class AllocationTemplatesService {
                 assignments_created: [],
                 milestones_created: []
             };
-            // Create project roles from template
             for (const templateRole of template.roles) {
-                // Skip if role is in skip list
                 if (options.skip_roles && options.skip_roles.includes(templateRole.role_name)) {
                     continue;
                 }
-                // Apply customizations
                 let roleData = { ...templateRole };
                 if (options.customizations?.role_modifications?.[templateRole.id]) {
                     roleData = {
@@ -392,7 +366,6 @@ class AllocationTemplatesService {
                         ...options.customizations.role_modifications[templateRole.id]
                     };
                 }
-                // Calculate dates based on project start and template role timing
                 const projectStartDate = new Date(project.start_date);
                 const roleStartDate = new Date(projectStartDate);
                 let roleEndDate = null;
@@ -405,7 +378,6 @@ class AllocationTemplatesService {
                     roleEndDate = new Date(roleStartDate);
                     roleEndDate.setDate(roleEndDate.getDate() + (roleData.duration_weeks * 7));
                 }
-                // Create project role
                 const projectRoleQuery = `
           INSERT INTO project_roles (
             project_id, role_name, description, required_skills, minimum_experience_level,
@@ -431,7 +403,6 @@ class AllocationTemplatesService {
                 const projectRoleResult = await client.query(projectRoleQuery, roleValues);
                 results.roles_created.push(projectRoleResult.rows[0]);
             }
-            // Update project duration if template specifies it
             if (template.default_duration_weeks && options.scale_duration) {
                 const scaledDuration = Math.round(template.default_duration_weeks * options.scale_duration);
                 const projectStartDate = new Date(project.start_date);
@@ -443,11 +414,9 @@ class AllocationTemplatesService {
                     options.project_id
                 ]);
             }
-            // Update template usage
             await client.query(`UPDATE allocation_templates 
          SET usage_count = usage_count + 1, last_used_at = CURRENT_TIMESTAMP 
          WHERE id = $1`, [templateId]);
-            // Record usage history
             await client.query(`INSERT INTO template_usage_history (
           template_id, project_id, used_by, customizations_applied
         ) VALUES ($1, $2, $3, $4)`, [
@@ -471,7 +440,6 @@ class AllocationTemplatesService {
             client.release();
         }
     }
-    // Template Library Features
     async getPopularTemplates(limit = 10) {
         try {
             const query = `
@@ -521,9 +489,7 @@ class AllocationTemplatesService {
         const client = await this.db.getClient();
         try {
             await client.query('BEGIN');
-            // Get original template
             const originalTemplate = await this.getTemplateById(templateId, userId);
-            // Create new template
             const newTemplateData = {
                 ...originalTemplate,
                 name: newName,
@@ -537,14 +503,12 @@ class AllocationTemplatesService {
             delete newTemplateData.usage_count;
             delete newTemplateData.last_used_at;
             const clonedTemplate = await this.createTemplate(newTemplateData, userId);
-            // Clone roles
             for (const role of originalTemplate.roles) {
                 const roleData = { ...role };
                 delete roleData.id;
                 delete roleData.created_at;
                 await this.addTemplateRole(clonedTemplate.id, roleData, userId);
             }
-            // Clone milestones
             for (const milestone of originalTemplate.milestones || []) {
                 const milestoneData = {
                     name: milestone.name,
@@ -608,3 +572,4 @@ class AllocationTemplatesService {
     }
 }
 exports.AllocationTemplatesService = AllocationTemplatesService;
+//# sourceMappingURL=allocation-templates.service.js.map

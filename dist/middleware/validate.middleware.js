@@ -3,12 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateEmployeeQuery = exports.validateIdParam = exports.validateCreateDepartment = exports.validateUpdateEmployee = exports.validateCreateEmployee = exports.actualHandleValidationErrors = exports.validate = exports.validateRequest = exports.handleValidationErrors = void 0;
 const express_validator_1 = require("express-validator");
 const api_error_1 = require("../utils/api-error");
-// UUID validation helper
 const isValidUUID = (value) => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidRegex.test(value);
 };
-// Validation helper
 const handleValidationErrors = (req, _res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -17,9 +15,7 @@ const handleValidationErrors = (req, _res, next) => {
     next();
 };
 exports.handleValidationErrors = handleValidationErrors;
-// Export validateRequest for backward compatibility
 exports.validateRequest = exports.handleValidationErrors;
-// Export validate for compatibility with other modules
 exports.validate = exports.handleValidationErrors;
 const actualHandleValidationErrors = (req, _res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
@@ -34,7 +30,6 @@ const actualHandleValidationErrors = (req, _res, next) => {
     next();
 };
 exports.actualHandleValidationErrors = actualHandleValidationErrors;
-// Employee validation rules
 exports.validateCreateEmployee = [
     (0, express_validator_1.body)('firstName')
         .trim()
@@ -139,7 +134,6 @@ exports.validateUpdateEmployee = [
         .withMessage('isActive must be a boolean value'),
     exports.handleValidationErrors
 ];
-// Department validation rules
 exports.validateCreateDepartment = [
     (0, express_validator_1.body)('name')
         .trim()
@@ -163,7 +157,6 @@ exports.validateCreateDepartment = [
         .withMessage('Manager ID must be a valid UUID'),
     exports.handleValidationErrors
 ];
-// Parameter validation
 exports.validateIdParam = [
     (0, express_validator_1.param)('id')
         .isString()
@@ -177,7 +170,6 @@ exports.validateIdParam = [
         .withMessage('ID must be a valid UUID'),
     exports.handleValidationErrors
 ];
-// Query validation
 exports.validateEmployeeQuery = [
     (0, express_validator_1.query)('page')
         .optional()
@@ -220,3 +212,4 @@ exports.validateEmployeeQuery = [
         .withMessage('isActive must be a boolean value'),
     exports.handleValidationErrors
 ];
+//# sourceMappingURL=validate.middleware.js.map

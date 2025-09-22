@@ -290,8 +290,8 @@ export class TeamAnalyticsService {
           d.name as department,
           COUNT(DISTINCT ra.project_id) as active_projects,
           COALESCE(SUM(ra.allocated_hours), 0) as total_allocated_hours,
-          e.default_hours,
-          COALESCE(SUM(ra.allocated_hours), 0)::numeric / NULLIF(e.default_hours, 0) as utilization_rate
+          e.weekly_capacity,
+          COALESCE(SUM(ra.allocated_hours), 0)::numeric / NULLIF(e.weekly_capacity, 0) as utilization_rate
         FROM employees e
         JOIN departments d ON e.department_id = d.id
         LEFT JOIN resource_allocations ra ON e.id = ra.employee_id
@@ -299,7 +299,7 @@ export class TeamAnalyticsService {
           AND ra.start_date <= CURRENT_DATE
           AND ra.end_date >= CURRENT_DATE
         WHERE e.is_active = true
-        GROUP BY e.id, e.first_name, e.last_name, d.name, e.default_hours
+        GROUP BY e.id, e.first_name, e.last_name, d.name, e.weekly_capacity
       )
       SELECT 
         *,
@@ -315,8 +315,8 @@ export class TeamAnalyticsService {
           ELSE 0
         END +
         CASE 
-          WHEN total_allocated_hours > default_hours * 1.5 THEN 25
-          WHEN total_allocated_hours > default_hours * 1.2 THEN 15
+          WHEN total_allocated_hours > weekly_capacity * 1.5 THEN 25
+          WHEN total_allocated_hours > weekly_capacity * 1.2 THEN 15
           ELSE 0
         END as risk_score
       FROM employee_workload
@@ -336,7 +336,7 @@ export class TeamAnalyticsService {
         activeProjects: parseInt(emp.active_projects) || 0,
         utilizationRate: parseFloat(emp.utilization_rate) || 0,
         totalAllocatedHours: parseFloat(emp.total_allocated_hours) || 0,
-        defaultHours: parseFloat(emp.default_hours) || 40
+        weeklyCapacity: parseFloat(emp.weekly_capacity) || 40
       };
     });
 
@@ -397,7 +397,7 @@ export class TeamAnalyticsService {
         SELECT 
           COALESCE(
             SUM(ra.allocated_hours)::numeric / 
-            NULLIF(SUM(e.default_hours)::numeric, 0), 
+            NULLIF(SUM(e.weekly_capacity)::numeric, 0), 
             0
           ) as avg_util 
         FROM employees e
@@ -433,7 +433,7 @@ export class TeamAnalyticsService {
           d.name as department,
           COALESCE(
             SUM(ra.allocated_hours)::numeric / 
-            NULLIF(SUM(e.default_hours)::numeric, 0), 
+            NULLIF(SUM(e.weekly_capacity)::numeric, 0), 
             0
           ) as utilization,
           COUNT(DISTINCT p.id) FILTER (WHERE p.status = 'completed') as completed_projects,
@@ -453,7 +453,7 @@ export class TeamAnalyticsService {
           d.name as department,
           COALESCE(
             SUM(ra_prev.allocated_hours)::numeric / 
-            NULLIF(SUM(e.default_hours)::numeric, 0), 
+            NULLIF(SUM(e.weekly_capacity)::numeric, 0), 
             0
           ) as prev_utilization
         FROM departments d
@@ -492,7 +492,7 @@ export class TeamAnalyticsService {
         e.id as employee_id,
         e.first_name || ' ' || e.last_name as name,
         COALESCE(
-          SUM(ra.allocated_hours)::numeric / NULLIF(e.default_hours, 0), 
+          SUM(ra.allocated_hours)::numeric / NULLIF(e.weekly_capacity, 0), 
           0
         ) as utilization,
         COUNT(DISTINCT p.id) FILTER (WHERE p.status = 'completed') as completed_projects,
@@ -504,7 +504,7 @@ export class TeamAnalyticsService {
         AND ra.end_date >= CURRENT_DATE
       LEFT JOIN projects p ON ra.project_id = p.id
       WHERE e.is_active = true
-      GROUP BY e.id, e.first_name, e.last_name, e.default_hours
+      GROUP BY e.id, e.first_name, e.last_name, e.weekly_capacity
       ORDER BY utilization DESC
       LIMIT 20
     `;
@@ -549,7 +549,7 @@ export class TeamAnalyticsService {
       SELECT 
         COALESCE(
           SUM(ra.allocated_hours)::numeric / 
-          NULLIF(SUM(e.default_hours)::numeric, 0), 
+          NULLIF(SUM(e.weekly_capacity)::numeric, 0), 
           0
         ) * 100 as resource_utilization
       FROM resource_allocations ra
@@ -917,11 +917,11 @@ export class TeamAnalyticsService {
       });
     }
     
-    if (employee.totalAllocatedHours > employee.defaultHours * 1.5) {
+    if (employee.totalAllocatedHours > employee.weeklyCapacity * 1.5) {
       factors.push({
         factor: 'Excessive Hours',
         severity: 'high' as 'low' | 'medium' | 'high',
-        description: `${employee.totalAllocatedHours} hours vs ${employee.defaultHours} standard hours`
+        description: `${employee.totalAllocatedHours} hours vs ${employee.weeklyCapacity} standard hours`
       });
     }
     
@@ -1030,7 +1030,7 @@ export class TeamAnalyticsService {
     const query = `
       SELECT 
         AVG(
-          GREATEST(0, SUM(ra.allocated_hours) - e.default_hours)
+          GREATEST(0, SUM(ra.allocated_hours) - e.weekly_capacity)
         ) as avg_overtime
       FROM employees e
       LEFT JOIN resource_allocations ra ON e.id = ra.employee_id
@@ -1038,7 +1038,7 @@ export class TeamAnalyticsService {
         AND ra.start_date <= CURRENT_DATE
         AND ra.end_date >= CURRENT_DATE
       WHERE e.is_active = true
-      GROUP BY e.id, e.default_hours
+      GROUP BY e.id, e.weekly_capacity
     `;
 
     const result = await this.pool.query(query);

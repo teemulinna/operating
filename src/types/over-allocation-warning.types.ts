@@ -5,7 +5,7 @@ export interface OverAllocationWarning {
   employeeId: string;
   employeeName: string;
   totalAllocatedHours: number;
-  defaultHours: number;
+  weeklyCapacity: number;
   overAllocationHours: number;
   utilizationRate: number;
   severity: OverAllocationSeverity;
@@ -29,7 +29,7 @@ export interface ValidationResult {
 
 export interface OverAllocationCalculation {
   totalAllocatedHours: number;
-  defaultHours: number;
+  weeklyCapacity: number;
   overAllocationHours: number;
   utilizationRate: number;
   isOverAllocated: boolean;

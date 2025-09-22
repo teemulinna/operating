@@ -17,14 +17,10 @@ export function EmployeeCard({
   
   const getDepartmentName = () => {
     if (department) return department.name;
-    // Fallback to common department names based on ID
-    const departmentMap: Record<string, string> = {
-      '1': 'Engineering',
-      '2': 'Product',
-      '3': 'Marketing',
-      '4': 'QA'
-    };
-    return departmentMap[employee.departmentId] || 'Unknown Department';
+    // Use departmentName from employee object if available
+    if (employee.departmentName) return employee.departmentName;
+    // Fallback if no department info available
+    return 'Unknown Department';
   };
 
   const formatSalary = (salary: number) => {
@@ -91,7 +87,7 @@ export function EmployeeCard({
             <div className="mt-4 flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Badge variant="secondary" data-testid={`employee-hours-${employee.id}`}>
-                  {employee.defaultHoursPerWeek}h/week
+                  {Math.round(Number(employee.weeklyCapacity) || 40)}h/week
                 </Badge>
                 <Badge variant="outline" data-testid={`employee-salary-${employee.id}`}>
                   {formatSalary(employee.salary)}

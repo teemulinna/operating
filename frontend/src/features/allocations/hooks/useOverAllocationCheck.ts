@@ -6,7 +6,7 @@ export interface OverAllocationWarning {
   employeeName: string;
   weekStartDate: Date;
   weekEndDate: Date;
-  defaultHours: number;
+  weeklyCapacity: number;
   allocatedHours: number;
   overAllocationHours: number;
   utilizationRate: number;
@@ -30,7 +30,7 @@ interface UseOverAllocationCheckReturn {
   ) => OverAllocationWarning | null;
   getAllOverAllocations: () => OverAllocationWarning[];
   isEmployeeOverAllocated: (employeeId: string, weekStart: Date) => boolean;
-  getWeeklyUtilization: (employeeId: string;
+  getWeeklyUtilization: (employeeId: string, weekStart: Date) => number;
 }
 
 export const useOverAllocationCheck = (
@@ -55,7 +55,7 @@ export const useOverAllocationCheck = (
     return weeks;
   };
 
-  const getWeeklyUtilization = React.useCallback((employeeId: string => {
+  const getWeeklyUtilization = React.useCallback((employeeId: string) => {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
 
@@ -92,7 +92,7 @@ export const useOverAllocationCheck = (
     if (!employee) return null;
 
     const weeks = getWeeksInRange(startDate, endDate);
-    const defaultHours = employee.workingHours || 40;
+    const weeklyCapacity = employee.workingHours || 40;
 
     // Find the worst week for over-allocation
     let worstWeek: {
@@ -124,7 +124,7 @@ export const useOverAllocationCheck = (
 
       const existingHours = existingAllocations.reduce((total, allocation) => total + allocation.allocatedHours, 0);
       const totalHours = existingHours + allocatedHours;
-      const overAllocation = totalHours - defaultHours;
+      const overAllocation = totalHours - weeklyCapacity;
 
       if (overAllocation > 0 && (!worstWeek || overAllocation > worstWeek.overAllocation)) {
         const affectedAllocations = [
@@ -151,7 +151,7 @@ export const useOverAllocationCheck = (
 
     if (!worstWeek) return null;
 
-    const utilizationRate = (worstWeek.totalHours / defaultHours) * 100;
+    const utilizationRate = (worstWeek.totalHours / weeklyCapacity) * 100;
     const severity = utilizationRate >= 150 ? 'critical' : 'warning';
 
     const suggestions = [];
@@ -176,7 +176,7 @@ export const useOverAllocationCheck = (
       employeeName: `${employee.firstName} ${employee.lastName}`,
       weekStartDate: worstWeek.weekStart,
       weekEndDate: weekEnd,
-      defaultHours,
+      weeklyCapacity,
       allocatedHours: worstWeek.totalHours,
       overAllocationHours: worstWeek.overAllocation,
       utilizationRate,
@@ -212,9 +212,9 @@ export const useOverAllocationCheck = (
           weekEnd.setDate(weekStart.getDate() + 6);
 
           const weeklyHours = getWeeklyUtilization(allocation.employeeId, weekStart);
-          const defaultHours = employee.workingHours || 40;
-          const overAllocation = weeklyHours - defaultHours;
-          const utilizationRate = (weeklyHours / defaultHours) * 100;
+          const weeklyCapacity = employee.workingHours || 40;
+          const overAllocation = weeklyHours - weeklyCapacity;
+          const utilizationRate = (weeklyHours / weeklyCapacity) * 100;
 
           // Get affected allocations for this week
           const affectedAllocations = allocations
@@ -238,7 +238,7 @@ export const useOverAllocationCheck = (
             employeeName: `${employee.firstName} ${employee.lastName}`,
             weekStartDate: weekStart,
             weekEndDate: weekEnd,
-            defaultHours,
+            weeklyCapacity,
             allocatedHours: weeklyHours,
             overAllocationHours: overAllocation,
             utilizationRate,

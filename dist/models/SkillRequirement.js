@@ -25,10 +25,10 @@ class SkillRequirementModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') { // Unique constraint violation
+            if (error.code === '23505') {
                 throw new types_1.DatabaseError('Skill requirement already exists for this project and skill');
             }
-            if (error.code === '23503') { // Foreign key constraint violation
+            if (error.code === '23503') {
                 throw new types_1.DatabaseError('Invalid project ID or skill ID');
             }
             throw error;
@@ -392,3 +392,4 @@ class SkillRequirementModel {
     }
 }
 exports.SkillRequirementModel = SkillRequirementModel;
+//# sourceMappingURL=SkillRequirement.js.map

@@ -1,8 +1,4 @@
 "use strict";
-/**
- * Service Injection Middleware
- * Makes services available to controllers through request context
- */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -39,17 +35,12 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.serviceMonitoringMiddleware = exports.transactionMiddleware = exports.serviceHealthCheckMiddleware = exports.serviceInjectionMiddleware = void 0;
 const service_registration_1 = require("../container/service-registration");
-/**
- * Middleware to inject services into request context
- */
 const serviceInjectionMiddleware = async (req, res, next) => {
     try {
-        // In test environment, ensure services are initialized
         if (process.env.NODE_ENV === 'test') {
             const { initializeAppServices } = await Promise.resolve().then(() => __importStar(require('../app')));
             await initializeAppServices();
         }
-        // Inject services into request
         req.services = {
             database: service_registration_1.Services.database(),
             department: service_registration_1.Services.department(),
@@ -62,7 +53,6 @@ const serviceInjectionMiddleware = async (req, res, next) => {
     catch (error) {
         console.error('Service injection failed:', error);
         console.error('Error details:', error);
-        // In test environment, provide more detailed error information
         if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
             res.status(503).json({
                 error: 'Service unavailable',
@@ -84,9 +74,6 @@ const serviceInjectionMiddleware = async (req, res, next) => {
     }
 };
 exports.serviceInjectionMiddleware = serviceInjectionMiddleware;
-/**
- * Health check middleware to verify services are available
- */
 const serviceHealthCheckMiddleware = async (req, res, next) => {
     try {
         const databaseService = service_registration_1.Services.database();
@@ -113,9 +100,6 @@ const serviceHealthCheckMiddleware = async (req, res, next) => {
     }
 };
 exports.serviceHealthCheckMiddleware = serviceHealthCheckMiddleware;
-/**
- * Transaction middleware for database operations
- */
 const transactionMiddleware = async (req, res, next) => {
     const services = req.services;
     if (!services?.database) {
@@ -126,32 +110,24 @@ const transactionMiddleware = async (req, res, next) => {
         });
         return;
     }
-    // For now, we'll use the existing connection pool
-    // In a more advanced implementation, we could start a transaction here
     next();
 };
 exports.transactionMiddleware = transactionMiddleware;
-/**
- * Service performance monitoring middleware
- */
 const serviceMonitoringMiddleware = (req, res, next) => {
     const startTime = Date.now();
-    // Override res.end to measure response time
     const originalEnd = res.end;
     res.end = function (chunk, encoding) {
         const duration = Date.now() - startTime;
-        // Log slow requests
         if (duration > 1000) {
             console.warn(`Slow request: ${req.method} ${req.path} took ${duration}ms`);
         }
-        // Log service-related metrics in development
         if (process.env.NODE_ENV === 'development') {
             console.log(`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
         }
-        // Call original end and return this
         originalEnd.call(this, chunk, encoding);
         return this;
     };
     next();
 };
 exports.serviceMonitoringMiddleware = serviceMonitoringMiddleware;
+//# sourceMappingURL=service-injection.middleware.js.map

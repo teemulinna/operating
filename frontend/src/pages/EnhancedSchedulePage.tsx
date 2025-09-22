@@ -1,17 +1,96 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import WeeklyScheduleGrid from '../components/schedule/WeeklyScheduleGrid';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { AlertTriangle, Calendar, Users, Clock } from 'lucide-react';
+import { apiService } from '../services/api';
 
 const EnhancedSchedulePage: React.FC = () => {
-  // Mock summary data - in a real app, this would come from API
-  const summaryStats = {
-    totalEmployees: 5,
-    activeProjects: 3,
-    overAllocatedEmployees: 1,
-    averageUtilization: 78
-  };
+  const [summaryStats, setSummaryStats] = useState({
+    totalEmployees: 0,
+    activeProjects: 0,
+    overAllocatedEmployees: 0,
+    averageUtilization: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch real data from API
+        const [employeesRes, projectsRes, allocationsRes] = await Promise.all([
+          fetch('http://localhost:3001/api/employees'),
+          fetch('http://localhost:3001/api/projects'),
+          fetch('http://localhost:3001/api/allocations')
+        ]);
+
+        const employeesData = await employeesRes.json();
+        const projectsData = await projectsRes.json();
+        const allocationsData = await allocationsRes.json();
+
+        // Get actual employee data to check for over-allocation
+        const employees = employeesData.data || [];
+        const allocations = allocationsData.data || [];
+
+        // Calculate over-allocated employees based on real data
+        let overAllocatedCount = 0;
+        let totalUtilization = 0;
+
+        employees.forEach((employee: any) => {
+          // Get all allocations for this employee
+          const employeeAllocations = allocations.filter((alloc: any) =>
+            alloc.employeeId === employee.id && alloc.status === 'active'
+          );
+
+          const totalAllocatedHours = employeeAllocations.reduce((sum: number, alloc: any) =>
+            sum + (alloc.hours || 0), 0
+          );
+
+          const capacity = Number(employee.weeklyCapacity) || 40;
+          const utilization = capacity > 0 ? (totalAllocatedHours / capacity) * 100 : 0;
+
+          if (totalAllocatedHours > capacity) {
+            overAllocatedCount++;
+          }
+
+          totalUtilization += utilization;
+        });
+
+        const totalEmployees = employees.length;
+        const activeProjects = projectsData.data?.filter((p: any) => p.status === 'active').length || 0;
+        const avgUtilization = totalEmployees > 0 ? Math.round(totalUtilization / totalEmployees) : 0;
+
+        setSummaryStats({
+          totalEmployees,
+          activeProjects,
+          overAllocatedEmployees: overAllocatedCount,
+          averageUtilization: avgUtilization
+        });
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-testid="enhanced-schedule-page">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-testid="enhanced-schedule-page">

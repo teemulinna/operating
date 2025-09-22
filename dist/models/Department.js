@@ -23,7 +23,7 @@ class DepartmentModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') { // Unique constraint violation
+            if (error.code === '23505') {
                 throw new types_1.DatabaseError(`Department with name '${input.name}' already exists`);
             }
             throw error;
@@ -129,14 +129,13 @@ class DepartmentModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') { // Unique constraint violation
+            if (error.code === '23505') {
                 throw new types_1.DatabaseError(`Department with name '${updates.name}' already exists`);
             }
             throw error;
         }
     }
     static async delete(id) {
-        // Check if department has active employees
         const employeeCheck = await this.pool.query('SELECT COUNT(*) FROM employees WHERE department_id = $1 AND is_active = true', [id]);
         if (parseInt(employeeCheck.rows[0].count) > 0) {
             throw new types_1.DatabaseError('Cannot delete department with active employees');
@@ -190,3 +189,4 @@ class DepartmentModel {
     }
 }
 exports.DepartmentModel = DepartmentModel;
+//# sourceMappingURL=Department.js.map

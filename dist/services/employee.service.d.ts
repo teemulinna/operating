@@ -9,6 +9,11 @@ export declare class EmployeeService {
     getEmployeeByEmail(email: string): Promise<Employee | null>;
     createEmployee(employeeData: CreateEmployeeRequest): Promise<Employee>;
     updateEmployee(id: string, updateData: UpdateEmployeeRequest): Promise<Employee>;
+    checkEmployeeDeletionConstraints(id: string): Promise<{
+        canDelete: boolean;
+        blockers: string[];
+        warnings: string[];
+    }>;
     deleteEmployee(id: string): Promise<void>;
     bulkImportEmployees(employees: CreateEmployeeRequest[]): Promise<BulkImportResponse>;
     getEmployeeAnalytics(): Promise<{

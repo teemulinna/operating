@@ -5,7 +5,6 @@ const express_validator_1 = require("express-validator");
 const allocation_service_1 = require("../services/allocation.service");
 const async_handler_1 = require("../middleware/async-handler");
 const router = (0, express_1.Router)();
-// Validation middleware
 const validateAllocationCreation = [
     (0, express_validator_1.body)('employeeId')
         .notEmpty()
@@ -16,7 +15,6 @@ const validateAllocationCreation = [
         .notEmpty()
         .withMessage('Project ID is required')
         .custom((value) => {
-        // Accept both string and number, convert to string for validation
         const stringValue = String(value);
         if (!stringValue || stringValue === 'null' || stringValue === 'undefined') {
             throw new Error('Project ID cannot be empty');
@@ -106,7 +104,6 @@ const validateProjectId = [
         .isString()
         .withMessage('Project ID must be a string')
 ];
-// Helper function to check validation results
 const checkValidationErrors = (req, res) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -118,7 +115,6 @@ const checkValidationErrors = (req, res) => {
     }
     return null;
 };
-// GET /api/allocations - Get all allocations with filters and pagination
 router.get('/', (0, express_validator_1.query)('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'), (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'), (0, express_validator_1.query)('employeeId').optional().isString(), (0, express_validator_1.query)('projectId').optional().isString(), (0, express_validator_1.query)('startDateFrom').optional().isISO8601().toDate(), (0, express_validator_1.query)('startDateTo').optional().isISO8601().toDate(), (0, express_validator_1.query)('endDateFrom').optional().isISO8601().toDate(), (0, express_validator_1.query)('endDateTo').optional().isISO8601().toDate(), (0, express_validator_1.query)('isActive').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -147,7 +143,6 @@ router.get('/', (0, express_validator_1.query)('page').optional().isInt({ min: 1
         }
     });
 }));
-// GET /api/allocations/employee/:employeeId - Get allocations for specific employee
 router.get('/employee/:employeeId', validateEmployeeId, (0, express_validator_1.query)('page').optional().isInt({ min: 1 }), (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }), (0, express_validator_1.query)('startDateFrom').optional().isISO8601().toDate(), (0, express_validator_1.query)('startDateTo').optional().isISO8601().toDate(), (0, express_validator_1.query)('isActive').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -173,7 +168,6 @@ router.get('/employee/:employeeId', validateEmployeeId, (0, express_validator_1.
         }
     });
 }));
-// GET /api/allocations/project/:projectId - Get allocations for specific project
 router.get('/project/:projectId', validateProjectId, (0, express_validator_1.query)('page').optional().isInt({ min: 1 }), (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }), (0, express_validator_1.query)('isActive').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -197,7 +191,6 @@ router.get('/project/:projectId', validateProjectId, (0, express_validator_1.que
         }
     });
 }));
-// GET /api/allocations/conflicts - Detect allocation conflicts
 router.get('/conflicts', (0, express_validator_1.query)('employeeId').notEmpty().withMessage('Employee ID is required'), (0, express_validator_1.query)('startDate').isISO8601().withMessage('Start date must be valid ISO 8601').toDate(), (0, express_validator_1.query)('endDate').isISO8601().withMessage('End date must be valid ISO 8601').toDate(), (0, express_validator_1.query)('excludeAllocationId').optional().isString(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -212,7 +205,6 @@ router.get('/conflicts', (0, express_validator_1.query)('employeeId').notEmpty()
         data: conflictReport
     });
 }));
-// GET /api/allocations/utilization - Get utilization metrics
 router.get('/utilization', (0, express_validator_1.query)('employeeId').optional().isString(), (0, express_validator_1.query)('startDate').optional().isISO8601().toDate(), (0, express_validator_1.query)('endDate').optional().isISO8601().toDate(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -221,7 +213,6 @@ router.get('/utilization', (0, express_validator_1.query)('employeeId').optional
     const startDate = req.query.startDate ? new Date(req.query.startDate) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate) : undefined;
     if (employeeId) {
-        // Get metrics for specific employee
         const metrics = await allocation_service_1.AllocationService.getCapacityMetrics(employeeId, startDate, endDate);
         return res.json({
             success: true,
@@ -230,7 +221,6 @@ router.get('/utilization', (0, express_validator_1.query)('employeeId').optional
         });
     }
     else {
-        // Get utilization summary for all employees
         const summary = await allocation_service_1.AllocationService.getUtilizationSummary(startDate, endDate);
         return res.json({
             success: true,
@@ -239,7 +229,6 @@ router.get('/utilization', (0, express_validator_1.query)('employeeId').optional
         });
     }
 }));
-// GET /api/allocations/:id - Get specific allocation
 router.get('/:id', validateId, (0, express_validator_1.query)('includeDetails').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -265,7 +254,6 @@ router.get('/:id', validateId, (0, express_validator_1.query)('includeDetails').
         data: allocation
     });
 }));
-// POST /api/allocations - Create new allocation
 router.post('/', validateAllocationCreation, (0, express_validator_1.body)('force').optional().isBoolean().withMessage('Force must be a boolean'), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -301,14 +289,12 @@ router.post('/', validateAllocationCreation, (0, express_validator_1.body)('forc
         throw error;
     }
 }));
-// PUT /api/allocations/:id - Update allocation
 router.put('/:id', validateId, validateAllocationUpdate, (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
         return validationError;
     const { id } = req.params;
     const updates = {};
-    // Only include provided fields
     if (req.body.allocatedHours !== undefined)
         updates.allocatedHours = parseFloat(req.body.allocatedHours);
     if (req.body.actualHours !== undefined)
@@ -344,7 +330,6 @@ router.put('/:id', validateId, validateAllocationUpdate, (0, async_handler_1.asy
         throw error;
     }
 }));
-// DELETE /api/allocations/:id - Delete (cancel) allocation
 router.delete('/:id', validateId, (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -357,7 +342,6 @@ router.delete('/:id', validateId, (0, async_handler_1.asyncHandler)(async (req, 
         data: allocation
     });
 }));
-// POST /api/allocations/:id/confirm - Confirm allocation
 router.post('/:id/confirm', validateId, (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -370,7 +354,6 @@ router.post('/:id/confirm', validateId, (0, async_handler_1.asyncHandler)(async 
         data: allocation
     });
 }));
-// POST /api/allocations/:id/complete - Complete allocation
 router.post('/:id/complete', validateId, (0, express_validator_1.body)('actualHours').optional().isFloat({ min: 0 }).withMessage('Actual hours must be non-negative'), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -384,7 +367,6 @@ router.post('/:id/complete', validateId, (0, express_validator_1.body)('actualHo
         data: allocation
     });
 }));
-// POST /api/allocations/:id/cancel - Cancel allocation
 router.post('/:id/cancel', validateId, (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -397,7 +379,6 @@ router.post('/:id/cancel', validateId, (0, async_handler_1.asyncHandler)(async (
         data: allocation
     });
 }));
-// POST /api/allocations/validate-capacity - Validate capacity for proposed allocation
 router.post('/validate-capacity', (0, express_validator_1.body)('employeeId').notEmpty().isString(), (0, express_validator_1.body)('allocatedHours').isFloat({ min: 0.1 }), (0, express_validator_1.body)('startDate').isISO8601().toDate(), (0, express_validator_1.body)('endDate').isISO8601().toDate(), (0, express_validator_1.body)('excludeAllocationId').optional().isString(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);
     if (validationError)
@@ -411,3 +392,4 @@ router.post('/validate-capacity', (0, express_validator_1.body)('employeeId').no
     });
 }));
 exports.default = router;
+//# sourceMappingURL=allocation.routes.js.map

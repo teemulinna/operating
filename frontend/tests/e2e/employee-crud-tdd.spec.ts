@@ -41,8 +41,8 @@ test.describe('PRD Story 1.1 - Employee CRUD with TDD', () => {
       await expect(page.getByTestId('employee-default-hours')).toBeVisible();
       
       // Default hours per week should have default value (PRD requirement)
-      const defaultHoursField = page.getByTestId('employee-default-hours');
-      await expect(defaultHoursField).toHaveValue('40');
+      const weeklyCapacityField = page.getByTestId('employee-default-hours');
+      await expect(weeklyCapacityField).toHaveValue('40');
     });
 
     test('should validate form fields when submitting empty form', async ({ page }) => {
@@ -103,7 +103,7 @@ test.describe('PRD Story 1.1 - Employee CRUD with TDD', () => {
               position: 'Software Engineer',
               departmentId: '1',
               departmentName: 'Engineering',
-              defaultHoursPerWeek: 40,
+              weeklyCapacity: 40,
               createdAt: new Date().toISOString()
             }
           })
@@ -145,7 +145,7 @@ test.describe('PRD Story 1.1 - Employee CRUD with TDD', () => {
                 position: 'Product Manager',
                 departmentId: '2',
                 departmentName: 'Product',
-                defaultHoursPerWeek: 40
+                weeklyCapacity: 40
               }
             })
           });

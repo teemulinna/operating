@@ -1,7 +1,7 @@
 import { ResourceAssignmentService } from './resource-assignment.service';
 import { ProjectService } from './project.service';
 export interface EmployeeAvailability {
-    employeeId: number;
+    employeeId: string;
     totalHours: number;
     allocatedHours: number;
     availableHours: number;
@@ -31,7 +31,7 @@ export interface OptimizationResult {
     efficiency: number;
 }
 export interface ResourceRecommendation {
-    employeeId: number;
+    employeeId: string;
     projectId: number;
     role: string;
     allocatedHours: number;
@@ -51,7 +51,7 @@ export declare class CapacityEngineService {
     private resourceAssignmentService;
     private projectService;
     constructor(resourceAssignmentService: ResourceAssignmentService, projectService: ProjectService);
-    calculateEmployeeAvailability(employeeId: number, startDate: Date, endDate: Date): Promise<EmployeeAvailability>;
+    calculateEmployeeAvailability(employeeId: string, startDate: Date, endDate: Date): Promise<EmployeeAvailability>;
     findSkillMatches(requiredSkills: string[], employees: any[]): Promise<SkillMatch[]>;
     optimizeResourceAllocation(requirements: ProjectRequirements): Promise<OptimizationResult>;
     detectConflicts(assignments: any[]): Promise<ResourceConflict[]>;

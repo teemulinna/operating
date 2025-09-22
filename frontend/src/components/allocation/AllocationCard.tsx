@@ -1,1 +1,360 @@
-import React, { useState, useCallback } from 'react';\nimport { useDraggable } from '@dnd-kit/core';\nimport { CSS } from '@dnd-kit/utilities';\nimport { format, differenceInDays, parseISO, isValid } from 'date-fns';\nimport { Card } from '../ui/card';\nimport { Badge } from '../ui/badge';\nimport { Button } from '../ui/button';\nimport { cn } from '../../lib/utils';\nimport { \n  Calendar, \n  Clock, \n  User, \n  AlertTriangle, \n  X, \n  Edit2,\n  MoreVertical,\n  Copy,\n  Trash2\n} from 'lucide-react';\nimport {\n  DropdownMenu,\n  DropdownMenuContent,\n  DropdownMenuItem,\n  DropdownMenuSeparator,\n  DropdownMenuTrigger,\n} from '../ui/dropdown-menu';\nimport {\n  AlertDialog,\n  AlertDialogAction,\n  AlertDialogCancel,\n  AlertDialogContent,\n  AlertDialogDescription,\n  AlertDialogFooter,\n  AlertDialogHeader,\n  AlertDialogTitle,\n} from '../ui/alert-dialog';\nimport { \n  DragDropAllocation, \n  AllocationConflict \n} from '../../types/allocation';\nimport { Project } from '../../types/api';\n\ninterface AllocationCardProps {\n  allocation: DragDropAllocation;\n  project?: Project;\n  conflicts?: AllocationConflict[];\n  isSelected?: boolean;\n  isDragging?: boolean;\n  onClick?: (event: React.MouseEvent) => void;\n  onDelete?: () => void;\n  onEdit?: () => void;\n  onDuplicate?: () => void;\n  readOnly?: boolean;\n  className?: string;\n}\n\nexport const AllocationCard: React.FC<AllocationCardProps> = ({\n  allocation,\n  project,\n  conflicts = [],\n  isSelected = false,\n  isDragging = false,\n  onClick,\n  onDelete,\n  onEdit,\n  onDuplicate,\n  readOnly = false,\n  className,\n}) => {\n  const [showDeleteDialog, setShowDeleteDialog] = useState(false);\n  \n  const {\n    attributes,\n    listeners,\n    setNodeRef,\n    transform,\n    isDragging: isDraggingFromHook,\n  } = useDraggable({\n    id: allocation.id.toString(),\n    data: {\n      type: 'allocation',\n      allocation,\n    },\n    disabled: readOnly,\n  });\n\n  const style = {\n    transform: CSS.Translate.toString(transform),\n  };\n\n  // Calculate duration and dates\n  const startDate = allocation.startDate ? parseISO(allocation.startDate) : null;\n  const endDate = allocation.endDate ? parseISO(allocation.endDate) : null;\n  \n  const duration = startDate && endDate && isValid(startDate) && isValid(endDate) \n    ? differenceInDays(endDate, startDate) + 1 \n    : allocation.duration || 1;\n\n  // Get priority color\n  const getPriorityColor = (priority: string) => {\n    switch (priority) {\n      case 'critical': return 'bg-red-500';\n      case 'high': return 'bg-orange-500';\n      case 'medium': return 'bg-yellow-500';\n      case 'low': return 'bg-green-500';\n      default: return 'bg-gray-500';\n    }\n  };\n\n  // Get status color\n  const getStatusColor = (status: string) => {\n    switch (status) {\n      case 'active': return 'text-green-700 bg-green-100';\n      case 'pending': return 'text-yellow-700 bg-yellow-100';\n      case 'completed': return 'text-blue-700 bg-blue-100';\n      case 'inactive': return 'text-gray-700 bg-gray-100';\n      default: return 'text-gray-700 bg-gray-100';\n    }\n  };\n\n  // Handle card click\n  const handleCardClick = useCallback((event: React.MouseEvent) => {\n    if (event.defaultPrevented) return;\n    onClick?.(event);\n  }, [onClick]);\n\n  // Handle delete confirmation\n  const handleDeleteConfirm = useCallback(() => {\n    onDelete?.();\n    setShowDeleteDialog(false);\n  }, [onDelete]);\n\n  // Handle edit\n  const handleEdit = useCallback((event: React.MouseEvent) => {\n    event.preventDefault();\n    event.stopPropagation();\n    onEdit?.();\n  }, [onEdit]);\n\n  // Handle duplicate\n  const handleDuplicate = useCallback((event: React.MouseEvent) => {\n    event.preventDefault();\n    event.stopPropagation();\n    onDuplicate?.();\n  }, [onDuplicate]);\n\n  // Handle delete click\n  const handleDeleteClick = useCallback((event: React.MouseEvent) => {\n    event.preventDefault();\n    event.stopPropagation();\n    setShowDeleteDialog(true);\n  }, []);\n\n  const hasConflicts = conflicts.length > 0;\n  const hasErrors = conflicts.some(c => c.severity === 'error');\n  const hasWarnings = conflicts.some(c => c.severity === 'warning');\n\n  return (\n    <>\n      <Card\n        ref={setNodeRef}\n        style={style}\n        {...attributes}\n        {...listeners}\n        className={cn(\n          'relative p-3 cursor-move transition-all duration-200 group',\n          'hover:shadow-md hover:-translate-y-0.5',\n          isSelected && 'ring-2 ring-primary ring-opacity-50 bg-primary/5',\n          isDragging && 'opacity-50 rotate-3 shadow-lg z-50',\n          isDraggingFromHook && 'cursor-grabbing',\n          hasErrors && 'border-red-200 bg-red-50/50',\n          hasWarnings && !hasErrors && 'border-yellow-200 bg-yellow-50/50',\n          readOnly && 'cursor-default',\n          className\n        )}\n        onClick={handleCardClick}\n      >\n        {/* Priority indicator */}\n        <div \n          className={cn(\n            'absolute left-0 top-0 bottom-0 w-1 rounded-l',\n            getPriorityColor(project?.priority || 'medium')\n          )}\n        />\n\n        {/* Header */}\n        <div className=\"flex items-start justify-between mb-2\">\n          <div className=\"flex-1 min-w-0\">\n            <h4 className=\"font-semibold text-sm truncate\">\n              {project?.name || 'Unknown Project'}\n            </h4>\n            <p className=\"text-xs text-muted-foreground truncate\">\n              {project?.clientName || 'No client'}\n            </p>\n          </div>\n\n          <div className=\"flex items-center space-x-1 ml-2\">\n            {/* Status badge */}\n            <Badge \n              variant=\"outline\" \n              className={cn('text-xs px-2 py-0.5', getStatusColor(allocation.status))}\n            >\n              {allocation.status}\n            </Badge>\n\n            {/* Conflicts indicator */}\n            {hasConflicts && (\n              <div className=\"relative\">\n                <AlertTriangle \n                  className={cn(\n                    'h-4 w-4',\n                    hasErrors ? 'text-red-500' : 'text-yellow-500'\n                  )} \n                />\n                <div className={cn(\n                  'absolute -top-1 -right-1 h-2 w-2 rounded-full',\n                  hasErrors ? 'bg-red-500' : 'bg-yellow-500'\n                )} />\n              </div>\n            )}\n\n            {/* Actions menu */}\n            {!readOnly && (\n              <DropdownMenu>\n                <DropdownMenuTrigger asChild>\n                  <Button \n                    variant=\"ghost\" \n                    size=\"sm\" \n                    className=\"h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity\"\n                    onClick={(e) => {\n                      e.preventDefault();\n                      e.stopPropagation();\n                    }}\n                  >\n                    <MoreVertical className=\"h-3 w-3\" />\n                  </Button>\n                </DropdownMenuTrigger>\n                <DropdownMenuContent align=\"end\" className=\"w-36\">\n                  {onEdit && (\n                    <DropdownMenuItem onClick={handleEdit}>\n                      <Edit2 className=\"h-3 w-3 mr-2\" />\n                      Edit\n                    </DropdownMenuItem>\n                  )}\n                  {onDuplicate && (\n                    <DropdownMenuItem onClick={handleDuplicate}>\n                      <Copy className=\"h-3 w-3 mr-2\" />\n                      Duplicate\n                    </DropdownMenuItem>\n                  )}\n                  {(onEdit || onDuplicate) && onDelete && <DropdownMenuSeparator />}\n                  {onDelete && (\n                    <DropdownMenuItem \n                      onClick={handleDeleteClick}\n                      className=\"text-red-600 focus:text-red-600\"\n                    >\n                      <Trash2 className=\"h-3 w-3 mr-2\" />\n                      Delete\n                    </DropdownMenuItem>\n                  )}\n                </DropdownMenuContent>\n              </DropdownMenu>\n            )}\n          </div>\n        </div>\n\n        {/* Details */}\n        <div className=\"space-y-2\">\n          {/* Hours and duration */}\n          <div className=\"flex items-center justify-between text-xs\">\n            <div className=\"flex items-center space-x-3\">\n              <div className=\"flex items-center space-x-1\">\n                <Clock className=\"h-3 w-3 text-muted-foreground\" />\n                <span>{allocation.hours}h</span>\n              </div>\n              \n              <div className=\"flex items-center space-x-1\">\n                <Calendar className=\"h-3 w-3 text-muted-foreground\" />\n                <span>{duration} day{duration !== 1 ? 's' : ''}</span>\n              </div>\n            </div>\n            \n            {allocation.billableRate && (\n              <div className=\"text-xs text-muted-foreground\">\n                ${allocation.billableRate}/h\n              </div>\n            )}\n          </div>\n\n          {/* Dates */}\n          {startDate && endDate && isValid(startDate) && isValid(endDate) && (\n            <div className=\"text-xs text-muted-foreground\">\n              {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}\n            </div>\n          )}\n\n          {/* Notes */}\n          {allocation.notes && (\n            <div className=\"text-xs text-muted-foreground truncate\" title={allocation.notes}>\n              {allocation.notes}\n            </div>\n          )}\n        </div>\n\n        {/* Conflicts details */}\n        {hasConflicts && (\n          <div className=\"mt-2 pt-2 border-t border-border space-y-1\">\n            {conflicts.slice(0, 2).map(conflict => (\n              <div key={conflict.id} className=\"text-xs flex items-center space-x-1\">\n                <AlertTriangle \n                  className={cn(\n                    'h-3 w-3',\n                    conflict.severity === 'error' ? 'text-red-500' : 'text-yellow-500'\n                  )} \n                />\n                <span className=\"truncate\" title={conflict.message}>\n                  {conflict.message}\n                </span>\n              </div>\n            ))}\n            {conflicts.length > 2 && (\n              <div className=\"text-xs text-muted-foreground\">\n                +{conflicts.length - 2} more conflicts\n              </div>\n            )}\n          </div>\n        )}\n\n        {/* Selection indicator */}\n        {isSelected && (\n          <div className=\"absolute -inset-0.5 bg-primary/20 rounded-lg pointer-events-none\" />\n        )}\n      </Card>\n\n      {/* Delete confirmation dialog */}\n      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>\n        <AlertDialogContent>\n          <AlertDialogHeader>\n            <AlertDialogTitle>Delete Allocation</AlertDialogTitle>\n            <AlertDialogDescription>\n              Are you sure you want to delete this allocation for \"{project?.name || 'Unknown Project'}\"?\n              This action cannot be undone.\n            </AlertDialogDescription>\n          </AlertDialogHeader>\n          <AlertDialogFooter>\n            <AlertDialogCancel>Cancel</AlertDialogCancel>\n            <AlertDialogAction \n              onClick={handleDeleteConfirm}\n              className=\"bg-red-600 hover:bg-red-700\"\n            >\n              Delete\n            </AlertDialogAction>\n          </AlertDialogFooter>\n        </AlertDialogContent>\n      </AlertDialog>\n    </>\n  );\n};\n\nexport default AllocationCard;"
+import React, { useState, useCallback } from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { format, differenceInDays, parseISO, isValid } from 'date-fns';
+import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { cn } from '../../lib/utils';
+import { 
+  Calendar, 
+  Clock, 
+  User, 
+  AlertTriangle, 
+  X, 
+  Edit2,
+  MoreVertical,
+  Copy,
+  Trash2
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
+import { 
+  DragDropAllocation, 
+  AllocationConflict 
+} from '../../types/allocation';
+import { Project } from '../../types/api';
+
+interface AllocationCardProps {
+  allocation: DragDropAllocation;
+  project?: Project;
+  conflicts?: AllocationConflict[];
+  isSelected?: boolean;
+  isDragging?: boolean;
+  onClick?: (event: React.MouseEvent) => void;
+  onDelete?: () => void;
+  onEdit?: () => void;
+  onDuplicate?: () => void;
+  readOnly?: boolean;
+  className?: string;
+}
+
+export const AllocationCard: React.FC<AllocationCardProps> = ({
+  allocation,
+  project,
+  conflicts = [],
+  isSelected = false,
+  isDragging = false,
+  onClick,
+  onDelete,
+  onEdit,
+  onDuplicate,
+  readOnly = false,
+  className,
+}) => {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging: isDraggingFromHook,
+  } = useDraggable({
+    id: allocation.id.toString(),
+    data: {
+      type: 'allocation',
+      allocation,
+    },
+    disabled: readOnly,
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+  };
+
+  // Calculate duration and dates
+  const startDate = allocation.startDate ? parseISO(allocation.startDate) : null;
+  const endDate = allocation.endDate ? parseISO(allocation.endDate) : null;
+  
+  const duration = startDate && endDate && isValid(startDate) && isValid(endDate) 
+    ? differenceInDays(endDate, startDate) + 1 
+    : allocation.duration || 1;
+
+  // Get priority color
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'bg-red-500';
+      case 'high': return 'bg-orange-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-green-700 bg-green-100';
+      case 'pending': return 'text-yellow-700 bg-yellow-100';
+      case 'completed': return 'text-blue-700 bg-blue-100';
+      case 'inactive': return 'text-gray-700 bg-gray-100';
+      default: return 'text-gray-700 bg-gray-100';
+    }
+  };
+
+  // Handle card click
+  const handleCardClick = useCallback((event: React.MouseEvent) => {
+    if (event.defaultPrevented) return;
+    onClick?.(event);
+  }, [onClick]);
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = useCallback(() => {
+    onDelete?.();
+    setShowDeleteDialog(false);
+  }, [onDelete]);
+
+  // Handle edit
+  const handleEdit = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onEdit?.();
+  }, [onEdit]);
+
+  // Handle duplicate
+  const handleDuplicate = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onDuplicate?.();
+  }, [onDuplicate]);
+
+  // Handle delete click
+  const handleDeleteClick = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setShowDeleteDialog(true);
+  }, []);
+
+  const hasConflicts = conflicts.length > 0;
+  const hasErrors = conflicts.some(c => c.severity === 'error');
+  const hasWarnings = conflicts.some(c => c.severity === 'warning');
+
+  return (
+    <>
+      <Card
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className={cn(
+          'relative p-3 cursor-move transition-all duration-200 group',
+          'hover:shadow-md hover:-translate-y-0.5',
+          isSelected && 'ring-2 ring-primary ring-opacity-50 bg-primary/5',
+          isDragging && 'opacity-50 rotate-3 shadow-lg z-50',
+          isDraggingFromHook && 'cursor-grabbing',
+          hasErrors && 'border-red-200 bg-red-50/50',
+          hasWarnings && !hasErrors && 'border-yellow-200 bg-yellow-50/50',
+          readOnly && 'cursor-default',
+          className
+        )}
+        onClick={handleCardClick}
+      >
+        {/* Priority indicator */}
+        <div 
+          className={cn(
+            'absolute left-0 top-0 bottom-0 w-1 rounded-l',
+            getPriorityColor(project?.priority || 'medium')
+          )}
+        />
+
+        {/* Header */}
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-semibold text-sm truncate">
+              {project?.name || 'Unknown Project'}
+            </h4>
+            <p className="text-xs text-muted-foreground truncate">
+              {project?.clientName || 'No client'}
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-1 ml-2">
+            {/* Status badge */}
+            <Badge
+              variant="outline"
+              className={cn('text-xs px-2 py-0.5', getStatusColor(allocation.status))}
+            >
+              {allocation.status}
+            </Badge>
+
+            {/* Conflicts indicator */}
+            {hasConflicts && (
+              <div className="relative">
+                <AlertTriangle
+                  className={cn(
+                    'h-4 w-4',
+                    hasErrors ? 'text-red-500' : 'text-yellow-500'
+                  )}
+                />
+                <div className={cn(
+                  'absolute -top-1 -right-1 h-2 w-2 rounded-full',
+                  hasErrors ? 'bg-red-500' : 'bg-yellow-500'
+                )} />
+              </div>
+            )}
+
+            {/* Actions menu */}
+            {!readOnly && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <MoreVertical className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-36">
+                  {onEdit && (
+                    <DropdownMenuItem onClick={handleEdit}>
+                      <Edit2 className="h-3 w-3 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  {onDuplicate && (
+                    <DropdownMenuItem onClick={handleDuplicate}>
+                      <Copy className="h-3 w-3 mr-2" />
+                      Duplicate
+                    </DropdownMenuItem>
+                  )}
+                  {(onEdit || onDuplicate) && onDelete && <DropdownMenuSeparator />}
+                  {onDelete && (
+                    <DropdownMenuItem 
+                      onClick={handleDeleteClick}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-3 w-3 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="space-y-2">
+          {/* Hours and duration */}
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1">
+                <Clock className="h-3 w-3 text-muted-foreground" />
+                <span>{allocation.hours}h</span>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <Calendar className="h-3 w-3 text-muted-foreground" />
+                <span>{duration} day{duration !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+            
+            {allocation.billableRate && (
+              <div className="text-xs text-muted-foreground">
+                ${allocation.billableRate}/h
+              </div>
+            )}
+          </div>
+
+          {/* Dates */}
+          {startDate && endDate && isValid(startDate) && isValid(endDate) && (
+            <div className="text-xs text-muted-foreground">
+              {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
+            </div>
+          )}
+
+          {/* Notes */}
+          {allocation.notes && (
+            <div className="text-xs text-muted-foreground truncate" title={allocation.notes}>
+              {allocation.notes}
+            </div>
+          )}
+        </div>
+
+        {/* Conflicts details */}
+        {hasConflicts && (
+          <div className="mt-2 pt-2 border-t border-border space-y-1">
+            {conflicts.slice(0, 2).map(conflict => (
+              <div key={conflict.id} className="text-xs flex items-center space-x-1">
+                <AlertTriangle 
+                  className={cn(
+                    'h-3 w-3',
+                    conflict.severity === 'error' ? 'text-red-500' : 'text-yellow-500'
+                  )} 
+                />
+                <span className="truncate" title={conflict.message}>
+                  {conflict.message}
+                </span>
+              </div>
+            ))}
+            {conflicts.length > 2 && (
+              <div className="text-xs text-muted-foreground">
+                +{conflicts.length - 2} more conflicts
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Selection indicator */}
+        {isSelected && (
+          <div className="absolute -inset-0.5 bg-primary/20 rounded-lg pointer-events-none" />
+        )}
+      </Card>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Allocation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this allocation for "{project?.name || 'Unknown Project'}"?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+export default AllocationCard;"

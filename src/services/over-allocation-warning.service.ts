@@ -201,15 +201,15 @@ export class OverAllocationWarningService {
       );
 
       // Check if over-allocated
-      const defaultHours = employee.capacity_hours || 40;
-      if (totalAllocatedHours <= defaultHours) {
+      const weeklyCapacity = employee.capacity_hours || 40;
+      if (totalAllocatedHours <= weeklyCapacity) {
         return null; // No over-allocation
       }
 
       // Calculate over-allocation metrics
-      const overAllocationHours = totalAllocatedHours - defaultHours;
-      const utilizationRate = (totalAllocatedHours / defaultHours) * 100;
-      const severity = this.determineSeverity(defaultHours, totalAllocatedHours);
+      const overAllocationHours = totalAllocatedHours - weeklyCapacity;
+      const utilizationRate = (totalAllocatedHours / weeklyCapacity) * 100;
+      const severity = this.determineSeverity(weeklyCapacity, totalAllocatedHours);
 
       // Create affected allocations list with project details
       const affectedAllocations = allocations.map(allocation => ({
@@ -223,7 +223,7 @@ export class OverAllocationWarningService {
         employeeName: this.formatEmployeeName(employee),
         weekStartDate,
         weekEndDate,
-        defaultHours,
+        weeklyCapacity,
         allocatedHours: totalAllocatedHours,
         overAllocationHours,
         utilizationRate,
@@ -253,7 +253,7 @@ export class OverAllocationWarningService {
     weekStartDate: Date,
     weekEndDate: Date
   ): Promise<{
-    defaultHours: number;
+    weeklyCapacity: number;
     allocatedHours: number;
     overAllocationHours: number;
     utilizationRate: number;
@@ -275,17 +275,17 @@ export class OverAllocationWarningService {
       weekEndDate
     );
 
-    const defaultHours = employeeResult.rows[0].capacity_hours || 40;
+    const weeklyCapacity = employeeResult.rows[0].capacity_hours || 40;
     const allocatedHours = this.calculateWeeklyHours(
       allocations,
       weekStartDate,
       weekEndDate
     );
-    const overAllocationHours = Math.max(0, allocatedHours - defaultHours);
-    const utilizationRate = (allocatedHours / defaultHours) * 100;
+    const overAllocationHours = Math.max(0, allocatedHours - weeklyCapacity);
+    const utilizationRate = (allocatedHours / weeklyCapacity) * 100;
 
     return {
-      defaultHours,
+      weeklyCapacity,
       allocatedHours,
       overAllocationHours,
       utilizationRate
@@ -296,14 +296,14 @@ export class OverAllocationWarningService {
    * Determine severity level based on over-allocation percentage
    */
   determineSeverity(
-    defaultHours: number,
+    weeklyCapacity: number,
     allocatedHours: number
   ): OverAllocationSeverity {
-    if (allocatedHours <= defaultHours) {
+    if (allocatedHours <= weeklyCapacity) {
       return OverAllocationSeverity.LOW;
     }
 
-    const overAllocationPercentage = ((allocatedHours - defaultHours) / defaultHours) * 100;
+    const overAllocationPercentage = ((allocatedHours - weeklyCapacity) / weeklyCapacity) * 100;
 
     if (overAllocationPercentage <= 5) return OverAllocationSeverity.LOW;        // 1-5% over
     if (overAllocationPercentage <= 20) return OverAllocationSeverity.MEDIUM;    // 6-20% over

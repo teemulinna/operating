@@ -13,7 +13,7 @@ interface Employee {
   position: string;
   departmentId: string;
   departmentName?: string;
-  defaultHoursPerWeek: number;
+  weeklyCapacity: number;
   salary?: number;
 }
 
@@ -45,7 +45,7 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
     email: '',
     position: '',
     departmentId: '',
-    defaultHoursPerWeek: 40,
+    weeklyCapacity: 40,
     salary: 0
   });
 
@@ -62,7 +62,7 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
         email: employee.email || '',
         position: employee.position || '',
         departmentId: employee.departmentId || '',
-        defaultHoursPerWeek: employee.defaultHoursPerWeek || 40,
+        weeklyCapacity: employee.weeklyCapacity || 40,
         salary: employee.salary || 0
       });
     } else {
@@ -72,7 +72,7 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
         email: '',
         position: '',
         departmentId: '',
-        defaultHoursPerWeek: 40,
+        weeklyCapacity: 40,
         salary: 0
       });
     }
@@ -104,8 +104,8 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
       newErrors.departmentId = 'Department is required';
     }
 
-    if (!formData.defaultHoursPerWeek || formData.defaultHoursPerWeek <= 0) {
-      newErrors.defaultHoursPerWeek = 'Default hours per week must be greater than 0';
+    if (!formData.weeklyCapacity || formData.weeklyCapacity <= 0) {
+      newErrors.weeklyCapacity = 'Weekly capacity must be greater than 0';
     }
 
     setErrors(newErrors);
@@ -246,20 +246,20 @@ export const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="defaultHours">Default Hours per Week *</Label>
+            <Label htmlFor="weeklyCapacity">Weekly Capacity *</Label>
             <Input
-              id="defaultHours"
+              id="weeklyCapacity"
               type="number"
               data-testid="employee-default-hours"
-              value={formData.defaultHoursPerWeek || 40}
-              onChange={(e) => handleInputChange('defaultHoursPerWeek', parseInt(e.target.value) || 0)}
-              className={errors.defaultHoursPerWeek ? 'border-red-500' : ''}
+              value={formData.weeklyCapacity || 40}
+              onChange={(e) => handleInputChange('weeklyCapacity', parseInt(e.target.value) || 0)}
+              className={errors.weeklyCapacity ? 'border-red-500' : ''}
               min="1"
               max="80"
             />
-            {errors.defaultHoursPerWeek && (
+            {errors.weeklyCapacity && (
               <p className="text-red-500 text-sm mt-1" data-testid="default-hours-error">
-                {errors.defaultHoursPerWeek}
+                {errors.weeklyCapacity}
               </p>
             )}
           </div>

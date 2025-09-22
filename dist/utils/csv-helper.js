@@ -10,7 +10,6 @@ function parseCSV(csvContent) {
     }
     const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
     const employees = [];
-    // Expected headers mapping
     const headerMap = {
         'firstName': 'firstName',
         'first_name': 'firstName',
@@ -32,7 +31,6 @@ function parseCSV(csvContent) {
         'skills': 'skills',
         'Skills': 'skills'
     };
-    // Map headers to our field names
     const mappedHeaders = headers.map(header => headerMap[header] || header.toLowerCase());
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -69,7 +67,6 @@ function parseCSV(csvContent) {
                     break;
                 case 'skills':
                     if (value) {
-                        // Handle skills as comma-separated values or JSON array
                         try {
                             if (value.startsWith('[') && value.endsWith(']')) {
                                 employee[field] = JSON.parse(value);
@@ -88,7 +85,6 @@ function parseCSV(csvContent) {
                     break;
             }
         }
-        // Validate required fields
         const requiredFields = ['firstName', 'lastName', 'email', 'position', 'departmentId', 'salary'];
         for (const field of requiredFields) {
             if (!employee[field] && employee[field] !== 0) {
@@ -146,9 +142,8 @@ function parseCSVLine(line) {
         }
         else if (char === '"' && inQuotes) {
             if (nextChar === '"') {
-                // Escaped quote
                 current += '"';
-                i++; // Skip next quote
+                i++;
             }
             else {
                 inQuotes = false;
@@ -170,11 +165,10 @@ function escapeCSVField(value) {
     if (!value)
         return '';
     const stringValue = value.toString();
-    // If the value contains comma, quote, or newline, wrap in quotes
     if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-        // Escape existing quotes by doubling them
         const escaped = stringValue.replace(/"/g, '""');
         return `"${escaped}"`;
     }
     return stringValue;
 }
+//# sourceMappingURL=csv-helper.js.map

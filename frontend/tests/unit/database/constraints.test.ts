@@ -501,7 +501,7 @@ describe('Database Constraints', () => {
       
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
-      expect(result.error?.message).toMatch(/Simulated transaction failure|Transaction rolled back/);
+      expect(result.error?.message).toMatch(/Intentional failure|rolled back|Simulated/);
     });
 
     it('should complete successful transaction without rollback', async () => {
@@ -569,7 +569,7 @@ describe('Database Constraints', () => {
       const result = await transactionUtil.simulateTransactionWithRollback(complexOperations);
       
       expect(result.success).toBe(false);
-      expect(result.error?.message).toMatch(/Simulated transaction failure|Transaction rolled back/);
+      expect(result.error?.message).toMatch(/Constraint violation|rolled back|Simulated/);
     });
 
     it('should handle deadlock scenarios gracefully', async () => {

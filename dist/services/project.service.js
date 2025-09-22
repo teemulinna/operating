@@ -16,7 +16,6 @@ class ProjectService {
     }
     async createProject(projectData) {
         try {
-            // Convert camelCase to snake_case for database compatibility
             const dbData = {
                 name: projectData.name,
                 description: projectData.description,
@@ -30,11 +29,9 @@ class ProjectService {
                 team_size: projectData.teamSize,
                 ...projectData
             };
-            // Validate required fields
             if (!dbData.name || !dbData.start_date) {
                 throw new api_error_1.ApiError(400, 'Project name and start date are required');
             }
-            // Validate date logic
             if (dbData.end_date && dbData.start_date >= dbData.end_date) {
                 throw new api_error_1.ApiError(400, 'End date must be after start date');
             }
@@ -91,7 +88,6 @@ class ProjectService {
             let whereConditions = [];
             let queryParams = [];
             let paramIndex = 1;
-            // Build WHERE conditions
             if (filters.status) {
                 whereConditions.push(`status = $${paramIndex}`);
                 queryParams.push(filters.status);
@@ -123,16 +119,13 @@ class ProjectService {
                 paramIndex++;
             }
             const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
-            // Count total records
             const countQuery = `SELECT COUNT(*) FROM projects ${whereClause}`;
             const countResult = await this.db.query(countQuery, queryParams);
             const total = parseInt(countResult.rows[0].count);
-            // Calculate pagination
             const page = pagination?.page || 1;
             const limit = pagination?.limit || 50;
             const offset = (page - 1) * limit;
             const totalPages = Math.ceil(total / limit);
-            // Get projects with roles and assignments summary
             const query = `
         SELECT 
           p.*,
@@ -201,16 +194,13 @@ class ProjectService {
     }
     async updateProject(projectId, updateData) {
         try {
-            // Get current project
             const existingProject = await this.getProjectById(projectId);
             if (!existingProject) {
                 throw new api_error_1.ApiError(404, 'Project not found');
             }
-            // Validate status transitions
             if (updateData.status && updateData.status !== existingProject.status) {
                 this.validateStatusTransition(existingProject.status, updateData.status);
             }
-            // Validate date range if dates are being updated
             if (updateData.start_date || updateData.end_date) {
                 const startDate = updateData.start_date || existingProject.start_date;
                 const endDate = updateData.end_date || existingProject.end_date;
@@ -218,7 +208,6 @@ class ProjectService {
                     throw new api_error_1.ApiError(400, 'End date must be after start date');
                 }
             }
-            // Build update fields
             const updateFields = [];
             const queryParams = [];
             let paramIndex = 1;
@@ -242,7 +231,6 @@ class ProjectService {
             queryParams.push(projectId);
             const result = await this.db.query(query, queryParams);
             const updatedProject = result.rows[0];
-            // Format budget as string to match test expectations
             if (updatedProject.budget) {
                 updatedProject.budget = parseInt(updatedProject.budget).toString();
             }
@@ -276,11 +264,11 @@ class ProjectService {
     }
     validateStatusTransition(currentStatus, newStatus) {
         const validTransitions = {
-            'planning': ['active', 'completed', 'cancelled', 'on-hold'], // Allow direct to completed
+            'planning': ['active', 'completed', 'cancelled', 'on-hold'],
             'active': ['on-hold', 'completed', 'cancelled'],
             'on-hold': ['active', 'cancelled'],
-            'completed': [], // No transitions allowed from completed
-            'cancelled': [] // No transitions allowed from cancelled
+            'completed': [],
+            'cancelled': []
         };
         const allowedTransitions = validTransitions[currentStatus.toLowerCase()] || [];
         if (!allowedTransitions.includes(newStatus.toLowerCase())) {
@@ -347,9 +335,6 @@ class ProjectService {
             throw new api_error_1.ApiError(500, 'Failed to fetch project roles');
         }
     }
-    /**
-     * Get skill requirements for a project based on project roles
-     */
     async getSkillRequirements(projectId) {
         try {
             const project = await this.getProjectById(projectId);
@@ -368,7 +353,6 @@ class ProjectService {
                     }
                 };
             }
-            // Aggregate skill requirements across all roles
             const skillMap = new Map();
             for (const role of roles) {
                 const skillsDetails = role.skills_details || [];
@@ -398,7 +382,7 @@ class ProjectService {
             const filledRequirements = skillBreakdown.filter(s => s.currentlyFilled >= s.requiredCount).length;
             const criticalGaps = skillBreakdown.filter(s => s.priority === 'critical' && s.currentlyFilled < s.requiredCount).length;
             const fulfillmentRate = totalRequirements > 0 ? Math.round((filledRequirements / totalRequirements) * 100) : 100;
-            const readinessScore = Math.max(0, fulfillmentRate - (criticalGaps * 15)); // Penalize critical gaps
+            const readinessScore = Math.max(0, fulfillmentRate - (criticalGaps * 15));
             return {
                 totalRequirements,
                 skillBreakdown,
@@ -417,9 +401,6 @@ class ProjectService {
             throw new api_error_1.ApiError(500, 'Failed to get skill requirements');
         }
     }
-    /**
-     * Determine skill priority based on experience level and role context
-     */
     determineSkillPriority(minimumLevel, roleName) {
         const isLeadRole = roleName.toLowerCase().includes('lead') || roleName.toLowerCase().includes('manager');
         const isArchitectRole = roleName.toLowerCase().includes('architect');
@@ -440,12 +421,8 @@ class ProjectService {
                 return 'low';
         }
     }
-    /**
-     * Get skill-based resource recommendations for a project
-     */
     async getResourceRecommendations(projectId, options = {}) {
         try {
-            // Get project details and role requirements
             const project = await this.getProjectById(projectId);
             if (!project) {
                 throw new api_error_1.ApiError(404, 'Project not found');
@@ -454,7 +431,6 @@ class ProjectService {
             if (roles.length === 0) {
                 throw new api_error_1.ApiError(400, 'No roles defined for this project');
             }
-            // Transform roles into recommendation request format
             const roleRequirements = roles.map(role => ({
                 roleTitle: role.role_name,
                 skillRequirements: (role.skills_details || []).map((skill) => ({
@@ -464,7 +440,7 @@ class ProjectService {
                     minimumProficiency: role.minimum_experience_level === 'junior' ? 2 :
                         role.minimum_experience_level === 'mid' ? 3 :
                             role.minimum_experience_level === 'senior' ? 4 : 5,
-                    weight: 8, // High weight for required skills
+                    weight: 8,
                     isRequired: true
                 })),
                 experienceLevel: role.minimum_experience_level,
@@ -472,7 +448,6 @@ class ProjectService {
                 budget: role.hourly_rate ? role.estimated_hours * role.hourly_rate : undefined,
                 preferredDepartments: options.preferredDepartments
             }));
-            // Create recommendation request
             const request = {
                 projectId: projectId.toString(),
                 roleRequirements,
@@ -488,7 +463,6 @@ class ProjectService {
                     allowOverqualified: true
                 }
             };
-            // Generate recommendations
             const recommendationEngine = await resource_recommendation_engine_service_1.ResourceRecommendationEngine.create();
             const recommendations = await recommendationEngine.generateRecommendations(request, {
                 maxRecommendations: options.maxRecommendations || 3,
@@ -505,16 +479,12 @@ class ProjectService {
             throw new api_error_1.ApiError(500, 'Failed to generate resource recommendations');
         }
     }
-    /**
-     * Find best matches for a specific project role
-     */
     async findRoleMatches(projectId, roleId, options = {}) {
         try {
             const project = await this.getProjectById(projectId);
             if (!project) {
                 throw new api_error_1.ApiError(404, 'Project not found');
             }
-            // Get specific role details
             const roleQuery = `
         SELECT 
           pr.*,
@@ -537,7 +507,6 @@ class ProjectService {
                 throw new api_error_1.ApiError(404, 'Role not found for this project');
             }
             const role = roleResult.rows[0];
-            // Build skill criteria
             const criteria = {
                 requiredSkills: (role.skills_details || []).map((skill) => ({
                     skillId: skill.id,
@@ -555,7 +524,6 @@ class ProjectService {
                 startDate: new Date(project.start_date),
                 endDate: project.end_date ? new Date(project.end_date) : undefined
             };
-            // Find matches
             const skillMatcher = await skill_matcher_service_1.SkillMatcherService.create();
             const matches = await skillMatcher.findResourceMatches(criteria, {
                 maxResults: options.maxResults || 10,
@@ -572,9 +540,6 @@ class ProjectService {
             throw new api_error_1.ApiError(500, 'Failed to find role matches');
         }
     }
-    /**
-     * Get skill gap analysis for a project
-     */
     async getProjectSkillGaps(projectId) {
         try {
             const project = await this.getProjectById(projectId);
@@ -596,7 +561,7 @@ class ProjectService {
                         skillId: skill.id,
                         skillName: skill.name,
                         category: skill.category,
-                        minimumProficiency: 3, // Assume intermediate level
+                        minimumProficiency: 3,
                         weight: 8,
                         isRequired: true
                     })),
@@ -610,7 +575,7 @@ class ProjectService {
                     if (skillGap.gap > 0) {
                         const gapInfo = {
                             skillName: skillGap.skillName,
-                            category: 'Unknown', // Would need to fetch from skills table
+                            category: 'Unknown',
                             requiredLevel: 3,
                             availableLevel: Math.max(0, 3 - skillGap.gap),
                             gap: skillGap.gap,
@@ -661,3 +626,4 @@ class ProjectService {
     }
 }
 exports.ProjectService = ProjectService;
+//# sourceMappingURL=project.service.js.map

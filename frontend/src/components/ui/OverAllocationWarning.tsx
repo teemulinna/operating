@@ -7,7 +7,7 @@ export interface OverAllocationWarning {
   employeeName: string;
   weekStartDate: Date;
   weekEndDate: Date;
-  defaultHours: number;
+  weeklyCapacity: number;
   allocatedHours: number;
   overAllocationHours: number;
   utilizationRate: number;
@@ -91,7 +91,7 @@ export const OverAllocationWarningComponent: React.FC<OverAllocationWarningProps
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <span className="font-medium">Default Hours:</span>
-            <div className="text-gray-600">{warning.defaultHours}h/week</div>
+            <div className="text-gray-600">{warning.weeklyCapacity}h/week</div>
           </div>
           <div>
             <span className="font-medium">Allocated:</span>

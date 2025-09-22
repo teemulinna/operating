@@ -63,6 +63,14 @@ router.get(
   employeeController.getEmployeeById
 );
 
+// GET /api/employees/:id/deletion-constraints - Check deletion constraints
+router.get(
+  '/:id/deletion-constraints',
+  validateIdParam,
+  requireRole(['admin']),
+  employeeController.checkEmployeeDeletionConstraints
+);
+
 // POST /api/employees - Create new employee
 router.post(
   '/',

@@ -24,13 +24,13 @@ class CapacityHistoryModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23505') { // Unique constraint violation
+            if (error.code === '23505') {
                 throw new types_1.DatabaseError('Capacity entry for this employee and date already exists');
             }
-            if (error.code === '23503') { // Foreign key constraint violation
+            if (error.code === '23503') {
                 throw new types_1.DatabaseError('Invalid employee ID');
             }
-            if (error.code === '23514') { // Check constraint violation
+            if (error.code === '23514') {
                 throw new types_1.DatabaseError('Allocated hours cannot exceed available hours');
             }
             throw error;
@@ -130,7 +130,7 @@ class CapacityHistoryModel {
             return this.mapRow(result.rows[0]);
         }
         catch (error) {
-            if (error.code === '23514') { // Check constraint violation
+            if (error.code === '23514') {
                 throw new types_1.DatabaseError('Allocated hours cannot exceed available hours');
             }
             throw error;
@@ -292,9 +292,6 @@ class CapacityHistoryModel {
             daysOverThreshold: parseInt(row.days_over_threshold) || 0
         }));
     }
-    /**
-     * Get department capacity by department name
-     */
     static async getDepartmentCapacityByName(departmentName, dateFrom, dateTo) {
         let query = `
       SELECT 
@@ -332,9 +329,6 @@ class CapacityHistoryModel {
             employeeCount: parseInt(row.employee_count) || 0
         }));
     }
-    /**
-     * Get capacity data with employee details for export
-     */
     static async getCapacityWithEmployeeDetails(filters = {}, departmentId) {
         let query = `
       SELECT 
@@ -401,3 +395,4 @@ class CapacityHistoryModel {
     }
 }
 exports.CapacityHistoryModel = CapacityHistoryModel;
+//# sourceMappingURL=CapacityHistory.js.map

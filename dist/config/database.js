@@ -23,3 +23,4 @@ function getTestDatabaseConfig() {
         max: 5
     };
 }
+//# sourceMappingURL=database.js.map

@@ -67,6 +67,7 @@ export class EmployeeController {
         email: requestData.email,
         position: requestData.position,
         departmentId: requestData.departmentId,
+        weeklyCapacity: requestData.weeklyCapacity || 40,
         salary: requestData.salary,
         skills: requestData.skills || []
       };
@@ -101,7 +102,10 @@ export class EmployeeController {
   updateEmployee = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id!;
-      const updateData: UpdateEmployeeRequest = req.body;
+      const updateData: UpdateEmployeeRequest = {
+        ...req.body,
+        weeklyCapacity: req.body.weeklyCapacity !== undefined ? req.body.weeklyCapacity : undefined
+      };
       
       // Check if employee exists
       const existingEmployee = await this.employeeService.getEmployeeById(id);
@@ -137,31 +141,55 @@ export class EmployeeController {
     }
   };
 
+  // GET /api/employees/:id/deletion-constraints
+  checkEmployeeDeletionConstraints = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id!;
+
+      const constraints = await this.employeeService.checkEmployeeDeletionConstraints(id);
+
+      res.status(200).json(constraints);
+    } catch (error: any) {
+      next(error);
+    }
+  };
+
   // DELETE /api/employees/:id
   deleteEmployee = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id!;
-      
-      // Check if employee exists
+
+      // Check if employee exists and get their info
       const existingEmployee = await this.employeeService.getEmployeeById(id);
       if (!existingEmployee) {
         throw ApiError.notFound('Employee');
       }
-      
+
+      // Pre-flight check for constraints
+      const constraints = await this.employeeService.checkEmployeeDeletionConstraints(id);
+      if (!constraints.canDelete) {
+        throw ApiError.conflict(`Cannot delete employee: ${constraints.blockers.join(', ')}`);
+      }
+
+      // Proceed with deletion
       await this.employeeService.deleteEmployee(id);
-      
+
       // Emit real-time event for employee deletion
       this.webSocketService.sendNotification({
         id: `employee-deleted-${id}-${Date.now()}`,
         type: 'employee_deleted',
         title: 'Employee Removed',
-        message: `${existingEmployee.firstName} ${existingEmployee.lastName} has been removed from the team`,
+        message: `${existingEmployee.firstName} ${existingEmployee.lastName} has been removed from the team. ${constraints.warnings.length > 0 ? 'Impact: ' + constraints.warnings.join(', ') : ''}`,
         timestamp: new Date().toISOString(),
         isRead: false,
         priority: 'high',
-        data: { employeeId: id, deletedEmployee: existingEmployee }
+        data: {
+          employeeId: id,
+          deletedEmployee: existingEmployee,
+          constraints: constraints
+        }
       });
-      
+
       res.status(204).send();
     } catch (error: any) {
       next(error);

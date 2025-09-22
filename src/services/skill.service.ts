@@ -3,10 +3,12 @@ import { SkillModel } from '../models/Skill';
 import { EmployeeSkillModel } from '../models/EmployeeSkill';
 import { Skill, CreateSkillInput, UpdateSkillInput, SkillCategory } from '../types';
 import { PaginatedResponse } from '../types/employee.types';
+import { DatabaseService } from '../database/database.service';
 
 export class SkillService {
   private static pool: Pool;
   private static initialized = false;
+  private db: DatabaseService;
 
   static initialize(pool: Pool): void {
     this.pool = pool;
@@ -15,11 +17,8 @@ export class SkillService {
     this.initialized = true;
   }
 
-  constructor() {
-    // Ensure static initialization has occurred
-    if (!SkillService.initialized) {
-      throw new Error('SkillService must be initialized with a database pool before use');
-    }
+  constructor(db?: DatabaseService) {
+    this.db = db || DatabaseService.getInstance();
   }
 
   private static ensureInitialized(): void {
@@ -75,7 +74,7 @@ export class SkillService {
       LIMIT $1
     `;
 
-    const result = await SkillService.pool.query(query, [limit]);
+    const result = await this.db.query(query, [limit]);
     return result.rows.map((row: any) => ({
       skill: {
         id: row.id,
@@ -102,7 +101,7 @@ export class SkillService {
       WHERE es.skill_id = $1 AND es.is_active = true AND e.is_active = true
     `;
 
-    const countResult = await SkillService.pool.query(countQuery, [skillId]);
+    const countResult = await this.db.query(countQuery, [skillId]);
     const totalItems = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -128,7 +127,7 @@ export class SkillService {
       LIMIT $2 OFFSET $3
     `;
 
-    const result = await SkillService.pool.query(dataQuery, [skillId, limit, offset]);
+    const result = await this.db.query(dataQuery, [skillId, limit, offset]);
 
     return {
       data: result.rows.map(row => ({
@@ -155,7 +154,7 @@ export class SkillService {
     };
   }
 
-  async getSkillRecommendations(employeeId: string }>> {
+  async getSkillRecommendations(employeeId: string) {
     SkillService.ensureInitialized();
     // Get skills that peers in same department have but this employee doesn't
     const query = `
@@ -199,7 +198,7 @@ export class SkillService {
       FROM peer_skills
     `;
 
-    const result = await SkillService.pool.query(query, [employeeId, limit]);
+    const result = await this.db.query(query, [employeeId]);
     return result.rows.map((row: any) => ({
       skill: {
         id: row.id,

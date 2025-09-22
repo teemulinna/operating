@@ -5,9 +5,6 @@ const analytics_service_1 = require("../services/analytics.service");
 const api_error_1 = require("../utils/api-error");
 const database_service_1 = require("../database/database.service");
 class AnalyticsController {
-    /**
-     * Get team utilization data
-     */
     static async getTeamUtilization(req, res) {
         try {
             const filters = {};
@@ -31,9 +28,6 @@ class AnalyticsController {
             throw new api_error_1.ApiError(500, 'Failed to fetch team utilization data');
         }
     }
-    /**
-     * Get capacity trends
-     */
     static async getCapacityTrends(req, res) {
         try {
             const filters = {};
@@ -57,9 +51,6 @@ class AnalyticsController {
             throw new api_error_1.ApiError(500, 'Failed to fetch capacity trends');
         }
     }
-    /**
-     * Get resource allocation metrics
-     */
     static async getResourceAllocationMetrics(req, res) {
         try {
             const filters = {};
@@ -92,9 +83,6 @@ class AnalyticsController {
             throw new api_error_1.ApiError(500, 'Failed to fetch resource allocation metrics');
         }
     }
-    /**
-     * Get skills gap analysis
-     */
     static async getSkillsGapAnalysis(req, res) {
         try {
             const filters = {};
@@ -118,9 +106,6 @@ class AnalyticsController {
             throw new api_error_1.ApiError(500, 'Failed to fetch skills gap analysis');
         }
     }
-    /**
-     * Get department performance
-     */
     static async getDepartmentPerformance(req, res) {
         try {
             const filters = {};
@@ -141,9 +126,6 @@ class AnalyticsController {
             throw new api_error_1.ApiError(500, 'Failed to fetch department performance');
         }
     }
-    /**
-     * Compare departments
-     */
     static async compareDepartments(req, res) {
         try {
             const { departmentAId, departmentBId } = req.params;
@@ -177,9 +159,6 @@ class AnalyticsController {
             throw new api_error_1.ApiError(500, 'Failed to compare departments');
         }
     }
-    /**
-     * Export analytics data
-     */
     static async exportAnalytics(req, res) {
         try {
             const exportOptions = {
@@ -198,7 +177,6 @@ class AnalyticsController {
                 departmentIds: req.body.departmentIds,
                 skillCategories: req.body.skillCategories
             };
-            // Gather all analytics data
             const [utilizationData, capacityTrends, resourceMetrics, skillsGap, departmentPerformance] = await Promise.all([
                 analytics_service_1.AnalyticsService.getTeamUtilizationData(filters),
                 analytics_service_1.AnalyticsService.getCapacityTrends(filters),
@@ -225,7 +203,6 @@ class AnalyticsController {
                     departmentPerformance: exportOptions.includeRawData ? departmentPerformance.data : null
                 }
             };
-            // Set appropriate headers based on format
             switch (exportOptions.format) {
                 case 'json':
                     res.setHeader('Content-Type', 'application/json');
@@ -234,12 +211,10 @@ class AnalyticsController {
                 case 'csv':
                     res.setHeader('Content-Type', 'text/csv');
                     res.setHeader('Content-Disposition', `attachment; filename="analytics-export-${Date.now()}.csv"`);
-                    // Would need CSV conversion logic here
                     break;
                 case 'pdf':
                     res.setHeader('Content-Type', 'application/pdf');
                     res.setHeader('Content-Disposition', `attachment; filename="analytics-report-${Date.now()}.pdf"`);
-                    // Would need PDF generation logic here
                     break;
                 default:
                     res.setHeader('Content-Type', 'application/json');
@@ -251,13 +226,9 @@ class AnalyticsController {
             throw new api_error_1.ApiError(500, 'Failed to export analytics data');
         }
     }
-    /**
-     * Get comprehensive dashboard statistics with real database calculations
-     */
     static async getDashboardStats(_req, res) {
         try {
             const db = database_service_1.DatabaseService.getInstance().getPool();
-            // Simplified dashboard query compatible with PostgreSQL
             const dashboardQuery = `
         SELECT 
           -- Employee metrics
@@ -287,14 +258,11 @@ class AnalyticsController {
       `;
             const result = await db.query(dashboardQuery);
             const stats = result.rows[0];
-            // Format response with comprehensive dashboard data
             const dashboardData = {
-                // Core metrics (backward compatibility)
                 employeeCount: parseInt(stats.employeeCount) || 0,
                 projectCount: parseInt(stats.projectCount) || 0,
                 utilizationRate: parseFloat(stats.utilizationRate) || 0,
                 allocationCount: parseInt(stats.allocationCount) || 0,
-                // Extended metrics for enhanced dashboard
                 summary: {
                     totalEmployees: parseInt(stats.total_employees) || 0,
                     completedProjects: parseInt(stats.completed_projects) || 0,
@@ -318,7 +286,6 @@ class AnalyticsController {
             console.error('Error fetching comprehensive dashboard stats:', error);
             console.error('Error details:', error.message);
             console.error('Error stack:', error.stack);
-            // Return minimal fallback data with error indication
             res.json({
                 employeeCount: 0,
                 projectCount: 0,
@@ -334,9 +301,6 @@ class AnalyticsController {
             });
         }
     }
-    /**
-     * Get analytics dashboard summary
-     */
     static async getDashboardSummary(req, res) {
         try {
             const filters = {
@@ -365,14 +329,14 @@ class AnalyticsController {
                         .filter(forecast => forecast.capacityGap > 0).length
                 },
                 trends: {
-                    utilizationTrend: 'stable', // Would calculate from historical data
-                    skillGapTrend: 'improving', // Would calculate from historical data
-                    capacityTrend: 'increasing' // Would calculate from historical data
+                    utilizationTrend: 'stable',
+                    skillGapTrend: 'improving',
+                    capacityTrend: 'increasing'
                 },
                 metadata: {
                     generatedAt: new Date(),
                     dataFreshness: 'real-time',
-                    nextUpdate: new Date(Date.now() + 60 * 60 * 1000) // 1 hour from now
+                    nextUpdate: new Date(Date.now() + 60 * 60 * 1000)
                 }
             };
             res.json(summary);
@@ -384,3 +348,4 @@ class AnalyticsController {
     }
 }
 exports.AnalyticsController = AnalyticsController;
+//# sourceMappingURL=analytics.controller.js.map

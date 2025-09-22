@@ -21,8 +21,8 @@ export class EmployeeModel {
   static async create(input: CreateEmployeeInput): Promise<Employee> {
     try {
       const query = `
-        INSERT INTO employees (first_name, last_name, email, department_id, position, hire_date, is_active, max_capacity_hours)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO employees (first_name, last_name, email, department_id, position, hire_date, is_active, weekly_capacity, salary)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *
       `;
 
@@ -34,7 +34,8 @@ export class EmployeeModel {
         input.position,
         input.hireDate,
         true,
-        input.defaultHours || 40
+        input.weeklyCapacity || 40,
+        input.salary || null
       ];
 
       const result = await this.pool.query(query, values);
@@ -243,14 +244,14 @@ export class EmployeeModel {
       updateFields.push(`is_active = $${values.length}`);
     }
 
-    if (updates.defaultHours !== undefined) {
-      values.push(updates.defaultHours);
-      updateFields.push(`max_capacity_hours = $${values.length}`);
+    if (updates.weeklyCapacity !== undefined) {
+      values.push(updates.weeklyCapacity);
+      updateFields.push(`weekly_capacity = $${values.length}`);
     }
 
-    if (updates.maxCapacityHours !== undefined) {
-      values.push(updates.maxCapacityHours);
-      updateFields.push(`max_capacity_hours = $${values.length}`);
+    if (updates.salary !== undefined) {
+      values.push(updates.salary);
+      updateFields.push(`salary = $${values.length}`);
     }
 
     if (updateFields.length === 0) {
@@ -429,7 +430,8 @@ export class EmployeeModel {
       position: row.position,
       hireDate: row.hire_date,
       isActive: row.is_active,
-      defaultHours: row.max_capacity_hours || 40,
+      weeklyCapacity: parseFloat(row.weekly_capacity) || 40,
+      salary: row.salary ? parseFloat(row.salary) : undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
