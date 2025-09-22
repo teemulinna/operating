@@ -1,6 +1,6 @@
-# Employee Management System - Architecture Overview
+> NOTE: Legacy reference focused on Employee Management. Superseded by `docs/architectural-solutions.md` for the Resource Management Platform. Keep for historical context.
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture (Legacy)
 
 The Employee Management System follows a modern 3-tier architecture with clean separation of concerns, scalable design patterns, and comprehensive testing strategies.
 
@@ -1426,14 +1426,14 @@ flowchart TD
 graph TB
     subgraph "WEB TIER<br/>Stateless Frontend"
         subgraph "Frontend Layer"
-            FA[Frontend App (N)<br/>- Multiple instances<br/>- Auto scaling<br/>- Load distribution]
+            FA["Frontend App (N)<br/>- Multiple instances<br/>- Auto scaling<br/>- Load distribution"]
             LB[Load Balancer<br/>- Traffic distribution<br/>- Health checks<br/>- SSL termination]
             CDN[CDN<br/>- Global distribution<br/>- Static asset caching<br/>- Edge locations]
             EC[Edge Caching<br/>- Reduced latency<br/>- Bandwidth optimization<br/>- Global performance]
         end
 
         subgraph "API Layer"
-            AG[API Gateway (N)<br/>- Multiple instances<br/>- Rate limiting<br/>- Request routing]
+            AG["API Gateway (N)<br/>- Multiple instances<br/>- Rate limiting<br/>- Request routing"]
             SD[Service Discovery<br/>- Service registry<br/>- Health monitoring<br/>- Dynamic routing]
             BS[Backend Services<br/>- Microservices<br/>- Independent scaling<br/>- Fault isolation]
         end
@@ -1441,7 +1441,7 @@ graph TB
 
     subgraph "APPLICATION TIER<br/>Business Logic"
         subgraph "Backend Services"
-            BES[Backend Services (N)<br/>- Horizontal scaling<br/>- Service mesh<br/>- Load balancing]
+            BES["Backend Services (N)<br/>- Horizontal scaling<br/>- Service mesh<br/>- Load balancing"]
             MQ[Message Queue<br/>- Async processing<br/>- Event-driven architecture<br/>- Decoupling]
             WP[Worker Processes<br/>- Background jobs<br/>- Batch processing<br/>- Resource intensive tasks]
         end

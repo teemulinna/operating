@@ -1,8 +1,8 @@
 # ResourceForge Product Roadmap
 
-> Last Updated: 2025-09-07
-> Version: 2.0.0
-> Status: Phase 4 - AI Intelligence In Progress
+> Last Updated: 2025-09-22
+> Version: 2.1.0
+> Status: Phase 5 - Visual Planning & Intelligence Integration
 
 ## Phase 1: MVP - Core Visibility & Allocation (3-4 months) ✅ COMPLETED
 
@@ -28,7 +28,7 @@
 ### Core Features
 
 - [x] **Project-Role Definition** - Projects define required roles with skills and experience requirements `L` ✅
-- [x] **Multi-Project Assignment** - Employees assigned to multiple projects with time allocation percentages `XL` ✅  
+- [x] **Multi-Project Assignment** - Employees assigned to multiple projects with time allocation percentages `XL` ✅
 - [x] **Capacity-Aware Planning** - Real-time validation preventing over-allocation across all projects `L` ✅
 - [x] **Skills-Based Matching** - Automatic employee-to-role matching based on skills and availability `L` ✅
 - [x] **Resource Conflict Detection** - Automated detection and resolution of resource conflicts `M` ✅
@@ -97,7 +97,7 @@
 - Advanced data visualization libraries (D3.js or similar)
 - API versioning and documentation framework
 
-## Phase 4: Integration & Intelligence (3-4 months) 🚧 IN PROGRESS
+## Phase 4: Integration & Intelligence (3-4 months) ✅ COMPLETED
 
 **Goal:** Transform ResourceForge into an AI-powered intelligent resource planning platform
 **Success Criteria:** AI-driven optimization, predictive analytics, and automated conflict resolution delivering 30%+ efficiency gains
@@ -130,6 +130,72 @@
 - Mobile development framework selection and setup
 - Real-time data synchronization infrastructure
 
+## Phase 5: Visual Planning & Intelligence Integration (3 weeks) 🚧 IN PROGRESS
+
+**Goal:** Deliver advanced visual resource planning capabilities with capacity heat maps, availability patterns, and what-if scenario modeling
+**Success Criteria:** Managers can visually identify capacity issues, set recurring availability patterns, and model scenarios with 40% reduction in planning time
+
+### Features Planned
+
+- [ ] **Capacity Heat Maps** - Visual color-coded capacity planning with interactive filtering and export `L`
+  - Grid visualization showing employees × time periods
+  - Color coding: green (<80%), yellow (80-100%), red (>100%)
+  - Interactive tooltips with allocation details
+  - Export functionality (PNG, CSV, PDF)
+
+- [ ] **Recurring Availability Patterns** - Employee availability pattern management with conflict detection `M`
+  - Standard work hour templates (40hr, part-time, remote hybrid)
+  - Custom weekly/monthly pattern creation
+  - Exception handling (vacation, holidays, sick days)
+  - Pattern conflict detection and resolution
+
+- [ ] **Enhanced What-If Scenarios** - Advanced scenario planning with visual comparison tools `XL`
+  - Drag-and-drop scenario editing interface
+  - Side-by-side scenario comparison dashboard
+  - Cost and resource impact analysis
+  - Scenario approval workflow and implementation
+
+- [ ] **Integrated Visual Dashboard** - Unified interface combining heat maps, patterns, and scenarios `L`
+  - Real-time capacity overview dashboard
+  - Pattern-aware allocation recommendations
+  - Scenario-based capacity forecasting
+  - Mobile-responsive visual planning tools
+
+### Sprint Breakdown
+
+#### Sprint 1: Heat Maps Foundation + API (Week 1-2)
+- Database analytics foundation and materialized views
+- Heat map API endpoints with caching
+- Frontend heat map components with visualization
+- Performance optimization for large datasets
+
+#### Sprint 2: Availability Patterns + UI Components (Week 3-4)
+- Availability pattern database schema and logic
+- Pattern management API endpoints
+- Pattern editor UI with template library
+- Conflict detection and resolution interface
+
+#### Sprint 3: What-If Scenarios + Testing (Week 5-6)
+- Scenario planning engine and comparison logic
+- Enhanced scenario API with analysis features
+- Scenario planning UI with comparison dashboard
+- Comprehensive E2E testing and validation
+
+### Success Metrics
+
+- **Heat Map Performance:** <2 second load time for 6-month view
+- **Pattern Adoption:** 80% of employees have availability patterns set
+- **Scenario Usage:** 40% of resource decisions use scenario analysis
+- **Planning Efficiency:** 40% reduction in resource planning time
+- **Conflict Prevention:** 95% reduction in resource over-allocation issues
+
+### Dependencies
+
+- Phase 4 AI intelligence features (completed)
+- Advanced data visualization libraries (D3.js, React-based charts)
+- Enhanced UI component library with drag-and-drop capabilities
+- Performance optimization infrastructure (Redis caching, materialized views)
+
 ## Success Metrics by Phase
 
 ### Phase 1 KPIs
@@ -152,13 +218,20 @@
 - ✅ UI/UX Enhancement: 35% improvement in user satisfaction scores
 - ✅ Test Coverage: 90%+ coverage achieved with comprehensive E2E testing
 
-### Phase 4 KPIs 🚧 IN PROGRESS
+### Phase 4 KPIs ✅ ACHIEVED
 - ✅ AI recommendation acceptance rate: 85% (target exceeded)
 - ✅ Predictive accuracy: 85.3% for 4-week resource forecasting (target exceeded)
 - ✅ Optimization performance: 30-50% reduction in resource conflicts (achieved)
 - ✅ ML model accuracy: >80% for capacity and demand predictions (achieved)
 - ⏳ Integration adoption: 60% of teams using at least one integration (pending)
 - ⏳ Enterprise SSO adoption: 40% of enterprise customers (pending)
+
+### Phase 5 KPIs 🎯 TARGET
+- Heat map usage: 60% of managers use heat maps weekly
+- Pattern effectiveness: 95% reduction in availability-related conflicts
+- Scenario planning adoption: 40% of projects use scenario planning
+- Visual planning efficiency: 40% reduction in resource planning time
+- User satisfaction: 85% positive feedback on visual planning tools
 
 ## Technical Milestones
 
@@ -167,3 +240,16 @@
 - **Phase 2:** Performance optimization for 500+ employee organizations
 - **Phase 3:** Advanced caching and database optimization for complex scenarios
 - **Phase 4:** Multi-tenant architecture with enterprise-grade security and compliance
+- **Phase 5:** Visual planning infrastructure with real-time data processing and advanced caching
+
+### Development Architecture Evolution
+- **Phase 1-2:** Basic React/Node.js with PostgreSQL foundation
+- **Phase 3:** Advanced state management and real-time updates
+- **Phase 4:** AI/ML integration with TensorFlow.js and predictive analytics
+- **Phase 5:** Advanced visualization framework with performance optimization
+
+---
+
+*Last Updated: 2025-09-22 | Next Review: Weekly during Phase 5 implementation*
+*Current Focus: Phase 5 - Visual Planning & Intelligence Integration*
+*Timeline: 3-week implementation cycle with weekly sprint reviews*
