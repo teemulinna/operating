@@ -353,7 +353,16 @@ export class AnalyticsService {
           s.name,
           s.category,
           COUNT(es.id) as current_professionals,
-          COUNT(es.id) FILTER (WHERE es.proficiency_level::integer >= 4) as experts,
+          COUNT(es.id) FILTER (WHERE
+            CASE
+              WHEN es.proficiency_level::text = 'expert' THEN 4
+              WHEN es.proficiency_level::text = 'master' THEN 5
+              WHEN es.proficiency_level::text = 'advanced' THEN 3
+              WHEN es.proficiency_level::text = 'intermediate' THEN 2
+              WHEN es.proficiency_level::text = 'beginner' THEN 1
+              ELSE es.proficiency_level -- handle integer type from migration 015
+            END >= 4
+          ) as experts,
           -- Calculate real demand based on active project skill requirements
           COALESCE(
             (SELECT COUNT(*) 
@@ -437,7 +446,16 @@ export class AnalyticsService {
             0
           ) as avg_utilization,
           COUNT(DISTINCT es.skill_id) as unique_skills,
-          COALESCE(AVG(es.proficiency_level::numeric), 0) as avg_proficiency
+          COALESCE(AVG(
+            CASE
+              WHEN es.proficiency_level::text = 'expert' THEN 4
+              WHEN es.proficiency_level::text = 'master' THEN 5
+              WHEN es.proficiency_level::text = 'advanced' THEN 3
+              WHEN es.proficiency_level::text = 'intermediate' THEN 2
+              WHEN es.proficiency_level::text = 'beginner' THEN 1
+              ELSE es.proficiency_level::numeric -- handle integer type from migration 015
+            END
+          ), 0) as avg_proficiency
         FROM departments d
         LEFT JOIN employees e ON d.id = e.department_id AND e.is_active = true
         LEFT JOIN employee_skills es ON e.id = es.employee_id AND es.is_active = true
@@ -650,7 +668,16 @@ export class AnalyticsService {
           0
         ) as avg_utilization,
         COUNT(DISTINCT es.skill_id) as skill_count,
-        COALESCE(AVG(es.proficiency_level::numeric), 0) as avg_experience,
+        COALESCE(AVG(
+          CASE
+            WHEN es.proficiency_level::text = 'expert' THEN 4
+            WHEN es.proficiency_level::text = 'master' THEN 5
+            WHEN es.proficiency_level::text = 'advanced' THEN 3
+            WHEN es.proficiency_level::text = 'intermediate' THEN 2
+            WHEN es.proficiency_level::text = 'beginner' THEN 1
+            ELSE es.proficiency_level::numeric -- handle integer type from migration 015
+          END
+        ), 0) as avg_experience,
         -- Team productivity based on actual project completions
         COALESCE(
           (

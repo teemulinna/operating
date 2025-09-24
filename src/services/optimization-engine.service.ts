@@ -195,6 +195,20 @@ export class OptimizationEngine {
     } = {},
     config: Partial<OptimizationConfig> = {}
   ): Promise<OptimizationResult> {
+    // Input validation
+    if (scope.timeRange && scope.timeRange.startDate >= scope.timeRange.endDate) {
+      throw new Error('Start date must be before end date');
+    }
+    if (scope.projectIds && scope.projectIds.some(id => !Number.isInteger(id) || id <= 0)) {
+      throw new Error('Project IDs must be positive integers');
+    }
+    if (scope.employeeIds && scope.employeeIds.some(id => !id || typeof id !== 'string')) {
+      throw new Error('Employee IDs must be non-empty strings');
+    }
+    if (config.maxIterations && (config.maxIterations <= 0 || !Number.isInteger(config.maxIterations))) {
+      throw new Error('Max iterations must be a positive integer');
+    }
+
     const startTime = new Date();
     const optimizationId = this.generateOptimizationId();
     const finalConfig = { ...this.DEFAULT_CONFIG, ...config };
@@ -709,12 +723,87 @@ export class OptimizationEngine {
       (Math.max(0, 100 - state.metrics.totalCost / 1000) / 100) * config.objectives.minimizeCosts +
       (Math.max(0, 100 - state.metrics.utilizationVariance) / 100) * config.objectives.balanceWorkload;
 
+    const robustnessScore = this.calculateRobustnessScore(state, config);
+
     return {
       objectiveScore: Math.round(objectiveScore * 100),
       constraintViolations: state.constraints.filter(c => !c.satisfied).length,
       feasibilityScore: Math.max(0, 100 - state.constraints.filter(c => !c.satisfied).length * 20),
-      robustnessScore: 75 // Mock value - would calculate based on sensitivity analysis
+      robustnessScore: robustnessScore
     };
+  }
+
+  private calculateRobustnessScore(state: AllocationState, config: OptimizationConfig): number {
+    try {
+      // Robustness is based on how well the solution can withstand variations
+      // Factors: resource diversity, skill distribution, load balance, constraint margins
+
+      let robustness = 0;
+      const factors = [];
+
+      // 1. Resource Diversity Score (25% weight)
+      // Better distribution across employees reduces single points of failure
+      const employeeAssignments = new Map<string, number>();
+      state.assignments.forEach(assignment => {
+        const current = employeeAssignments.get(assignment.employeeId) || 0;
+        employeeAssignments.set(assignment.employeeId, current + 1);
+      });
+
+      const assignmentCounts = Array.from(employeeAssignments.values());
+      const avgAssignments = assignmentCounts.reduce((sum, count) => sum + count, 0) / assignmentCounts.length;
+      const assignmentVariance = assignmentCounts.reduce((sum, count) => sum + Math.pow(count - avgAssignments, 2), 0) / assignmentCounts.length;
+      const diversityScore = Math.max(0, 100 - assignmentVariance * 10); // Lower variance = higher diversity
+      factors.push({ name: 'Resource Diversity', score: diversityScore, weight: 0.25 });
+
+      // 2. Skill Balance Score (25% weight)
+      // Well-balanced skill utilization indicates robustness
+      const skillUtilizations = new Map<string, { used: number; total: number }>();
+      state.assignments.forEach(assignment => {
+        // This is a simplified version - in real implementation would query actual skill requirements
+        const skillId = 'general'; // Placeholder
+        const current = skillUtilizations.get(skillId) || { used: 0, total: 0 };
+        current.used += assignment.allocationPercentage;
+        current.total += 100;
+        skillUtilizations.set(skillId, current);
+      });
+
+      const skillBalanceScores = Array.from(skillUtilizations.values()).map(skill => {
+        const utilization = skill.total > 0 ? skill.used / skill.total : 0;
+        return Math.max(0, 100 - Math.abs(utilization - 0.8) * 200); // Optimal around 80%
+      });
+      const skillBalance = skillBalanceScores.length > 0 ? skillBalanceScores.reduce((sum, score) => sum + score, 0) / skillBalanceScores.length : 50;
+      factors.push({ name: 'Skill Balance', score: skillBalance, weight: 0.25 });
+
+      // 3. Load Distribution Score (25% weight)
+      // Even workload distribution increases robustness
+      const utilizationDistribution = 100 - state.metrics.utilizationVariance;
+      factors.push({ name: 'Load Distribution', score: Math.max(0, utilizationDistribution), weight: 0.25 });
+
+      // 4. Constraint Margin Score (25% weight)
+      // How much buffer exists before constraint violations
+      const totalConstraints = state.constraints.length || 1;
+      const violatedConstraints = state.constraints.filter(c => !c.satisfied).length;
+      const violationSeverity = state.constraints.reduce((sum, c) => sum + (c.satisfied ? 0 : c.violation), 0);
+
+      const constraintMargin = Math.max(0, 100 - (violatedConstraints / totalConstraints) * 100 - violationSeverity * 10);
+      factors.push({ name: 'Constraint Margin', score: constraintMargin, weight: 0.25 });
+
+      // Calculate weighted robustness score
+      robustness = factors.reduce((sum, factor) => sum + (factor.score * factor.weight), 0);
+
+      // Apply penalties for critical issues
+      if (state.metrics.conflictCount > 5) robustness -= 10; // High conflict penalty
+      if (state.metrics.averageUtilization > 95) robustness -= 15; // Over-utilization penalty
+      if (state.metrics.averageUtilization < 50) robustness -= 10; // Under-utilization penalty
+
+      // Ensure score is within bounds
+      return Math.max(0, Math.min(100, Math.round(robustness)));
+
+    } catch (error) {
+      this.logger.error('Error calculating robustness score:', error);
+      // Return conservative score on error
+      return 60;
+    }
   }
 
   private generateOptimizationRecommendations(

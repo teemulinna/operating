@@ -43,7 +43,7 @@ export interface BackendAllocation {
   hours: number;
   date: string;
   week?: string;
-  status: 'active' | 'inactive' | 'completed' | 'pending';
+  status: 'active' | 'inactive' | 'completed' | 'pending' | 'planned' | 'cancelled';
   billableRate?: number;
   notes?: string;
   createdAt: string;
@@ -90,18 +90,20 @@ export interface Project {
 }
 
 export interface Allocation {
-  id: number;
+  id: string | number; // Support both backend number and frontend string
   employeeId: string;
-  projectId: number;
+  projectId: string | number; // Support both string and number projectIds
   hours: number;
   date: string;
   week?: string;
-  status: 'active' | 'inactive' | 'completed' | 'pending';
+  status: 'active' | 'inactive' | 'completed' | 'pending' | 'planned' | 'cancelled';
   billableRate?: number;
   notes?: string;
   createdAt?: string;
   updatedAt?: string;
 }
+
+export type CreateAllocationData = Omit<Allocation, 'id' | 'createdAt' | 'updatedAt'>;
 
 // Data transformation utilities
 export class DataTransformer {
@@ -184,11 +186,29 @@ export class DataTransformer {
   }
 
   static toAllocation(backend: BackendAllocation): Allocation {
-    return backend; // Allocation structure is already aligned
+    return {
+      ...backend,
+      id: backend.id.toString(), // Convert number ID to string for frontend consistency
+    };
   }
 
   static fromAllocation(frontend: Partial<Allocation>): Partial<BackendAllocation> {
-    return frontend; // Allocation structure is already aligned
+    const backend: Partial<BackendAllocation> = {};
+
+    // Convert string ID back to number for backend
+    if (frontend.id !== undefined) {
+      backend.id = typeof frontend.id === 'string' ? parseInt(frontend.id, 10) : frontend.id as number;
+    }
+    if (frontend.projectId !== undefined) {
+      backend.projectId = typeof frontend.projectId === 'string' ? parseInt(frontend.projectId, 10) : frontend.projectId as number;
+    }
+    if (frontend.employeeId !== undefined) backend.employeeId = frontend.employeeId;
+    if (frontend.hours !== undefined) backend.hours = frontend.hours;
+    if (frontend.date !== undefined) backend.date = frontend.date;
+    if (frontend.status !== undefined) backend.status = frontend.status;
+    if (frontend.notes !== undefined) backend.notes = frontend.notes;
+
+    return backend;
   }
 }
 
@@ -198,7 +218,7 @@ export class EmployeeService extends BaseService {
     super('/employees');
   }
 
-  async getAll(params?: any): Promise<PaginatedResponse<Employee>> {
+  async getAllEmployees(params?: any): Promise<PaginatedResponse<Employee>> {
     const response = await super.getAll<BackendEmployee>(params);
     return {
       data: response.data.map(DataTransformer.toEmployee),
@@ -206,18 +226,18 @@ export class EmployeeService extends BaseService {
     };
   }
 
-  async getById(id: string): Promise<Employee> {
+  async getEmployeeById(id: string): Promise<Employee> {
     const response = await super.getById<BackendEmployee>(id);
     return DataTransformer.toEmployee(response);
   }
 
-  async create(data: Partial<Employee>): Promise<Employee> {
+  async createEmployee(data: Partial<Employee>): Promise<Employee> {
     const backendData = DataTransformer.fromEmployee(data);
     const response = await super.create<BackendEmployee>(backendData);
     return DataTransformer.toEmployee(response);
   }
 
-  async update(id: string, data: Partial<Employee>): Promise<Employee> {
+  async updateEmployee(id: string, data: Partial<Employee>): Promise<Employee> {
     const backendData = DataTransformer.fromEmployee(data);
     const response = await super.update<BackendEmployee>(id, backendData);
     return DataTransformer.toEmployee(response);
@@ -254,7 +274,7 @@ export class ProjectService extends BaseService {
     super('/projects');
   }
 
-  async getAll(params?: any): Promise<{ success: boolean; data: Project[]; pagination: any; total: number }> {
+  async getAll(params?: any): Promise<PaginatedResponse<Project>> {
     const response = await this.request<any>({
       method: 'GET',
       url: this.resourcePath,
@@ -267,7 +287,6 @@ export class ProjectService extends BaseService {
       [];
     
     return {
-      success: response.success || true,
       data: projects,
       pagination: response.pagination || {
         currentPage: 1,
@@ -277,42 +296,41 @@ export class ProjectService extends BaseService {
         hasNext: false,
         hasPrev: false,
       },
-      total: response.total || projects.length,
     };
   }
 
-  async getById(id: number): Promise<Project> {
+  async getProjectById(id: number): Promise<Project> {
     const response = await this.request<any>({
       method: 'GET',
       url: `${this.resourcePath}/${id}`,
     });
-    
+
     // Handle wrapped response
     const projectData = response.data || response;
     return DataTransformer.toProject(projectData);
   }
 
-  async create(data: Partial<Project>): Promise<Project> {
+  async createProject(data: Partial<Project>): Promise<Project> {
     const backendData = DataTransformer.fromProject(data);
     const response = await this.request<any>({
       method: 'POST',
       url: this.resourcePath,
       data: backendData,
     });
-    
+
     // Handle wrapped response
     const projectData = response.data || response;
     return DataTransformer.toProject(projectData);
   }
 
-  async update(id: number, data: Partial<Project>): Promise<Project> {
+  async updateProject(id: number, data: Partial<Project>): Promise<Project> {
     const backendData = DataTransformer.fromProject(data);
     const response = await this.request<any>({
       method: 'PUT',
       url: `${this.resourcePath}/${id}`,
       data: backendData,
     });
-    
+
     // Handle wrapped response
     const projectData = response.data || response;
     return DataTransformer.toProject(projectData);
@@ -332,7 +350,7 @@ export class AllocationService extends BaseService {
     super('/allocations');
   }
 
-  async getAll(params?: any): Promise<PaginatedResponse<Allocation>> {
+  async getAllAllocations(params?: any): Promise<PaginatedResponse<Allocation>> {
     const response = await super.getAll<BackendAllocation>(params);
     return {
       data: response.data.map(DataTransformer.toAllocation),
@@ -340,18 +358,18 @@ export class AllocationService extends BaseService {
     };
   }
 
-  async getById(id: number): Promise<Allocation> {
+  async getAllocationById(id: number): Promise<Allocation> {
     const response = await super.getById<BackendAllocation>(id);
     return DataTransformer.toAllocation(response);
   }
 
-  async create(data: Partial<Allocation>): Promise<Allocation> {
+  async createAllocation(data: Partial<Allocation>): Promise<Allocation> {
     const backendData = DataTransformer.fromAllocation(data);
     const response = await super.create<BackendAllocation>(backendData);
     return DataTransformer.toAllocation(response);
   }
 
-  async update(id: number, data: Partial<Allocation>): Promise<Allocation> {
+  async updateAllocation(id: number, data: Partial<Allocation>): Promise<Allocation> {
     const backendData = DataTransformer.fromAllocation(data);
     const response = await super.update<BackendAllocation>(id, backendData);
     return DataTransformer.toAllocation(response);
@@ -420,38 +438,44 @@ export class AnalyticsService extends BaseService {
 
 // Service factory for creating service instances
 export class ServiceFactory {
-  private static instances: Map<string, BaseService> = new Map();
+  private static employeeService: EmployeeService | null = null;
+  private static projectService: ProjectService | null = null;
+  private static allocationService: AllocationService | null = null;
+  private static analyticsService: AnalyticsService | null = null;
 
   static getEmployeeService(): EmployeeService {
-    if (!this.instances.has('employee')) {
-      this.instances.set('employee', new EmployeeService());
+    if (!this.employeeService) {
+      this.employeeService = new EmployeeService();
     }
-    return this.instances.get('employee') as EmployeeService;
+    return this.employeeService;
   }
 
   static getProjectService(): ProjectService {
-    if (!this.instances.has('project')) {
-      this.instances.set('project', new ProjectService());
+    if (!this.projectService) {
+      this.projectService = new ProjectService();
     }
-    return this.instances.get('project') as ProjectService;
+    return this.projectService;
   }
 
   static getAllocationService(): AllocationService {
-    if (!this.instances.has('allocation')) {
-      this.instances.set('allocation', new AllocationService());
+    if (!this.allocationService) {
+      this.allocationService = new AllocationService();
     }
-    return this.instances.get('allocation') as AllocationService;
+    return this.allocationService;
   }
 
   static getAnalyticsService(): AnalyticsService {
-    if (!this.instances.has('analytics')) {
-      this.instances.set('analytics', new AnalyticsService());
+    if (!this.analyticsService) {
+      this.analyticsService = new AnalyticsService();
     }
-    return this.instances.get('analytics') as AnalyticsService;
+    return this.analyticsService;
   }
 
   static resetAll(): void {
-    this.instances.clear();
+    this.employeeService = null;
+    this.projectService = null;
+    this.allocationService = null;
+    this.analyticsService = null;
   }
 }
 
@@ -483,9 +507,9 @@ export const apiClient = createApiClient();
 // Export convenience functions for backward compatibility
 export const apiService = {
   // Employee operations
-  async getEmployees() {
+  async getEmployees(): Promise<Employee[]> {
     const service = ServiceFactory.getEmployeeService();
-    const response = await service.getAll();
+    const response = await service.getAllEmployees();
     return response.data;
   },
   
@@ -532,7 +556,7 @@ export const apiService = {
   },
   
   // Project operations
-  async getProjects() {
+  async getProjects(): Promise<Project[]> {
     const service = ServiceFactory.getProjectService();
     const response = await service.getAll();
     return response.data;
@@ -581,9 +605,9 @@ export const apiService = {
   },
   
   // Allocation operations
-  async getAllocations() {
+  async getAllocations(): Promise<Allocation[]> {
     const service = ServiceFactory.getAllocationService();
-    const response = await service.getAll();
+    const response = await service.getAllAllocations();
     return response.data;
   },
   
@@ -599,9 +623,9 @@ export const apiService = {
     }
   },
   
-  async createAllocation(data: Omit<Allocation, 'id' | 'createdAt' | 'updatedAt'>) {
+  async createAllocation(data: CreateAllocationData) {
     const service = ServiceFactory.getAllocationService();
-    return service.create(data);
+    return service.createAllocation(data);
   },
   
   async updateAllocation(id: number, data: Partial<Allocation>) {

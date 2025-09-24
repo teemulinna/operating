@@ -10,6 +10,11 @@ import { DepartmentService } from '../services/department.service';
 import { EmployeeService } from '../services/employee.service';
 import { SkillService } from '../services/skill.service';
 import { AllocationServiceWrapper } from '../services/allocation-service-wrapper';
+import { CacheService } from '../services/cache.service';
+import { WebSocketService } from '../websocket/websocket.service';
+import { AvailabilityPatternService } from '../services/availability-pattern.service';
+import { ScenarioPlanner } from '../services/scenario-planner.service';
+import { ResourceAnalyticsService } from '../services/resource-analytics.service';
 
 /**
  * Extended Request interface with injected services
@@ -21,6 +26,15 @@ export interface RequestWithServices extends Request {
     employee: EmployeeService;
     skill: SkillService;
     allocation: AllocationServiceWrapper;
+    cache: CacheService;
+    websocket: WebSocketService;
+    availabilityPattern: AvailabilityPatternService;
+    scenarioPlanner: ScenarioPlanner;
+    resourceAnalytics: ResourceAnalyticsService;
+    db?: any; // For backward compatibility with controllers expecting db directly
+    cacheService?: CacheService; // Alternative name for compatibility
+    wsService?: WebSocketService; // Alternative name for compatibility
+    availabilityService?: AvailabilityPatternService; // Alternative name for compatibility
   };
 }
 
@@ -40,12 +54,27 @@ export const serviceInjectionMiddleware = async (
     }
 
     // Inject services into request
+    const databaseService = Services.database();
+    const cacheService = Services.cache();
+    const websocketService = Services.websocket();
+    const availabilityPatternService = Services.availabilityPattern();
+
     (req as RequestWithServices).services = {
-      database: Services.database(),
+      database: databaseService,
       department: Services.department(),
       employee: Services.employee(),
       skill: Services.skill(),
       allocation: Services.allocation(),
+      cache: cacheService,
+      websocket: websocketService,
+      availabilityPattern: availabilityPatternService,
+      scenarioPlanner: Services.scenarioPlanner(),
+      resourceAnalytics: Services.resourceAnalytics(),
+      // Compatibility aliases
+      db: databaseService.getPool(),
+      cacheService: cacheService,
+      wsService: websocketService,
+      availabilityService: availabilityPatternService,
     };
 
     next();

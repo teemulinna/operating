@@ -474,4 +474,208 @@ export class CapacityController {
 
     res.send(csvContent);
   });
+
+  // ============================================
+  // HEAT MAP CONTROLLER METHODS
+  // ============================================
+
+  /**
+   * Get heat map data for capacity visualization
+   */
+  static getHeatmap = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new ApiError(400, 'Invalid request parameters', errors.array());
+    }
+
+    const {
+      startDate,
+      endDate,
+      departmentId,
+      employeeIds,
+      granularity,
+      includeInactive,
+      includeWeekends
+    } = req.query;
+
+    // Get service from request (injected by middleware)
+    const heatmapService = (req as any).services?.capacityHeatmapService;
+    if (!heatmapService) {
+      throw new ApiError(500, 'Heat map service not initialized');
+    }
+
+    const filters = {
+      startDate: new Date(startDate as string),
+      endDate: new Date(endDate as string),
+      departmentId: departmentId as string | undefined,
+      employeeIds: employeeIds ? (Array.isArray(employeeIds) ? employeeIds as string[] : [employeeIds as string]) : undefined,
+      granularity: (granularity as string) || 'daily',
+      includeInactive: includeInactive === 'true',
+      includeWeekends: includeWeekends === 'true'
+    };
+
+    const heatmapData = await heatmapService.getHeatmap(filters);
+
+    res.json({
+      success: true,
+      data: heatmapData,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  /**
+   * Get capacity bottlenecks
+   */
+  static getBottlenecks = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new ApiError(400, 'Invalid request parameters', errors.array());
+    }
+
+    const { startDate, endDate, departmentId } = req.query;
+
+    const heatmapService = (req as any).services?.capacityHeatmapService;
+    if (!heatmapService) {
+      throw new ApiError(500, 'Heat map service not initialized');
+    }
+
+    const bottlenecks = await heatmapService.getBottlenecks(
+      startDate ? new Date(startDate as string) : undefined,
+      endDate ? new Date(endDate as string) : undefined,
+      departmentId as string | undefined
+    );
+
+    res.json({
+      success: true,
+      data: bottlenecks,
+      count: bottlenecks.length,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  /**
+   * Get capacity trends for an employee
+   */
+  static getCapacityTrends = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new ApiError(400, 'Invalid request parameters', errors.array());
+    }
+
+    const { employeeId } = req.params;
+    const { periods } = req.query;
+
+    const heatmapService = (req as any).services?.capacityHeatmapService;
+    if (!heatmapService) {
+      throw new ApiError(500, 'Heat map service not initialized');
+    }
+
+    const trends = await heatmapService.getCapacityTrends(
+      employeeId,
+      periods ? parseInt(periods as string, 10) : 12
+    );
+
+    res.json({
+      success: true,
+      data: trends,
+      employeeId,
+      periods: periods || 12,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  /**
+   * Export heat map data to CSV
+   */
+  static exportHeatmapCSV = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new ApiError(400, 'Invalid request parameters', errors.array());
+    }
+
+    const { startDate, endDate, departmentId, granularity } = req.query;
+
+    const heatmapService = (req as any).services?.capacityHeatmapService;
+    if (!heatmapService) {
+      throw new ApiError(500, 'Heat map service not initialized');
+    }
+
+    const filters = {
+      startDate: new Date(startDate as string),
+      endDate: new Date(endDate as string),
+      departmentId: departmentId as string | undefined,
+      granularity: (granularity as string) || 'daily'
+    };
+
+    const csvContent = await heatmapService.exportToCSV(filters);
+
+    // Set headers for file download
+    const filename = `heatmap-${filters.granularity}-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.setHeader('Content-Length', Buffer.byteLength(csvContent));
+
+    res.send(csvContent);
+  });
+
+  /**
+   * Refresh heat map materialized views
+   */
+  static refreshHeatmapViews = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new ApiError(400, 'Invalid request parameters', errors.array());
+    }
+
+    const { concurrent } = req.body;
+
+    // Check authorization - this should be admin only
+    const user = (req as any).user;
+    if (!user || user.role !== 'admin') {
+      throw new ApiError(401, 'Unauthorized - admin access required');
+    }
+
+    const heatmapService = (req as any).services?.capacityHeatmapService;
+    if (!heatmapService) {
+      throw new ApiError(500, 'Heat map service not initialized');
+    }
+
+    await heatmapService.refreshViews(concurrent !== false);
+
+    res.json({
+      success: true,
+      message: 'Heat map views refreshed successfully',
+      concurrent: concurrent !== false,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  /**
+   * Get department capacity summary
+   */
+  static getDepartmentCapacitySummary = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new ApiError(400, 'Invalid request parameters', errors.array());
+    }
+
+    const { departmentId } = req.params;
+    const { date } = req.query;
+
+    const heatmapService = (req as any).services?.capacityHeatmapService;
+    if (!heatmapService) {
+      throw new ApiError(500, 'Heat map service not initialized');
+    }
+
+    const summary = await heatmapService.getDepartmentSummary(
+      departmentId,
+      date ? new Date(date as string) : undefined
+    );
+
+    res.json({
+      success: true,
+      data: summary,
+      timestamp: new Date().toISOString()
+    });
+  });
 }

@@ -22,6 +22,7 @@ import skillsMatchingRoutes from './routes/skills-matching.routes';
 import forecastingRoutes from './routes/forecasting.routes';
 // Export and availability routes
 import { exportRoutes } from './routes/exportRoutes';
+import availabilityRoutes from './routes/availability.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import reportingRoutes from './routes/reporting.routes';
 import allocationTemplatesRoutes from './routes/allocation-templates.routes';
@@ -115,6 +116,7 @@ app.get('/api', (_req, res) => {
       projects: '/api/projects',
       allocations: '/api/allocations',
       allocation_templates: '/api/allocation-templates',
+      availability: '/api/availability',
       analytics: '/api/analytics',
       pipeline: '/api/pipeline',
       scenarios: '/api/scenarios',
@@ -168,7 +170,13 @@ app.get('/api', (_req, res) => {
       'Built-in Industry Templates',
       'Template Customization and Preview',
       'Template Rating and Community Features',
-      'Quick Project Creation from Templates'
+      'Quick Project Creation from Templates',
+      'Availability Pattern Management',
+      'Weekly/Biweekly/Monthly/Custom Patterns',
+      'Holiday Calendar Integration',
+      'Exception Handling for Leave/Training',
+      'Effective Availability Calculation',
+      'Availability Analytics and Forecasting'
     ]
   });
 });
@@ -190,6 +198,7 @@ app.use('/api/allocations', allocationDirectRoutes); // Direct allocation routes
 app.use('/api/allocations/export', allocationCSVRoutes);
 app.use('/api/working-allocations', workingAllocationsRoutes);
 app.use('/api/allocation-templates', allocationTemplatesRoutes);
+app.use('/api/availability', availabilityRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reporting', reportingRoutes);
 app.use('/api/notifications', notificationRoutes);
@@ -212,7 +221,7 @@ app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Route not found',
     message: `The requested route ${req.originalUrl} does not exist`,
-    availableRoutes: ['/api/employees', '/api/departments', '/api/skills', '/api/capacity', '/api/resources', '/api/projects', '/api/pipeline', '/api/allocations', '/api/analytics', '/api/reporting', '/api/notifications', '/api/scenarios', '/api/forecasting', '/api/ml-optimization', '/api/optimization', '/api/matching', '/api/budgets', '/api/templates', '/api/tasks', '/api/dependencies']
+    availableRoutes: ['/api/employees', '/api/departments', '/api/skills', '/api/capacity', '/api/resources', '/api/projects', '/api/pipeline', '/api/allocations', '/api/availability', '/api/analytics', '/api/reporting', '/api/notifications', '/api/scenarios', '/api/forecasting', '/api/ml-optimization', '/api/optimization', '/api/matching', '/api/budgets', '/api/templates', '/api/tasks', '/api/dependencies']
   });
 });
 

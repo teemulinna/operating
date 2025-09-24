@@ -2,54 +2,103 @@
  * Modern Dashboard Component
  * Showcases the new design system with KPI cards, charts, and modern layout
  */
-
-import React, { useState } from 'react';
-import { Card, CardHeader, CardContent, StatsCard, ActionCard } from '../ui/enhanced-card';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardHeader, CardContent,ActionCard } from '../ui/enhanced-card';
 import { EnhancedButton } from '../ui/enhanced-button';
-import { CommandPalette, useCommandPalette, CommandPaletteAction } from '../ui/command-palette';
-import { Breadcrumb, HomeBreadcrumb } from '../ui/breadcrumb';
-import { 
-  AreaChartComponent, 
-  BarChartComponent, 
-  LineChartComponent, 
+import { CommandPaletteAction, useCommandPalette } from '../ui/command-palette';
+import { HomeBreadcrumb } from '../ui/breadcrumb';
+import {
+  AreaChartComponent,
+  BarChartComponent,
   PieChartComponent,
-  KPICard 
+  KPICard
 } from '../charts/chart-components';
-import { Skeleton } from '../ui/skeleton';
+import { ServiceFactory } from '../../services/api';
 import { cn } from '../../lib/utils';
 
-// Mock data for charts
-const resourceUtilizationData = [
-  { month: 'Jan', utilized: 85, available: 100, allocated: 92 },
-  { month: 'Feb', utilized: 78, available: 95, allocated: 88 },
-  { month: 'Mar', utilized: 92, available: 98, allocated: 95 },
-  { month: 'Apr', utilized: 88, available: 102, allocated: 90 },
-  { month: 'May', utilized: 95, available: 105, allocated: 98 },
-  { month: 'Jun', utilized: 82, available: 100, allocated: 85 }
-];
+// Helper function to generate resource utilization data
+const generateResourceUtilizationData = (allocations: any[], employees: any[]) => {
+  if (!allocations?.length || !employees?.length) {
+    return [
+      { month: 'Current', utilized: 0, available: employees?.length * 40 || 0, allocated: 0 }
+    ];
+  }
 
-const projectStatusData = [
-  { name: 'In Progress', value: 45 },
-  { name: 'Completed', value: 30 },
-  { name: 'Planning', value: 15 },
-  { name: 'On Hold', value: 10 }
-];
+  // Simple aggregation for current period
+  const totalAllocated = allocations.reduce((sum, allocation) => sum + allocation.hours, 0);
+  const totalUtilized = allocations
+    .filter(allocation => allocation.status === 'active')
+    .reduce((sum, allocation) => sum + allocation.hours, 0);
+  const totalCapacity = employees.length * 40; // 40 hours per week per employee
 
-const skillDistributionData = [
-  { skill: 'Frontend', developers: 12, projects: 8 },
-  { skill: 'Backend', developers: 15, projects: 10 },
-  { skill: 'DevOps', developers: 6, projects: 12 },
-  { skill: 'Design', developers: 8, projects: 6 },
-  { skill: 'QA', developers: 10, projects: 9 }
-];
-
+  return [
+    {
+      month: 'Current',
+      utilized: totalUtilized,
+      available: totalCapacity,
+      allocated: totalAllocated
+    }
+  ];
+};
 interface ModernDashboardProps {
   className?: string;
 }
-
 export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) => {
-  const [loading, setLoading] = useState(false);
+  // Fetch real data from APIs
+  const {
+    data: statsData,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: async () => {
+      const service = ServiceFactory.getAnalyticsService();
+      return service.getDashboardStats();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
+  const {
+    data: employeesData,
+    isLoading: employeesLoading,
+  } = useQuery({
+    queryKey: ['employees'],
+    queryFn: async () => {
+      const service = ServiceFactory.getEmployeeService();
+      const response = await service.getAllEmployees();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const {
+    data: projectsData,
+    isLoading: projectsLoading,
+  } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const service = ServiceFactory.getProjectService();
+      const response = await service.getAll();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const {
+    data: allocationsData,
+    isLoading: allocationsLoading,
+  } = useQuery({
+    queryKey: ['allocations'],
+    queryFn: async () => {
+      const service = ServiceFactory.getAllocationService();
+      const response = await service.getAllAllocations();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const loading = statsLoading || employeesLoading || projectsLoading || allocationsLoading;
   // Command palette actions
   const commandActions: CommandPaletteAction[] = [
     {
@@ -89,19 +138,59 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) =
       keywords: ['resource', 'planning', 'allocation']
     }
   ];
-
   const { CommandPaletteComponent } = useCommandPalette(commandActions);
+
+  // Prepare real project status data
+  const projectStatusData = React.useMemo(() => {
+    if (!projectsData?.length) return [];
+
+    const statusCounts = projectsData.reduce((acc: Record<string, number>, project) => {
+      const status = project.status;
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(statusCounts).map(([status, count]) => ({
+      name: status.charAt(0).toUpperCase() + status.slice(1),
+      value: count as number
+    }));
+  }, [projectsData]);
+
+  // Prepare real skills distribution data
+  const skillDistributionData = React.useMemo(() => {
+    if (!employeesData?.length) return [];
+
+    const skillCounts = employeesData.reduce((acc: Record<string, number>, employee) => {
+      if (employee.skills?.length) {
+        employee.skills.forEach(skill => {
+          acc[skill] = (acc[skill] || 0) + 1;
+        });
+      }
+      return acc;
+    }, {});
+
+    return Object.entries(skillCounts)
+      .slice(0, 5) // Top 5 skills
+      .map(([skill, developers]) => ({
+        skill,
+        developers: developers as number,
+        projects: Math.floor((developers as number) * 0.7) // Estimate projects per skill
+      }));
+  }, [employeesData]);
+
+  // Generate real resource utilization data
+  const resourceUtilizationData = React.useMemo(() => {
+    return generateResourceUtilizationData(allocationsData || [], employeesData || []);
+  }, [allocationsData, employeesData]);
 
   // Breadcrumb items
   const breadcrumbItems = [
     { label: 'Dashboard', href: '/dashboard' }
   ];
-
   return (
     <div className={cn('min-h-screen bg-gray-50', className)}>
       {/* Command Palette */}
       <CommandPaletteComponent />
-
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto">
@@ -137,44 +226,42 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) =
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* KPI Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <KPICard
             title="Total Projects"
-            value={47}
-            change={{ value: 12, trend: 'up', period: 'last month' }}
+            value={statsData?.projectCount || projectsData?.length || 0}
+            change={{ value: 0, trend: 'neutral', period: 'last month' }}
             icon={<ProjectIcon />}
             loading={loading}
           />
-          
+
           <KPICard
             title="Active Team Members"
-            value={156}
-            change={{ value: 5, trend: 'up', period: 'last month' }}
+            value={statsData?.employeeCount || employeesData?.length || 0}
+            change={{ value: 0, trend: 'neutral', period: 'last month' }}
             icon={<UsersIcon />}
             loading={loading}
           />
-          
+
           <KPICard
-            title="Resource Utilization"
-            value="87%"
-            change={{ value: 3, trend: 'down', period: 'last month' }}
+            title="Active Allocations"
+            value={statsData?.allocationCount || allocationsData?.length || 0}
+            change={{ value: 0, trend: 'neutral', period: 'last month' }}
             icon={<ChartBarIcon />}
             loading={loading}
           />
-          
+
           <KPICard
-            title="Completion Rate"
-            value="94%"
-            change={{ value: 8, trend: 'up', period: 'last month' }}
+            title="Utilization Rate"
+            value={`${Math.round(statsData?.utilizationRate || 0)}%`}
+            change={{ value: 0, trend: 'neutral', period: 'last month' }}
             icon={<CheckCircleIcon />}
             loading={loading}
           />
         </div>
-
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Resource Utilization Chart */}
@@ -187,7 +274,6 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) =
             loading={loading}
             height={350}
           />
-
           {/* Project Status Distribution */}
           <PieChartComponent
             data={projectStatusData}
@@ -197,7 +283,6 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) =
             height={350}
           />
         </div>
-
         {/* Skills and Team Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Skills Distribution */}
@@ -212,7 +297,6 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) =
               height={300}
             />
           </div>
-
           {/* Quick Actions */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -244,7 +328,6 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) =
             />
           </div>
         </div>
-
         {/* Recent Activity */}
         <Card>
           <CardHeader 
@@ -302,66 +385,55 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) =
     </div>
   );
 };
-
 // Icon components (simplified SVGs)
 const PlusIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
   </svg>
 );
-
 const SearchIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
 );
-
 const UserPlusIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 );
-
 const ChartBarIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
   </svg>
 );
-
 const CalendarIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
   </svg>
 );
-
 const ProjectIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
   </svg>
 );
-
 const UsersIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a4 4 0 11-8 0 4 4 0 018 0z" />
   </svg>
 );
-
 const CheckCircleIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
-
 const ClipboardCheckIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
   </svg>
 );
-
 const DocumentChartBarIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
   </svg>
 );
-
 export default ModernDashboard;
