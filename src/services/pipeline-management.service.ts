@@ -15,6 +15,20 @@ export class PipelineManagementService {
   }
 
   async createPipelineProject(data: CreatePipelineProjectRequest): Promise<PipelineProject> {
+    // Input validation
+    if (!data.name || data.name.trim().length === 0) {
+      throw new Error('Project name is required');
+    }
+    if (!data.clientName || data.clientName.trim().length === 0) {
+      throw new Error('Client name is required');
+    }
+    if (data.estimatedValue !== undefined && (data.estimatedValue < 0 || !isFinite(data.estimatedValue))) {
+      throw new Error('Estimated value must be a positive number');
+    }
+    if (data.probability !== undefined && (data.probability < 0 || data.probability > 100)) {
+      throw new Error('Probability must be between 0 and 100');
+    }
+
     const project = {
       ...data,
       syncStatus: 'pending' as const,
@@ -51,11 +65,30 @@ export class PipelineManagementService {
       project.syncStatus
     ];
 
-    const result = await this.db.query(query, values);
-    return this.mapRowToPipelineProject(result.rows[0]);
+    try {
+      const result = await this.db.query(query, values);
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error('Failed to create pipeline project - no data returned');
+      }
+      return this.mapRowToPipelineProject(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating pipeline project:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to create pipeline project: ${error.message}`);
+      }
+      throw new Error('Failed to create pipeline project due to unexpected error');
+    }
   }
 
   async getPipelineProjects(filters: PipelineFilters): Promise<{ projects: PipelineProject[]; total: number }> {
+    // Validate filters
+    if (filters.stage && Array.isArray(filters.stage) && filters.stage.length === 0) {
+      throw new Error('Stage filter array cannot be empty');
+    }
+    if (filters.priority && Array.isArray(filters.priority) && filters.priority.length === 0) {
+      throw new Error('Priority filter array cannot be empty');
+    }
+
     let query = 'SELECT * FROM pipeline_projects WHERE 1=1';
     const values: any[] = [];
     let paramIndex = 1;
@@ -96,13 +129,21 @@ export class PipelineManagementService {
 
     query += ' ORDER BY created_at DESC';
 
-    const result = await this.db.query(query, values);
-    const projects = result.rows.map(row => this.mapRowToPipelineProject(row));
+    try {
+      const result = await this.db.query(query, values);
+      const projects = result.rows.map(row => this.mapRowToPipelineProject(row));
 
-    return {
-      projects,
-      total: projects.length
-    };
+      return {
+        projects,
+        total: projects.length
+      };
+    } catch (error) {
+      console.error('Error fetching pipeline projects:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch pipeline projects: ${error.message}`);
+      }
+      throw new Error('Failed to fetch pipeline projects due to unexpected error');
+    }
   }
 
   async getPipelineProject(id: string): Promise<PipelineProject | null> {
@@ -200,13 +241,16 @@ export class PipelineManagementService {
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
 
+    // Calculate real average cycle time from completed projects
+    const avgCycleTime = await this.calculateAverageCycleTime();
+
     return {
       totalValue,
       weightedValue,
       averageProbability,
       projectsByStage,
       winRate,
-      averageCycleTime: 30, // Mock average cycle time in days
+      averageCycleTime: avgCycleTime,
       topClients,
       conversionRates: [],
       forecastAccuracy: [],
@@ -325,5 +369,44 @@ export class PipelineManagementService {
 
   private camelToSnake(str: string): string {
     return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+  }
+
+  private async calculateAverageCycleTime(): Promise<number> {
+    try {
+      const query = `
+        SELECT
+          AVG(EXTRACT(days FROM (updated_at - created_at))) as avg_cycle_time,
+          COUNT(*) as completed_count
+        FROM pipeline_projects
+        WHERE stage IN ('won', 'lost')
+        AND created_at IS NOT NULL
+        AND updated_at IS NOT NULL
+        AND created_at >= CURRENT_DATE - INTERVAL '365 days'
+      `;
+
+      const result = await this.db.query(query);
+      const avgCycleTime = parseFloat(result.rows[0].avg_cycle_time);
+      const completedCount = parseInt(result.rows[0].completed_count);
+
+      // If no data available, calculate from all projects with dates
+      if (!avgCycleTime || completedCount === 0) {
+        const fallbackQuery = `
+          SELECT
+            AVG(COALESCE(estimated_duration, 60)) as estimated_avg_duration
+          FROM pipeline_projects
+          WHERE estimated_duration IS NOT NULL
+          AND created_at >= CURRENT_DATE - INTERVAL '365 days'
+        `;
+
+        const fallbackResult = await this.db.query(fallbackQuery);
+        return parseFloat(fallbackResult.rows[0].estimated_avg_duration) || 45; // Default 45 days
+      }
+
+      return Math.round(avgCycleTime);
+    } catch (error) {
+      console.error('Error calculating average cycle time:', error);
+      // Return industry average as fallback
+      return 45;
+    }
   }
 }

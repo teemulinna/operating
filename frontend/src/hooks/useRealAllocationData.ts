@@ -6,19 +6,14 @@
  * - Fetch and cache allocation data with React Query
  * - Enable real-time updates and optimistic mutations
  */
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AllocationService } from '../services/allocationService';
 import type {
-  Allocation,
   CreateAllocationRequest,
   UpdateAllocationRequest,
   AllocationFilters,
   AllocationPaginationParams,
-  EmployeeUtilization,
-  AllocationConflict
 } from '../types/allocation';
-
 // Query keys for consistent caching
 export const allocationKeys = {
   all: ['allocations'] as const,
@@ -32,7 +27,6 @@ export const allocationKeys = {
   utilization: (employeeId?: string) => [...allocationKeys.all, 'utilization', employeeId] as const,
   conflicts: (filters?: any) => [...allocationKeys.all, 'conflicts', filters] as const,
 };
-
 /**
  * Hook for fetching all allocations with filters and pagination
  */
@@ -49,7 +43,6 @@ export const useAllocations = (
     refetchOnReconnect: true,
   });
 };
-
 /**
  * Hook for fetching a single allocation by ID
  */
@@ -62,7 +55,6 @@ export const useAllocation = (id: string, enabled = true) => {
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 };
-
 /**
  * Hook for fetching employee-specific allocations
  */
@@ -80,7 +72,6 @@ export const useEmployeeAllocations = (
     gcTime: 8 * 60 * 1000, // 8 minutes
   });
 };
-
 /**
  * Hook for fetching project-specific allocations
  */
@@ -98,7 +89,6 @@ export const useProjectAllocations = (
     gcTime: 8 * 60 * 1000, // 8 minutes
   });
 };
-
 /**
  * Hook for fetching employee utilization data
  */
@@ -117,7 +107,6 @@ export const useEmployeeUtilization = (
     refetchInterval: 30 * 1000, // Refetch every 30 seconds for real-time capacity monitoring
   });
 };
-
 /**
  * Hook for fetching multiple employee utilization data
  */
@@ -135,7 +124,6 @@ export const useMultipleEmployeeUtilization = (
     gcTime: 3 * 60 * 1000, // 3 minutes
   });
 };
-
 /**
  * Hook for fetching allocation conflicts
  */
@@ -157,31 +145,29 @@ export const useAllocationConflicts = (
     refetchInterval: 60 * 1000, // Refetch every minute for real-time conflict detection
   });
 };
-
 /**
  * Mutation hook for creating allocations with optimistic updates
  */
 export const useCreateAllocation = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (data: CreateAllocationRequest) => AllocationService.createAllocation(data),
     onSuccess: (result, variables) => {
       // Update allocation list cache
       queryClient.invalidateQueries({ queryKey: allocationKeys.lists() });
-      
+
       // Update employee allocations cache
       queryClient.invalidateQueries({ queryKey: allocationKeys.employee(variables.employeeId) });
-      
+
       // Update project allocations cache
       queryClient.invalidateQueries({ queryKey: allocationKeys.project(variables.projectId) });
-      
+
       // Update utilization data
       queryClient.invalidateQueries({ queryKey: allocationKeys.utilization(variables.employeeId) });
-      
+
       // Update conflicts data
       queryClient.invalidateQueries({ queryKey: allocationKeys.conflicts() });
-      
+
       // Add new allocation to cache
       if (result.allocation) {
         queryClient.setQueryData(
@@ -190,29 +176,25 @@ export const useCreateAllocation = () => {
         );
       }
     },
-    onError: (error, variables) => {
+    onError: (error, _variables) => {
       console.error('Failed to create allocation:', error);
       // You could add toast notifications here
     }
   });
 };
-
 /**
  * Mutation hook for updating allocations
  */
 export const useUpdateAllocation = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Omit<UpdateAllocationRequest, 'id'> }) =>
       AllocationService.updateAllocation(id, updates),
     onMutate: async ({ id, updates }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: allocationKeys.detail(id) });
-
       // Snapshot previous value
       const previousAllocation = queryClient.getQueryData(allocationKeys.detail(id));
-
       // Optimistically update
       if (previousAllocation && typeof previousAllocation === 'object') {
         const typedPreviousAllocation = previousAllocation as Record<string, any>;
@@ -222,31 +204,28 @@ export const useUpdateAllocation = () => {
           updatedAt: new Date().toISOString()
         });
       }
-
       return { previousAllocation };
     },
-    onError: (err, { id }, context) => {
+    onError: (_err, { id }, context) => {
       // Rollback optimistic update
       if (context?.previousAllocation) {
         queryClient.setQueryData(allocationKeys.detail(id), context.previousAllocation);
       }
     },
-    onSuccess: (result, variables) => {
+    onSuccess: (result, _variables) => {
       // Update related caches
       queryClient.invalidateQueries({ queryKey: allocationKeys.lists() });
       queryClient.invalidateQueries({ queryKey: allocationKeys.employee(result.allocation.employeeId) });
-      queryClient.invalidateQueries({ queryKey: allocationKeys.project(result.allocation.projectId) });
+      queryClient.invalidateQueries({ queryKey: allocationKeys.project(result.allocation.projectId.toString()) });
       queryClient.invalidateQueries({ queryKey: allocationKeys.utilization(result.allocation.employeeId) });
     }
   });
 };
-
 /**
  * Mutation hook for deleting allocations
  */
 export const useDeleteAllocation = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (id: string) => AllocationService.deleteAllocation(id),
     onSuccess: (_, id) => {
@@ -259,13 +238,11 @@ export const useDeleteAllocation = () => {
     }
   });
 };
-
 /**
  * Mutation hook for bulk updating allocations
  */
 export const useBulkUpdateAllocations = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (updates: {
       allocationId: string;
@@ -279,7 +256,6 @@ export const useBulkUpdateAllocations = () => {
     }
   });
 };
-
 /**
  * Hook for checking allocation conflicts without creating
  */
@@ -289,7 +265,6 @@ export const useCheckAllocationConflicts = () => {
       AllocationService.checkConflicts(allocation),
   });
 };
-
 /**
  * Hook for calendar data with real-time updates
  */
@@ -308,7 +283,6 @@ export const useAllocationCalendarData = (
     refetchInterval: 60 * 1000, // Refetch every minute for real-time calendar updates
   });
 };
-
 /**
  * Custom hook for real-time allocation monitoring
  * Combines multiple queries for comprehensive allocation tracking
@@ -317,7 +291,6 @@ export const useAllocationMonitoring = (employeeId?: string) => {
   const allocations = useAllocations({ employeeId }, { page: 1, limit: 50 });
   const utilization = useEmployeeUtilization(employeeId || '');
   const conflicts = useAllocationConflicts({ employeeId });
-
   return {
     allocations: allocations.data?.allocations || [],
     utilization: utilization.data,

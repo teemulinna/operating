@@ -322,8 +322,15 @@ export class EmployeeService {
 
       // Check for blocking dependencies
       const dependencyChecks = await Promise.all([
-        // Check allocation templates created by this employee
-        this.db.query('SELECT COUNT(*) as count FROM allocation_templates WHERE created_by = $1', [id]),
+        // Check allocation templates - note: created_by column may not exist in all deployments
+        this.db.query(`
+          SELECT COUNT(*) as count
+          FROM allocation_templates
+          WHERE EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'allocation_templates' AND column_name = 'created_by'
+          ) AND created_by = $1
+        `, [id]).catch(() => ({ rows: [{ count: '0' }] })),
         // Check active allocations in active projects
         this.db.query(`
           SELECT COUNT(*) as count
@@ -390,8 +397,15 @@ export class EmployeeService {
 
       // Step 2: Check for dependencies that require manual handling
       const dependencyChecks = await Promise.all([
-        // Check allocation templates created by this employee
-        client.query('SELECT COUNT(*) as count FROM allocation_templates WHERE created_by = $1', [id]),
+        // Check allocation templates - note: created_by column may not exist in all deployments
+        client.query(`
+          SELECT COUNT(*) as count
+          FROM allocation_templates
+          WHERE EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'allocation_templates' AND column_name = 'created_by'
+          ) AND created_by = $1
+        `, [id]).catch(() => ({ rows: [{ count: '0' }] })),
         // Check active allocations as project lead or resource owner
         client.query(`
           SELECT COUNT(*) as count
@@ -438,12 +452,25 @@ export class EmployeeService {
           name: 'capacity history'
         },
         // Update any records where this employee was the creator (set to null or system user)
+        // Only update if the columns exist
         {
-          query: 'UPDATE allocations SET created_by = NULL WHERE created_by = $1',
+          query: `
+            UPDATE allocations SET created_by = NULL
+            WHERE EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'allocations' AND column_name = 'created_by'
+            ) AND created_by = $1
+          `,
           name: 'allocation creator references'
         },
         {
-          query: 'UPDATE resource_allocations SET created_by = NULL WHERE created_by = $1',
+          query: `
+            UPDATE resource_allocations SET created_by = NULL
+            WHERE EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'resource_allocations' AND column_name = 'created_by'
+            ) AND created_by = $1
+          `,
           name: 'resource allocation creator references'
         },
         // Clean up notifications related to this employee

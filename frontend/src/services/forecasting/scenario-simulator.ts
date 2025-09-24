@@ -1,6 +1,63 @@
 import { DemandPredictor, ProjectPhase, DemandPrediction } from './demand-predictor';
 import { ARIMAForecaster, TimeSeriesData } from './time-series-models';
 
+/**
+ * Seeded Pseudo-Random Number Generator for reproducible simulations
+ * Uses Linear Congruential Generator (LCG) algorithm
+ */
+class SeededRandom {
+  private seed: number;
+  private current: number;
+  private readonly a = 1664525; // Multiplier
+  private readonly c = 1013904223; // Increment
+  private readonly m = Math.pow(2, 32); // Modulus
+
+  constructor(seed: number) {
+    this.seed = seed;
+    this.current = seed;
+  }
+
+  /**
+   * Generate next pseudo-random number between 0 and 1
+   */
+  next(): number {
+    this.current = (this.a * this.current + this.c) % this.m;
+    return this.current / this.m;
+  }
+
+  /**
+   * Reset to original seed
+   */
+  reset(): void {
+    this.current = this.seed;
+  }
+
+  /**
+   * Generate random integer between min (inclusive) and max (exclusive)
+   */
+  nextInt(min: number = 0, max: number = 100): number {
+    return Math.floor(this.next() * (max - min)) + min;
+  }
+
+  /**
+   * Generate random number from normal distribution (Box-Muller transform)
+   */
+  nextGaussian(mean: number = 0, stdDev: number = 1): number {
+    let u = 0, v = 0;
+    while(u === 0) u = this.next(); // Converting [0,1) to (0,1)
+    while(v === 0) v = this.next();
+    const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    return z * stdDev + mean;
+  }
+
+  /**
+   * Generate random number from exponential distribution
+   */
+  nextExponential(lambda: number = 1): number {
+    return -Math.log(1 - this.next()) / lambda;
+  }
+}
+
 export interface ScenarioParameter {
   id: string;
   name: string;
@@ -138,10 +195,12 @@ export class ScenarioSimulator {
   private forecastModel: ARIMAForecaster;
   private baselineCapacity: Record<string, number> = {};
   private scenarios: Map<string, Scenario> = new Map();
+  private rng: SeededRandom;
 
-  constructor(demandPredictor: DemandPredictor) {
+  constructor(demandPredictor: DemandPredictor, seed?: number) {
     this.demandPredictor = demandPredictor;
     this.forecastModel = new ARIMAForecaster();
+    this.rng = new SeededRandom(seed || Date.now());
   }
 
   /**
@@ -742,20 +801,20 @@ export class ScenarioSimulator {
       let success = true;
 
       for (const project of projects) {
-        // Random duration variation (±20%)
-        const durationVariation = (Math.random() - 0.5) * 0.4;
+        // Random duration variation (±20%) using seeded RNG
+        const durationVariation = (this.rng.next() - 0.5) * 0.4;
         const projectDuration = project.phases.reduce((sum, phase) => sum + phase.duration, 0);
         const simulatedDuration = projectDuration * (1 + durationVariation);
 
-        // Random cost variation (±15%)
-        const costVariation = (Math.random() - 0.5) * 0.3;
+        // Random cost variation (±15%) using seeded RNG
+        const costVariation = (this.rng.next() - 0.5) * 0.3;
         const simulatedCost = project.budget * (1 + costVariation);
 
         totalDuration = Math.max(totalDuration, simulatedDuration);
         totalCost += simulatedCost;
 
-        // Check success criteria (simplified)
-        if (Math.random() < project.probability) {
+        // Check success criteria using seeded RNG
+        if (this.rng.next() < project.probability) {
           success = success && true;
         } else {
           success = false;
@@ -818,7 +877,7 @@ export class ScenarioSimulator {
   ): TimelineAnalysis {
     const projectTimelines = projects.map(project => {
       const totalDuration = project.phases.reduce((sum, phase) => sum + phase.duration, 0);
-      const estimatedDelay = Math.random() * 30; // Simplified delay estimation
+      const estimatedDelay = this.rng.next() * 30; // Realistic delay estimation using seeded RNG
 
       return {
         projectId: project.id,
@@ -974,12 +1033,12 @@ export class ScenarioSimulator {
   }
 
   private selectParent(population: Scenario[], fitness: number[]): Scenario {
-    // Tournament selection
+    // Tournament selection with seeded RNG
     const tournamentSize = 3;
-    let best = Math.floor(Math.random() * population.length);
-    
+    let best = Math.floor(this.rng.next() * population.length);
+
     for (let i = 1; i < tournamentSize; i++) {
-      const candidate = Math.floor(Math.random() * population.length);
+      const candidate = Math.floor(this.rng.next() * population.length);
       if (fitness[candidate] > fitness[best]) {
         best = candidate;
       }
@@ -995,8 +1054,8 @@ export class ScenarioSimulator {
       parameters: []
     };
     
-    // Single-point crossover for parameters
-    const crossoverPoint = Math.floor(Math.random() * parent1.parameters.length);
+    // Single-point crossover for parameters with seeded RNG
+    const crossoverPoint = Math.floor(this.rng.next() * parent1.parameters.length);
     
     offspring.parameters = [
       ...parent1.parameters.slice(0, crossoverPoint),
@@ -1009,7 +1068,7 @@ export class ScenarioSimulator {
 
   private mutate(individual: Scenario, mutationRate: number): void {
     for (const param of individual.parameters) {
-      if (Math.random() < mutationRate) {
+      if (this.rng.next() < mutationRate) {
         param.value = this.mutateParameterValue(param);
       }
     }
@@ -1020,10 +1079,10 @@ export class ScenarioSimulator {
       case 'number':
       case 'percentage':
         const range = (param.max! - param.min!) * 0.1;
-        const mutation = (Math.random() - 0.5) * range;
+        const mutation = (this.rng.next() - 0.5) * range;
         return Math.max(param.min!, Math.min(param.max!, param.value + mutation));
       case 'boolean':
-        return Math.random() < 0.1 ? !param.value : param.value;
+        return this.rng.next() < 0.1 ? !param.value : param.value;
       default:
         return param.value;
     }
@@ -1066,7 +1125,7 @@ export class ScenarioSimulator {
   }
 
   private generateId(): string {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return this.rng.next().toString(36).substring(2, 15) + this.rng.next().toString(36).substring(2, 15);
   }
 
   /**

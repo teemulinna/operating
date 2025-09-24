@@ -13,8 +13,8 @@ export class ChartExportUtils {
   static async exportChartAsPNG(chartElement: HTMLElement, filename: string): Promise<void> {
     try {
       const canvas = await html2canvas(chartElement, {
-        backgroundColor: '#ffffff',
-        scale: 2, // Higher resolution
+        background: '#ffffff',
+        // scale: 2, // Higher resolution - not supported by html2canvas types
         logging: false,
         useCORS: true
       });
@@ -36,8 +36,8 @@ export class ChartExportUtils {
   static async exportChartAsPDF(chartElement: HTMLElement, filename: string): Promise<void> {
     try {
       const canvas = await html2canvas(chartElement, {
-        backgroundColor: '#ffffff',
-        scale: 2,
+        background: '#ffffff',
+        // scale: 2,
         logging: false,
         useCORS: true
       });
@@ -89,8 +89,8 @@ export class ChartExportUtils {
         
         // Capture chart
         const canvas = await html2canvas(element, {
-          backgroundColor: '#ffffff',
-          scale: 1.5,
+          background: '#ffffff',
+          // scale: 1.5, // Note: scale property not supported in html2canvas types
           logging: false,
           useCORS: true
         });
