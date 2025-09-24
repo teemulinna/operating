@@ -14,6 +14,7 @@ export interface BackendEmployee {
   hireDate?: string;
   skills: string[];
   isActive: boolean;
+  weeklyCapacity?: string | number;
   createdAt: string;
   updatedAt: string;
 }
@@ -64,6 +65,7 @@ export interface Employee {
   salary: number;
   skills: string[];
   capacity?: number;
+  weeklyCapacity?: number;
   status: 'active' | 'inactive';
   startDate?: string;
   hireDate?: string;
@@ -120,7 +122,8 @@ export class DataTransformer {
       departmentId: backend.departmentId,
       salary: typeof backend.salary === 'string' ? parseFloat(backend.salary) : backend.salary,
       skills: backend.skills || [],
-      capacity: 100, // Default capacity
+      weeklyCapacity: backend.weeklyCapacity !== undefined ? Number(backend.weeklyCapacity) : undefined,
+      capacity: backend.weeklyCapacity !== undefined ? Number(backend.weeklyCapacity) : 100,
       status: backend.isActive ? 'active' : 'inactive',
       startDate: backend.hireDate,
       hireDate: backend.hireDate,
@@ -143,6 +146,7 @@ export class DataTransformer {
     if (frontend.status !== undefined) backend.isActive = frontend.status === 'active';
     if (frontend.hireDate !== undefined) backend.hireDate = frontend.hireDate;
     if (frontend.startDate !== undefined) backend.hireDate = frontend.startDate;
+    if (frontend.weeklyCapacity !== undefined) backend.weeklyCapacity = frontend.weeklyCapacity;
     
     return backend;
   }

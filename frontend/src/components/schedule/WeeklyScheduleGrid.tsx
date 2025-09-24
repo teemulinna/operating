@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { OverAllocationWarning } from '../allocation/OverAllocationWarning';
-import { apiService, Employee as ApiEmployee, Project as ApiProject, Allocation as ApiAllocation } from '../../services/api';
+import { Employee as ApiEmployee, Project as ApiProject, Allocation as ApiAllocation } from '../../services/api';
 
 interface Employee {
   id: string;
@@ -25,6 +24,8 @@ interface Allocation {
   status: string;
   roleOnProject?: string;
 }
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const WeeklyScheduleGrid: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -55,44 +56,63 @@ const WeeklyScheduleGrid: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch employees directly from the API to get all fields including weeklyCapacity
-        const [employeesRes, projectsData, allocationsData] = await Promise.all([
-          fetch('http://localhost:3001/api/employees'),
-          apiService.getProjects(),
-          apiService.getAllocations()
+        const fetchPage = async (endpoint: string, page: number, limit: number) => {
+          const response = await fetch(`${endpoint}?page=${page}&limit=${limit}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch ${endpoint}`);
+          }
+          return response.json();
+        };
+
+        const collectAllPages = async <T>(endpoint: string, limit: number): Promise<{ items: T[] }> => {
+          let page = 1;
+          let totalPages = 1;
+          const items: T[] = [];
+
+          while (page <= totalPages) {
+            const result = await fetchPage(endpoint, page, limit);
+            const data = result.data || [];
+            items.push(...data);
+            totalPages = result.pagination?.totalPages ?? 1;
+            page += 1;
+          }
+
+          return { items };
+        };
+
+        const [employeeResult, projectResult, allocationResult] = await Promise.all([
+          collectAllPages<ApiEmployee>(`${API_BASE_URL}/employees`, 100),
+          collectAllPages<ApiProject>(`${API_BASE_URL}/projects`, 100),
+          collectAllPages<ApiAllocation>(`${API_BASE_URL}/allocations`, 100)
         ]);
 
-        const employeesJson = await employeesRes.json();
-        const employeesData = employeesJson.data || [];
-
-        // Map API data to local interfaces
-        const mappedEmployees: Employee[] = employeesData.map((emp: any) => ({
+        const mappedEmployees: Employee[] = employeeResult.items.map((emp: any) => ({
           id: emp.id,
-          firstName: emp.firstName,
-          lastName: emp.lastName,
-          weeklyCapacity: Number(emp.weeklyCapacity) || 40
+          firstName: emp.firstName || emp.name?.split(' ')[0] || '',
+          lastName: emp.lastName || emp.name?.split(' ').slice(1).join(' ') || '',
+          weeklyCapacity: Number(emp.weeklyCapacity ?? emp.capacity ?? 40)
         }));
 
-        const mappedProjects: Project[] = (projectsData || []).map((proj: ApiProject) => ({
+        const mappedProjects: Project[] = projectResult.items.map((proj: any) => ({
           id: proj.id.toString(),
           name: proj.name,
           status: proj.status
         }));
 
-        const mappedAllocations: Allocation[] = (allocationsData || []).map((alloc: ApiAllocation) => ({
+        const mappedAllocations: Allocation[] = allocationResult.items.map((alloc: any) => ({
           id: alloc.id.toString(),
           employeeId: alloc.employeeId.toString(),
           projectId: alloc.projectId.toString(),
-          allocatedHours: alloc.hours,
-          startDate: alloc.date,
-          endDate: alloc.date, // Using date for both start and end as API only has date
-          status: alloc.status,
-          roleOnProject: undefined // Not available in API
+          allocatedHours: alloc.allocatedHours ?? alloc.hours ?? 0,
+          startDate: alloc.startDate ?? alloc.date,
+          endDate: alloc.endDate ?? alloc.date,
+          status: alloc.status ?? (alloc.isActive ? 'active' : 'inactive'),
+          roleOnProject: alloc.roleOnProject ?? alloc.role
         }));
-
-        setEmployees(mappedEmployees as Employee[]);
-        setProjects(mappedProjects as Project[]);
-        setAllocations(mappedAllocations as Allocation[]);
+ 
+        setEmployees(mappedEmployees);
+        setProjects(mappedProjects);
+        setAllocations(mappedAllocations);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -105,8 +125,7 @@ const WeeklyScheduleGrid: React.FC = () => {
 
   const getEmployeeAllocations = (employeeId: string) => {
     return allocations.filter(allocation => 
-      allocation.employeeId === employeeId && 
-      allocation.status === 'active'
+      allocation.employeeId === employeeId && allocation.status === 'active'
     );
   };
 

@@ -3,7 +3,8 @@ import WeeklyScheduleGrid from '../components/schedule/WeeklyScheduleGrid';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { AlertTriangle, Calendar, Users, Clock } from 'lucide-react';
-import { apiService } from '../services/api';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const EnhancedSchedulePage: React.FC = () => {
   const [summaryStats, setSummaryStats] = useState({
@@ -17,36 +18,58 @@ const EnhancedSchedulePage: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch real data from API
-        const [employeesRes, projectsRes, allocationsRes] = await Promise.all([
-          fetch('http://localhost:3001/api/employees'),
-          fetch('http://localhost:3001/api/projects'),
-          fetch('http://localhost:3001/api/allocations')
+        const fetchPaginated = async (endpoint: string, limit: number) => {
+          let page = 1;
+          let totalPages = 1;
+          const items: any[] = [];
+          let firstPagination: any = null;
+
+          while (page <= totalPages) {
+            const response = await fetch(`${endpoint}?page=${page}&limit=${limit}`);
+            if (!response.ok) {
+              throw new Error(`Failed to fetch ${endpoint}`);
+            }
+            const data = await response.json();
+            const pageItems = data.data || [];
+            items.push(...pageItems);
+            if (!firstPagination && data.pagination) {
+              firstPagination = data.pagination;
+            }
+            totalPages = data.pagination?.totalPages ?? 1;
+            page += 1;
+          }
+
+          return { items, pagination: firstPagination };
+        };
+
+        const [employeesResult, projectsResult, allocationsResult] = await Promise.all([
+          fetchPaginated(`${API_BASE_URL}/employees`, 100),
+          fetchPaginated(`${API_BASE_URL}/projects`, 100),
+          fetchPaginated(`${API_BASE_URL}/allocations`, 100)
         ]);
 
-        const employeesData = await employeesRes.json();
-        const projectsData = await projectsRes.json();
-        const allocationsData = await allocationsRes.json();
-
-        // Get actual employee data to check for over-allocation
-        const employees = employeesData.data || [];
-        const allocations = allocationsData.data || [];
+        const normalizedEmployees = employeesResult.items.map((employee: any) => ({
+          ...employee,
+          weeklyCapacity: Number(employee.weeklyCapacity ?? employee.capacity ?? 40)
+        }));
+        const allocations = allocationsResult.items || [];
+        const projects = projectsResult.items || [];
 
         // Calculate over-allocated employees based on real data
         let overAllocatedCount = 0;
         let totalUtilization = 0;
 
-        employees.forEach((employee: any) => {
+        normalizedEmployees.forEach((employee: any) => {
           // Get all allocations for this employee
           const employeeAllocations = allocations.filter((alloc: any) =>
-            alloc.employeeId === employee.id && alloc.status === 'active'
+            alloc.employeeId === employee.id && (alloc.status === 'active' || alloc.isActive === true)
           );
 
           const totalAllocatedHours = employeeAllocations.reduce((sum: number, alloc: any) =>
-            sum + (alloc.hours || 0), 0
+            sum + (alloc.allocatedHours || alloc.hours || 0), 0
           );
 
-          const capacity = Number(employee.weeklyCapacity) || 40;
+          const capacity = employee.weeklyCapacity || 40;
           const utilization = capacity > 0 ? (totalAllocatedHours / capacity) * 100 : 0;
 
           if (totalAllocatedHours > capacity) {
@@ -56,8 +79,8 @@ const EnhancedSchedulePage: React.FC = () => {
           totalUtilization += utilization;
         });
 
-        const totalEmployees = employees.length;
-        const activeProjects = projectsData.data?.filter((p: any) => p.status === 'active').length || 0;
+        const totalEmployees = employeesResult.pagination?.totalItems ?? normalizedEmployees.length;
+        const activeProjects = projects.filter((p: any) => p.status === 'active').length;
         const avgUtilization = totalEmployees > 0 ? Math.round(totalUtilization / totalEmployees) : 0;
 
         setSummaryStats({
@@ -157,20 +180,22 @@ const EnhancedSchedulePage: React.FC = () => {
       </div>
 
       {/* Alerts Section */}
-      <div className="mb-8">
-        <Card className="border-l-4 border-red-500 bg-red-50 p-4">
-          <div className="flex items-start space-x-3">
-            <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-medium text-red-800">Over-allocation Alert</h3>
-              <p className="text-sm text-red-700 mt-1">
-                {summaryStats.overAllocatedEmployees} employee(s) are currently over-allocated. 
-                Review the schedule grid below to identify conflicts and redistribute workload.
-              </p>
+      {summaryStats.overAllocatedEmployees > 0 && (
+        <div className="mb-8">
+          <Card className="border-l-4 border-red-500 bg-red-50 p-4">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-red-800">Over-allocation Alert</h3>
+                <p className="text-sm text-red-700 mt-1">
+                  {summaryStats.overAllocatedEmployees} employee(s) are currently over-allocated. 
+                  Review the schedule grid below to identify conflicts and redistribute workload.
+                </p>
+              </div>
             </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </div>
+      )}
 
       {/* Weekly Schedule Grid */}
       <WeeklyScheduleGrid />
