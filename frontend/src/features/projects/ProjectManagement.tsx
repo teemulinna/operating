@@ -8,6 +8,46 @@ import { ProjectFormModal } from './components/ProjectFormModal';
 import { DeleteProjectDialog } from './components/DeleteProjectDialog';
 
 /**
+ * Normalize date value to YYYY-MM-DD format for HTML date inputs
+ */
+const normalizeDateForInput = (value?: string | null): string => {
+  if (!value) {
+    return '';
+  }
+
+  // If already in YYYY-MM-DD format, return as-is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // Handle dd.mm.yyyy format
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) {
+    const [day, month, year] = value.split('.');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Handle ISO 8601 timestamps (e.g., "2024-12-31T22:00:00.000Z")
+  // Extract just the date part in local timezone
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    // Fallback parsing
+    const [year, month, day] = value.split(/[^\d]/).filter(Boolean);
+    if (year && month && day) {
+      return `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return '';
+  }
+
+  // Get local date components (not UTC)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+/**
  * ProjectManagement Component - Main orchestrator for project operations
  * 
  * This component stays under 150 lines by delegating to:
@@ -52,6 +92,7 @@ export function ProjectManagement() {
   };
 
   const handleUpdateSubmit = (projectData: any) => {
+    console.log('🔄 handleUpdateSubmit - projectData received from modal:', projectData);
     handleUpdateProject(projectData);
   };
 
@@ -108,10 +149,10 @@ export function ProjectManagement() {
           submitLabel="Update Project"
           initialData={{
             name: editingProject.name,
-            description: editingProject.description,
-            client_name: editingProject.clientName,
-            start_date: editingProject.startDate,
-            end_date: editingProject.endDate,
+            description: editingProject.description || '',
+            client_name: editingProject.clientName || '',
+            start_date: normalizeDateForInput(editingProject.startDate),
+            end_date: normalizeDateForInput(editingProject.endDate),
             budget: editingProject.budget,
             hourly_rate: editingProject.hourlyRate,
             estimated_hours: editingProject.estimatedHours,
@@ -119,6 +160,7 @@ export function ProjectManagement() {
             priority: editingProject.priority,
           }}
           isLoading={isUpdating}
+          key={editingProject.id} // Force remount when editing different project
         />
       )}
 

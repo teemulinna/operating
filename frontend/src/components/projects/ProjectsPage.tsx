@@ -12,15 +12,23 @@ const normalizeDateForInput = (value?: string | null): string => {
     return '';
   }
 
+  // If already in YYYY-MM-DD format, return as-is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // Handle dd.mm.yyyy format
   if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) {
     const [day, month, year] = value.split('.');
     return `${year}-${month}-${day}`;
   }
 
-  const normalizedInput = value.includes('T') ? value : value.replace(' ', 'T');
-  const date = new Date(normalizedInput);
+  // Handle ISO 8601 timestamps (e.g., "2024-12-31T22:00:00.000Z")
+  // Extract just the date part in local timezone
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
+    // Fallback parsing
     const [year, month, day] = value.split(/[^\d]/).filter(Boolean);
     if (year && month && day) {
       return `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -28,9 +36,12 @@ const normalizeDateForInput = (value?: string | null): string => {
     return '';
   }
 
-  const tzOffset = date.getTimezoneOffset() * 60000;
-  const localDate = new Date(date.getTime() - tzOffset);
-  return localDate.toISOString().slice(0, 10);
+  // Get local date components (not UTC)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 };
 
 export function ProjectsPage() {
@@ -157,9 +168,20 @@ export function ProjectsPage() {
   };
 
   const handleEditClick = (project: Project) => {
-    console.log('Editing project:', project);
-    console.log('Start date:', project.startDate);
-    console.log('End date:', project.endDate);
+    console.log('🔍 handleEditClick - project:', project);
+    console.log('  startDate RAW:', project.startDate);
+    console.log('  endDate RAW:', project.endDate);
+    console.log('  startDate NORMALIZED:', normalizeDateForInput(project.startDate));
+    console.log('  endDate NORMALIZED:', normalizeDateForInput(project.endDate));
+
+    // CRITICAL: Log what initialData will be
+    const initialDataPreview = {
+      name: project.name,
+      start_date: normalizeDateForInput(project.startDate),
+      end_date: normalizeDateForInput(project.endDate),
+    };
+    console.log('  initialData that will be passed:', initialDataPreview);
+
     setEditingProject(project);
   };
 
@@ -224,27 +246,38 @@ export function ProjectsPage() {
       />
 
       {/* Edit Project Modal */}
-      {editingProject && (
-        <ProjectFormModal
-          isOpen={true}
-          onClose={() => setEditingProject(null)}
-          onSubmit={handleUpdateProject}
-          title="Edit Project"
-          submitLabel="Update Project"
-          initialData={{
-            name: editingProject.name,
-            description: editingProject.description,
-            client_name: editingProject.clientName,
-            start_date: normalizeDateForInput(editingProject.startDate),
-            end_date: normalizeDateForInput(editingProject.endDate),
-            budget: editingProject.budget,
-            hourly_rate: editingProject.hourlyRate,
-            estimated_hours: editingProject.estimatedHours,
-            status: editingProject.status,
-            priority: editingProject.priority,
-          }}
+      {editingProject && (() => {
+        const normalized_start = normalizeDateForInput(editingProject.startDate);
+        const normalized_end = normalizeDateForInput(editingProject.endDate);
+
+        console.log('📅 ProjectsPage - Creating initialData:');
+        console.log('  editingProject.startDate:', editingProject.startDate);
+        console.log('  normalized_start:', normalized_start);
+        console.log('  editingProject.endDate:', editingProject.endDate);
+        console.log('  normalized_end:', normalized_end);
+
+        return (
+          <ProjectFormModal
+            isOpen={true}
+            onClose={() => setEditingProject(null)}
+            onSubmit={handleUpdateProject}
+            title="Edit Project"
+            submitLabel="Update Project"
+            initialData={{
+              name: editingProject.name,
+              description: editingProject.description,
+              client_name: editingProject.clientName,
+              start_date: normalized_start,
+              end_date: normalized_end,
+              budget: editingProject.budget,
+              hourly_rate: editingProject.hourlyRate,
+              estimated_hours: editingProject.estimatedHours,
+              status: editingProject.status,
+              priority: editingProject.priority,
+            }}
           isLoading={updateProjectMutation.isPending}
           error={updateProjectMutation.error?.message}
+          key={editingProject.id} // Force remount when editing different project
         />
       )}
 

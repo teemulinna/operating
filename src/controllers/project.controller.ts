@@ -131,13 +131,13 @@ export class ProjectController {
       const updateData = {
         name: req.body.name,
         description: req.body.description,
-        client_name: req.body.clientName,
-        start_date: req.body.startDate,
-        end_date: req.body.endDate,
+        client_name: req.body.client_name || req.body.clientName,
+        start_date: req.body.start_date || req.body.startDate,
+        end_date: req.body.end_date || req.body.endDate,
         status: req.body.status,
         priority: req.body.priority,
         budget: req.body.budget,
-        estimated_hours: req.body.estimatedHours
+        estimated_hours: req.body.estimated_hours || req.body.estimatedHours
       };
 
       const project = await this.projectService.updateProject(projectId, updateData);

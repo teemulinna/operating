@@ -27,6 +27,8 @@ export function useProjectOperations() {
       const data = await response.json();
       return (data.data || []).map(transformApiProject);
     },
+    staleTime: 0, // Always fetch fresh data after mutations
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
   // Create project mutation
@@ -68,32 +70,64 @@ export function useProjectOperations() {
   // Update project mutation
   const updateProjectMutation = useMutation({
     mutationFn: async ({ id, ...projectData }: CreateProjectRequest & { id: number }) => {
+      // Build request body, omitting undefined/empty optional fields
+      const requestBody: any = {
+        name: projectData.name,
+        start_date: projectData.start_date,
+        end_date: projectData.end_date,
+        status: projectData.status || 'planning',
+        priority: projectData.priority || 'medium',
+      };
+
+      // Only include optional fields if they have valid values
+      if (projectData.description && projectData.description.trim()) {
+        requestBody.description = projectData.description;
+      }
+      if (projectData.client_name && projectData.client_name.trim()) {
+        requestBody.client_name = projectData.client_name;
+      }
+      if (projectData.budget !== undefined && projectData.budget !== null) {
+        requestBody.budget = projectData.budget;
+      }
+      if (projectData.hourly_rate !== undefined && projectData.hourly_rate !== null) {
+        requestBody.hourly_rate = projectData.hourly_rate;
+      }
+      if (projectData.estimated_hours !== undefined && projectData.estimated_hours !== null) {
+        requestBody.estimated_hours = projectData.estimated_hours;
+      }
+
+      console.log('🚀 UPDATE API CALL - Project ID:', id);
+      console.log('🚀 UPDATE API CALL - Request body:', requestBody);
+      console.log('🚀 UPDATE API CALL - JSON stringified:', JSON.stringify(requestBody));
+
       const response = await fetch(`http://localhost:3001/api/projects/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: projectData.name,
-          description: projectData.description,
-          client_name: projectData.client_name,
-          start_date: projectData.start_date,
-          end_date: projectData.end_date,
-          budget: projectData.budget,
-          hourly_rate: projectData.hourly_rate,
-          estimated_hours: projectData.estimated_hours,
-          status: projectData.status || 'planning',
-          priority: projectData.priority || 'medium',
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      const responseData = await response.json();
+      console.log('✅ UPDATE API RESPONSE - Status:', response.status);
+      console.log('✅ UPDATE API RESPONSE - Data:', responseData);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update project');
+        console.error('❌ UPDATE FAILED:', response.status, responseData);
+        throw new Error(responseData.error || 'Failed to update project');
       }
 
-      return response.json();
+      return responseData;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    onSuccess: async (data) => {
+      console.log('🎉 UPDATE SUCCESS - Response data:', data);
+      // Aggressively invalidate and refetch to ensure UI updates
+      await queryClient.invalidateQueries({ queryKey: ['projects'] });
+      const refetchResult = await queryClient.refetchQueries({ queryKey: ['projects'] });
+      console.log('🔄 REFETCH COMPLETE - Result:', refetchResult);
+
+      // Get the updated projects from cache
+      const updatedProjects = queryClient.getQueryData(['projects']);
+      console.log('📊 UPDATED PROJECTS IN CACHE:', updatedProjects);
+
       setEditingProject(null);
       showSuccess('Project updated successfully');
     },
@@ -173,14 +207,20 @@ export function useProjectOperations() {
 
   const handleUpdateProject = useCallback((projectData: CreateProjectRequest) => {
     if (!editingProject) return;
-    
+
+    console.log('📝 handleUpdateProject - editingProject.id:', editingProject.id);
+    console.log('📝 handleUpdateProject - projectData before mutation:', projectData);
+
     const validationErrors = validateProjectData(projectData);
     if (validationErrors.length > 0) {
       showError(validationErrors.join(', '));
       return;
     }
-    
-    updateProjectMutation.mutate({ ...projectData, id: editingProject.id });
+
+    const mutationData = { ...projectData, id: editingProject.id };
+    console.log('📝 handleUpdateProject - mutationData to send:', mutationData);
+
+    updateProjectMutation.mutate(mutationData);
   }, [editingProject, updateProjectMutation, validateProjectData, showError]);
 
   const handleDeleteProject = useCallback(() => {

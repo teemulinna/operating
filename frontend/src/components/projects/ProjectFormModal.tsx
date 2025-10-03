@@ -31,15 +31,23 @@ const normalizeDateForInput = (value?: string | null): string => {
     return '';
   }
 
+  // If already in YYYY-MM-DD format, return as-is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // Handle dd.mm.yyyy format
   if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) {
     const [day, month, year] = value.split('.');
     return `${year}-${month}-${day}`;
   }
 
-  const normalizedInput = value.includes('T') ? value : value.replace(' ', 'T');
-  const date = new Date(normalizedInput);
+  // Handle ISO 8601 timestamps (e.g., "2024-12-31T22:00:00.000Z")
+  // Extract just the date part in local timezone
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
+    // Fallback parsing
     const [year, month, day] = value.split(/[^\d]/).filter(Boolean);
     if (year && month && day) {
       return `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -47,9 +55,12 @@ const normalizeDateForInput = (value?: string | null): string => {
     return '';
   }
 
-  const tzOffset = date.getTimezoneOffset() * 60000;
-  const localDate = new Date(date.getTime() - tzOffset);
-  return localDate.toISOString().slice(0, 10);
+  // Get local date components (not UTC)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 };
 
 export function ProjectFormModal({
@@ -62,28 +73,56 @@ export function ProjectFormModal({
   isLoading = false,
   error,
 }: ProjectFormModalProps) {
-  const [formData, setFormData] = useState<CreateProjectRequest>({ ...DEFAULT_FORM_VALUES });
+  // Initialize state with initialData immediately (not in useEffect)
+  const getInitialFormData = () => {
+    if (initialData) {
+      return {
+        ...DEFAULT_FORM_VALUES,
+        ...initialData,
+        description: initialData.description ?? '',
+        client_name: initialData.client_name ?? '',
+      };
+    }
+    return { ...DEFAULT_FORM_VALUES };
+  };
 
+  const [formData, setFormData] = useState<CreateProjectRequest>(getInitialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Reset form when modal opens/closes or initialData changes
+  // Update form when initialData changes (for editing different projects)
   useEffect(() => {
-    if (isOpen) {
-      if (initialData) {
-        setFormData({
-          ...DEFAULT_FORM_VALUES,
-          ...initialData,
-          start_date: normalizeDateForInput(initialData.start_date),
-          end_date: normalizeDateForInput(initialData.end_date),
-          description: initialData.description ?? '',
-          client_name: initialData.client_name ?? '',
-        });
-      } else {
-        setFormData({ ...DEFAULT_FORM_VALUES });
-      }
+    console.log('ProjectFormModal useEffect - initialData changed:', initialData);
+    if (initialData) {
+      console.log('  start_date:', initialData.start_date);
+      console.log('  end_date:', initialData.end_date);
+
+      const updatedData = {
+        ...DEFAULT_FORM_VALUES,
+        ...initialData,
+        description: initialData.description ?? '',
+        client_name: initialData.client_name ?? '',
+      };
+
+      setFormData(updatedData);
       setErrors({});
     }
-  }, [isOpen, initialData]);
+  }, [initialData]);
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen, onClose]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
