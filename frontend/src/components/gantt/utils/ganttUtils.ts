@@ -1,20 +1,25 @@
-import { 
-  GanttTask, 
-  GanttProject, 
-  GanttDependency, 
-  CriticalPathAnalysis, 
+import {
+  GanttTask,
+  GanttProject,
+  CriticalPathAnalysis,
   CriticalPathNode,
   ResourceConflict,
-  ResourceAllocation 
 } from '../types';
-import { Project, ApiProject } from '@/types/project';
+import { ApiProject } from '../../../types/project';
 import { addDays, differenceInDays, format } from 'date-fns';
+
+// Extended GanttTask with additional properties for internal calculations
+interface ExtendedGanttTask extends GanttTask {
+  estimatedHours?: number;
+  actualHours?: number;
+  hourlyRate?: number;
+}
 
 /**
  * Transform project data to Gantt tasks
  */
 export const transformProjectToGanttTasks = (
-  projectTasks: GanttTask[], 
+  projectTasks: GanttTask[],
   project: GanttProject
 ): GanttTask[] => {
   if (!projectTasks || projectTasks.length === 0) return [];
@@ -50,9 +55,9 @@ export const transformApiProjectToGanttProject = (
   employees: any[] = []
 ): GanttProject => {
   // Convert allocations to tasks
-  const tasks: GanttTask[] = allocations.map((allocation, index) => {
+  const tasks: ExtendedGanttTask[] = allocations.map((allocation, index) => {
     const employee = employees.find(emp => emp.id === allocation.employee_id);
-    
+
     return {
       id: allocation.id.toString(),
       name: `${employee?.first_name || ''} ${employee?.last_name || ''} - ${allocation.role_on_project || 'Task'}`,
@@ -63,8 +68,8 @@ export const transformApiProjectToGanttProject = (
         ? Math.round((parseFloat(allocation.actual_hours) / parseFloat(allocation.allocated_hours)) * 100)
         : 0,
       priority: 'medium' as const,
-      status: allocation.is_active ? 
-        (allocation.actual_hours ? 'completed' : 'in-progress') : 
+      status: allocation.is_active ?
+        (allocation.actual_hours ? 'completed' : 'in-progress') :
         'not-started' as const,
       resources: employee ? [employee.id.toString()] : [],
       dependencies: [],
@@ -88,7 +93,6 @@ export const transformApiProjectToGanttProject = (
     resources: [],
     dependencies: [],
     displayOrder: 0,
-    estimatedHours: apiProject.estimated_hours || 0,
   };
 
   return {
@@ -123,7 +127,7 @@ export const transformApiProjectToGanttProject = (
 /**
  * Calculate project progress based on tasks
  */
-export const calculateProjectProgress = (tasks: GanttTask[]): number => {
+export const calculateProjectProgress = (tasks: ExtendedGanttTask[]): number => {
   if (!tasks || tasks.length === 0) return 0;
 
   const taskProgress = tasks
@@ -157,7 +161,7 @@ export const calculateCriticalPath = (tasks: GanttTask[]): CriticalPathAnalysis 
 
   // Filter out project-level tasks and milestones for CPM calculation
   const workTasks = tasks.filter(task => task.type === 'task');
-  
+
   if (workTasks.length === 0) {
     return {
       nodes: [],
@@ -170,7 +174,7 @@ export const calculateCriticalPath = (tasks: GanttTask[]): CriticalPathAnalysis 
 
   // Create node map
   const nodes: Map<string, CriticalPathNode> = new Map();
-  
+
   // Initialize nodes
   workTasks.forEach(task => {
     const duration = differenceInDays(task.end, task.start);
@@ -194,7 +198,7 @@ export const calculateCriticalPath = (tasks: GanttTask[]): CriticalPathAnalysis 
     if (!task) return new Date();
 
     let earliestStart = task.start;
-    
+
     if (task.dependencies && task.dependencies.length > 0) {
       const dependencyFinishTimes = task.dependencies
         .map(depId => {
@@ -241,13 +245,13 @@ export const calculateCriticalPath = (tasks: GanttTask[]): CriticalPathAnalysis 
 
     // Find tasks that depend on this task
     const dependentTasks = workTasks.filter(t => t.dependencies?.includes(taskId));
-    
+
     if (dependentTasks.length > 0) {
       const dependentLatestStarts = dependentTasks.map(depTask => {
         calculateLatestTimes(depTask.id, visited);
         return nodes.get(depTask.id)!.latestStart;
       });
-      
+
       latestFinish = new Date(Math.min(...dependentLatestStarts.map(d => d.getTime())));
     }
 
@@ -264,12 +268,12 @@ export const calculateCriticalPath = (tasks: GanttTask[]): CriticalPathAnalysis 
 
   // Calculate total float and identify critical path
   const criticalTasks: string[] = [];
-  
+
   nodes.forEach((node, taskId) => {
     const totalFloat = differenceInDays(node.latestStart, node.earliestStart);
     node.totalFloat = totalFloat;
     node.isCritical = totalFloat <= 0;
-    
+
     if (node.isCritical) {
       criticalTasks.push(taskId);
     }
@@ -288,7 +292,7 @@ export const calculateCriticalPath = (tasks: GanttTask[]): CriticalPathAnalysis 
  * Detect resource conflicts and over-allocation
  */
 export const detectResourceConflicts = (
-  tasks: GanttTask[],
+  tasks: ExtendedGanttTask[],
   resources: any[]
 ): ResourceConflict[] => {
   const conflicts: ResourceConflict[] = [];
@@ -302,25 +306,25 @@ export const detectResourceConflicts = (
 
     const startDate = new Date(task.start);
     const endDate = new Date(task.end);
-    
+
     // Iterate through each day of the task
     for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
       const dateKey = format(date, 'yyyy-MM-dd');
-      
+
       task.resources.forEach(resourceId => {
         if (!allocationsByResourceAndDate.has(resourceId)) {
           allocationsByResourceAndDate.set(resourceId, new Map());
         }
-        
+
         const resourceAllocations = allocationsByResourceAndDate.get(resourceId)!;
-        
+
         if (!resourceAllocations.has(dateKey)) {
           resourceAllocations.set(dateKey, { tasks: [], totalAllocation: 0 });
         }
-        
+
         const dayAllocation = resourceAllocations.get(dateKey)!;
         dayAllocation.tasks.push(task.id);
-        
+
         // Assume equal distribution of hours across task duration
         const taskDays = Math.max(1, differenceInDays(endDate, startDate));
         const dailyHours = (task.estimatedHours || 8) / taskDays;
@@ -358,7 +362,7 @@ export const detectResourceConflicts = (
  * Calculate resource utilization
  */
 export const calculateResourceUtilization = (
-  tasks: GanttTask[],
+  tasks: ExtendedGanttTask[],
   resources: any[],
   startDate: Date,
   endDate: Date
@@ -370,7 +374,6 @@ export const calculateResourceUtilization = (
   utilizationRate: number;
   tasks: Array<{ taskId: string; taskName: string; allocation: number }>;
 }> => {
-  const resourceMap = new Map(resources.map(r => [r.id, r]));
   const utilization: Map<string, any> = new Map();
 
   // Initialize utilization data
@@ -388,11 +391,11 @@ export const calculateResourceUtilization = (
   // Calculate allocations
   tasks.forEach(task => {
     if (!task.resources || task.resources.length === 0) return;
-    
+
     // Check if task overlaps with date range
     const taskStart = new Date(Math.max(task.start.getTime(), startDate.getTime()));
     const taskEnd = new Date(Math.min(task.end.getTime(), endDate.getTime()));
-    
+
     if (taskStart > taskEnd) return; // No overlap
 
     const overlapDays = Math.max(1, differenceInDays(taskEnd, taskStart));
@@ -428,10 +431,10 @@ export const calculateResourceUtilization = (
  * Auto-schedule tasks based on dependencies and resource availability
  */
 export const autoScheduleTasks = (
-  tasks: GanttTask[],
+  tasks: ExtendedGanttTask[],
   resources: any[],
   projectStart: Date
-): GanttTask[] => {
+): ExtendedGanttTask[] => {
   const scheduledTasks = [...tasks];
   const resourceMap = new Map(resources.map(r => [r.id, r]));
 
@@ -485,10 +488,10 @@ export const autoScheduleTasks = (
 /**
  * Topological sort for tasks based on dependencies
  */
-const topologicalSort = (tasks: GanttTask[]): GanttTask[] => {
+const topologicalSort = (tasks: ExtendedGanttTask[]): ExtendedGanttTask[] => {
   const visited = new Set<string>();
   const temp = new Set<string>();
-  const result: GanttTask[] = [];
+  const result: ExtendedGanttTask[] = [];
 
   const visit = (taskId: string) => {
     if (temp.has(taskId)) {
@@ -497,15 +500,15 @@ const topologicalSort = (tasks: GanttTask[]): GanttTask[] => {
     if (visited.has(taskId)) return;
 
     temp.add(taskId);
-    
+
     const task = tasks.find(t => t.id === taskId);
     if (task && task.dependencies) {
       task.dependencies.forEach(depId => visit(depId));
     }
-    
+
     temp.delete(taskId);
     visited.add(taskId);
-    
+
     if (task) {
       result.unshift(task);
     }
@@ -524,8 +527,8 @@ const topologicalSort = (tasks: GanttTask[]): GanttTask[] => {
  * Find earliest resource availability
  */
 const findEarliestResourceAvailability = (
-  task: GanttTask,
-  allTasks: GanttTask[],
+  task: ExtendedGanttTask,
+  allTasks: ExtendedGanttTask[],
   resourceMap: Map<string, any>,
   earliestStart: Date
 ): Date => {
@@ -545,9 +548,9 @@ const findEarliestResourceAvailability = (
     // Find first available slot with enough capacity
     for (let attempts = 0; attempts < 365; attempts++) { // Limit search to 1 year
       const endDate = addDays(checkDate, taskDuration);
-      
+
       // Check if resource has enough capacity during this period
-      const conflictingTasks = allTasks.filter(otherTask => 
+      const conflictingTasks = allTasks.filter(otherTask =>
         otherTask.id !== task.id &&
         otherTask.resources?.includes(resourceId) &&
         otherTask.start < endDate &&
@@ -603,7 +606,7 @@ export const compareWithBaseline = (
   const baselineTaskMap = new Map(baseline.tasks.map((t: GanttTask) => [t.id, t]));
 
   currentTasks.forEach(currentTask => {
-    const baselineTask = baselineTaskMap.get(currentTask.id);
+    const baselineTask = baselineTaskMap.get(currentTask.id) as GanttTask | undefined;
     if (!baselineTask) {
       // New task not in baseline
       comparisons.push({
@@ -621,13 +624,13 @@ export const compareWithBaseline = (
     const progressVariance = currentTask.progress - baselineTask.progress;
 
     let status: 'on-track' | 'ahead' | 'behind' | 'scope-changed' = 'on-track';
-    
+
     if (Math.abs(startVariance) > 2 || Math.abs(endVariance) > 2) {
       status = endVariance > 0 ? 'behind' : 'ahead';
     }
-    
-    if (currentTask.name !== baselineTask.name || 
-        Math.abs(differenceInDays(currentTask.end, currentTask.start) - 
+
+    if (currentTask.name !== baselineTask.name ||
+        Math.abs(differenceInDays(currentTask.end, currentTask.start) -
                  differenceInDays(baselineTask.end, baselineTask.start)) > 2) {
       status = 'scope-changed';
     }

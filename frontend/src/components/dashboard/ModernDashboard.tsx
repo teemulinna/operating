@@ -49,7 +49,6 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({ className }) =
   const {
     data: statsData,
     isLoading: statsLoading,
-    error: statsError,
   } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {

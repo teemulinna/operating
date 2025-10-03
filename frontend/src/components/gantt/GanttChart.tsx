@@ -1,30 +1,26 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
-import { 
-  GanttTask, 
-  GanttProject, 
-  GanttViewOptions, 
-  GanttEvent, 
+import {
+  GanttTask,
+  GanttProject,
+  GanttViewOptions,
   GanttSettings,
   DEFAULT_VIEW_OPTIONS,
-  DEFAULT_GANTT_THEME 
+  DEFAULT_GANTT_THEME
 } from './types';
 import { GanttToolbar } from './GanttToolbar';
 import { TaskEditor } from './TaskEditor';
 import { transformProjectToGanttTasks, calculateCriticalPath } from './utils/ganttUtils';
 import { exportGanttChart } from './utils/ganttExport';
-import { useToast } from '@/components/ui/toast';
+import { useToast } from '@/components/ui/toast-provider';
 import { Card, CardContent } from '@/components/ui/card';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 
 interface GanttChartProps {
   project: GanttProject;
   onTaskUpdate?: (task: GanttTask) => void;
-  onTaskCreate?: (task: Partial<GanttTask>) => void;
   onTaskDelete?: (taskId: string) => void;
-  onDependencyCreate?: (from: string, to: string) => void;
-  onDependencyDelete?: (from: string, to: string) => void;
   settings?: Partial<GanttSettings>;
   viewOptions?: Partial<GanttViewOptions>;
   readOnly?: boolean;
@@ -37,10 +33,7 @@ interface GanttChartProps {
 export const GanttChart: React.FC<GanttChartProps> = ({
   project,
   onTaskUpdate,
-  onTaskCreate,
   onTaskDelete,
-  onDependencyCreate,
-  onDependencyDelete,
   settings = {},
   viewOptions = {},
   readOnly = false,
@@ -49,7 +42,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   onProjectUpdate,
   realTimeUpdates = true,
 }) => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [, setTasks] = useState<Task[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Day);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskEditor, setShowTaskEditor] = useState(false);
@@ -59,9 +52,9 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   const [zoomLevel, setZoomLevel] = useState(100);
   const [showProgress, setShowProgress] = useState(true);
   const [showDependencies, setShowDependencies] = useState(true);
-  
+
   const ganttRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  const { addToast } = useToast();
   const { socket } = useWebSocket();
 
   // Merge settings with defaults
@@ -74,7 +67,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   const mergedViewOptions: GanttViewOptions = useMemo(() => ({
     ...DEFAULT_VIEW_OPTIONS,
     ...viewOptions,
-    viewMode: viewMode === ViewMode.Day ? 'Day' as const : 
+    viewMode: viewMode === ViewMode.Day ? 'Day' as const :
               viewMode === ViewMode.Week ? 'Week' as const :
               viewMode === ViewMode.Month ? 'Month' as const : 'Day' as const,
   }), [viewOptions, viewMode]);
@@ -128,12 +121,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   // Apply critical path styling
   const styledTasks = useMemo(() => {
     if (!showCriticalPath || criticalPath.length === 0) return taskList;
-    
+
     return taskList.map(task => ({
       ...task,
       styles: {
         ...task.styles,
-        backgroundColor: criticalPath.includes(task.id) 
+        backgroundColor: criticalPath.includes(task.id)
           ? '#ef4444' // Red for critical path
           : task.styles?.backgroundColor,
       },
@@ -150,9 +143,9 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         if (onProjectUpdate) {
           onProjectUpdate(data);
         }
-        toast({
-          title: 'Project Updated',
-          description: 'The project has been updated in real-time.',
+        addToast({
+          message: 'The project has been updated in real-time.',
+          type: 'success',
         });
       }
     };
@@ -160,8 +153,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({
     const handleTaskUpdate = (data: any) => {
       if (data.projectId === project.id) {
         // Update specific task
-        setTasks(prevTasks => 
-          prevTasks.map(task => 
+        setTasks(prevTasks =>
+          prevTasks.map(task =>
             task.id === data.taskId ? { ...task, ...data.updates } : task
           )
         );
@@ -177,12 +170,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({
       socket.off('task:updated', handleTaskUpdate);
       socket.off('allocation:updated', handleTaskUpdate);
     };
-  }, [socket, project.id, onProjectUpdate, realTimeUpdates, toast]);
+  }, [socket, project.id, onProjectUpdate, realTimeUpdates, addToast]);
 
   // Task event handlers
   const handleTaskChange = useCallback(async (task: Task) => {
     if (readOnly) return;
-    
+
     setIsLoading(true);
     try {
       // Find the original Gantt task
@@ -199,7 +192,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
       };
 
       // Update local state
-      setTasks(prevTasks => 
+      setTasks(prevTasks =>
         prevTasks.map(t => t.id === task.id ? task : t)
       );
 
@@ -208,54 +201,52 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         await onTaskUpdate(updatedTask);
       }
 
-      toast({
-        title: 'Task Updated',
-        description: `Task "${task.name}" has been updated successfully.`,
+      addToast({
+        message: `Task "${task.name}" has been updated successfully.`,
+        type: 'success',
       });
     } catch (error) {
       console.error('Error updating task:', error);
-      toast({
-        title: 'Update Failed',
-        description: 'Failed to update the task. Please try again.',
-        variant: 'destructive',
+      addToast({
+        message: 'Failed to update the task. Please try again.',
+        type: 'error',
       });
     } finally {
       setIsLoading(false);
     }
-  }, [readOnly, ganttTasks, onTaskUpdate, toast]);
+  }, [readOnly, ganttTasks, onTaskUpdate, addToast]);
 
   const handleTaskDelete = useCallback(async (task: Task) => {
     if (readOnly) return;
-    
+
     setIsLoading(true);
     try {
       // Remove from local state
       setTasks(prevTasks => prevTasks.filter(t => t.id !== task.id));
-      
+
       // Notify parent component
       if (onTaskDelete) {
         await onTaskDelete(task.id);
       }
 
-      toast({
-        title: 'Task Deleted',
-        description: `Task "${task.name}" has been deleted.`,
+      addToast({
+        message: `Task "${task.name}" has been deleted.`,
+        type: 'success',
       });
     } catch (error) {
       console.error('Error deleting task:', error);
-      toast({
-        title: 'Delete Failed',
-        description: 'Failed to delete the task. Please try again.',
-        variant: 'destructive',
+      addToast({
+        message: 'Failed to delete the task. Please try again.',
+        type: 'error',
       });
     } finally {
       setIsLoading(false);
     }
-  }, [readOnly, onTaskDelete, toast]);
+  }, [readOnly, onTaskDelete, addToast]);
 
   const handleProgressChange = useCallback(async (task: Task) => {
     if (readOnly) return;
-    
+
     // Update task progress
     const updatedTask = { ...task };
     await handleTaskChange(updatedTask);
@@ -263,7 +254,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 
   const handleDoubleClick = useCallback((task: Task) => {
     if (readOnly) return;
-    
+
     setSelectedTask(task);
     setShowTaskEditor(true);
   }, [readOnly]);
@@ -279,7 +270,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   // Export functionality
   const handleExport = useCallback(async (format: 'pdf' | 'png' | 'svg') => {
     if (!ganttRef.current) return;
-    
+
     setIsLoading(true);
     try {
       await exportGanttChart(ganttRef.current, {
@@ -288,22 +279,21 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         title: project.name,
         author: project.manager?.name,
       });
-      
-      toast({
-        title: 'Export Successful',
-        description: `Gantt chart exported as ${format.toUpperCase()}.`,
+
+      addToast({
+        message: `Gantt chart exported as ${format.toUpperCase()}.`,
+        type: 'success',
       });
     } catch (error) {
       console.error('Export error:', error);
-      toast({
-        title: 'Export Failed',
-        description: 'Failed to export the Gantt chart. Please try again.',
-        variant: 'destructive',
+      addToast({
+        message: 'Failed to export the Gantt chart. Please try again.',
+        type: 'error',
       });
     } finally {
       setIsLoading(false);
     }
-  }, [project.name, project.manager?.name, toast]);
+  }, [project.name, project.manager?.name, addToast]);
 
   // View mode change handler
   const handleViewModeChange = useCallback((newViewMode: ViewMode) => {
@@ -357,11 +347,11 @@ export const GanttChart: React.FC<GanttChartProps> = ({
           readOnly={readOnly}
         />
       )}
-      
+
       <CardContent className="p-0">
-        <div 
+        <div
           ref={ganttRef}
-          style={{ 
+          style={{
             height: `${height}px`,
             transform: `scale(${zoomLevel / 100})`,
             transformOrigin: 'top left',
@@ -387,7 +377,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             arrowIndent={20}
             todayColor={mergedSettings.colors.today}
             TooltipContent={({ task, fontSize, fontFamily }) => (
-              <div 
+              <div
                 className="bg-white p-3 rounded-lg shadow-lg border max-w-xs"
                 style={{ fontSize, fontFamily }}
               >
@@ -403,16 +393,16 @@ export const GanttChart: React.FC<GanttChartProps> = ({
               </div>
             )}
             TaskListHeader={({ headerHeight, rowWidth, fontFamily, fontSize }) => (
-              <div 
+              <div
                 className="flex items-center px-4 bg-gray-50 border-b"
                 style={{ height: headerHeight, width: rowWidth, fontFamily, fontSize }}
               >
                 <div className="font-semibold text-gray-900">Task Name</div>
               </div>
             )}
-            TaskListTable={({ rowHeight, rowWidth, fontFamily, fontSize, locale, tasks, selectedTaskId, setSelectedTask, onExpanderClick }) => (
+            TaskListTable={({ rowHeight, rowWidth, fontFamily, fontSize, tasks, selectedTaskId, setSelectedTask, onExpanderClick }) => (
               <div>
-                {tasks.map((task, index) => (
+                {tasks.map((task) => (
                   <div
                     key={task.id}
                     className={`flex items-center px-4 border-b cursor-pointer hover:bg-gray-50 ${
@@ -427,7 +417,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                           className="w-4 h-4 mr-2 flex items-center justify-center text-gray-400 hover:text-gray-600"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onExpanderClick(task.id);
+                            onExpanderClick(task);
                           }}
                         >
                           {task.hideChildren ? '▶' : '▼'}

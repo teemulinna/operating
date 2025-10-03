@@ -50,9 +50,12 @@ export declare class WebSocketService {
     private checkForSelectionConflicts;
     private handleResourceAllocationUpdate;
     private handleDisconnect;
+    broadcast(event: string, data: any): void;
     broadcastResourceUpdate(data: ResourceAllocationUpdate): void;
     sendNotification(notification: any, targetUserId?: string): void;
     getActiveUsers(): UserPresence[];
     getUserCount(): number;
+    on(event: string, callback: (data: any) => void): void;
+    off(event: string, callback?: (data: any) => void): void;
 }
 //# sourceMappingURL=websocket.service.d.ts.map

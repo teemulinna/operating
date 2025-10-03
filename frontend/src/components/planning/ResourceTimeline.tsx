@@ -1,31 +1,20 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { format, addDays, startOfWeek, endOfWeek, parseISO, differenceInDays } from 'date-fns';
+import { format, addDays, parseISO, differenceInDays } from 'date-fns';
 import { AllocationService } from '../../services/allocationService';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Badge } from '../ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { cn } from '../../lib/utils';
 import { AlertTriangle, ZoomIn, ZoomOut } from 'lucide-react';
-import type { Allocation, Employee } from '../../services/api';
+import type { Employee } from '../../services/api';
+import type { Allocation, EmployeeUtilization as ImportedEmployeeUtilization } from '../../types/allocation';
 
-interface EmployeeUtilization {
-  employeeId: string;
-  name: string;
+// Extended Employee Utilization interface for timeline display
+interface TimelineEmployeeUtilization extends ImportedEmployeeUtilization {
   totalCapacity: number;
   totalAllocated: number;
-  utilizationRate: number;
-  allocations: Allocation[];
-}
-
-interface AllocationConflict {
-  employeeId: string;
-  date: string;
-  totalHours: number;
-  capacity: number;
-  conflicts: Allocation[];
 }
 
 interface ResourceTimelineProps {
@@ -51,21 +40,19 @@ interface DragItem {
 }
 
 interface TimelineData {
-  [employeeId: string]: EmployeeUtilization;
+  [employeeId: string]: TimelineEmployeeUtilization;
 }
 
 // Draggable Allocation Block
-const AllocationBlock = ({ 
-  allocation, 
-  employee, 
-  timelineWidth, 
-  startDate, 
+const AllocationBlock = ({
+  allocation,
+  employee,
+  startDate,
   endDate,
-  onAllocationClick 
+  onAllocationClick
 }: {
   allocation: Allocation;
   employee: Employee;
-  timelineWidth: number;
   startDate: string;
   endDate: string;
   onAllocationClick?: (allocation: Allocation) => void;
@@ -74,9 +61,9 @@ const AllocationBlock = ({
     type: 'allocation',
     item: {
       type: 'allocation',
-      allocationId: allocation.id,
-      originalStartDate: allocation.startDate,
-      originalEndDate: allocation.endDate,
+      allocationId: allocation.id?.toString() || '',
+      originalStartDate: allocation.startDate || '',
+      originalEndDate: allocation.endDate || '',
     } as DragItem,
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -86,8 +73,8 @@ const AllocationBlock = ({
   // Calculate position and width
   const timelineStart = parseISO(startDate);
   const timelineEnd = parseISO(endDate);
-  const allocationStart = parseISO(allocation.startDate);
-  const allocationEnd = parseISO(allocation.endDate);
+  const allocationStart = parseISO(allocation.startDate || startDate);
+  const allocationEnd = parseISO(allocation.endDate || endDate);
 
   const totalDays = differenceInDays(timelineEnd, timelineStart);
   const startOffset = Math.max(0, differenceInDays(allocationStart, timelineStart));
@@ -97,16 +84,21 @@ const AllocationBlock = ({
   const widthPercent = (duration / totalDays) * 100;
 
   // Calculate utilization percentage
-  const utilizationPercent = employee.weeklyCapacity > 0 ? 
-    Math.round((allocation.allocatedHours / employee.weeklyCapacity) * 100) : 0;
+  const weeklyCapacity = employee.weeklyCapacity || employee.capacity || 40;
+  const allocatedHours = allocation.allocatedHours || 0;
+  const utilizationPercent = weeklyCapacity > 0 ?
+    Math.round((allocatedHours / weeklyCapacity) * 100) : 0;
 
-  // Determine color based on project or utilization
+  // Determine color based on utilization
   const getBlockColor = () => {
     if (utilizationPercent > 100) return 'bg-red-500';
     if (utilizationPercent > 80) return 'bg-orange-500';
     if (utilizationPercent > 60) return 'bg-blue-500';
     return 'bg-green-500';
   };
+
+  // Get project name from allocation or use placeholder
+  const projectName = (allocation as any).projectName || 'Project';
 
   return (
     <div
@@ -125,10 +117,10 @@ const AllocationBlock = ({
       onClick={() => onAllocationClick?.(allocation)}
     >
       <div className="p-1 text-xs text-white font-medium overflow-hidden">
-        <div className="truncate">{allocation.projectName}</div>
+        <div className="truncate">{projectName}</div>
         <div className="text-white/80">{utilizationPercent}%</div>
       </div>
-      
+
       {/* Resize handles */}
       <div className="absolute left-0 top-0 w-1 h-full bg-white/30 cursor-ew-resize" />
       <div className="absolute right-0 top-0 w-1 h-full bg-white/30 cursor-ew-resize" />
@@ -137,20 +129,20 @@ const AllocationBlock = ({
 };
 
 // Employee Timeline Row
-const EmployeeTimelineRow = ({ 
-  employee, 
-  utilization, 
-  startDate, 
-  endDate, 
-  timeScale, 
-  showUtilizationBars, 
-  showAvailableCapacity, 
+const EmployeeTimelineRow = ({
+  employee,
+  utilization,
+  startDate,
+  endDate,
+  timeScale,
+  showUtilizationBars,
+  showAvailableCapacity,
   showConflicts,
   onAllocationClick,
-  projectFilter 
+  projectFilter
 }: {
   employee: Employee;
-  utilization: EmployeeUtilization;
+  utilization: TimelineEmployeeUtilization;
   startDate: string;
   endDate: string;
   timeScale: 'day' | 'week' | 'month';
@@ -170,11 +162,11 @@ const EmployeeTimelineRow = ({
 
   // Filter allocations by project if specified
   const filteredAllocations = utilization.allocations.filter(allocation =>
-    !projectFilter || allocation.projectId === projectFilter
+    !projectFilter || allocation.projectId?.toString() === projectFilter
   );
 
   return (
-    <div 
+    <div
       data-testid={`employee-timeline-${employee.id}`}
       className={cn(
         'border-b border-gray-200',
@@ -188,14 +180,14 @@ const EmployeeTimelineRow = ({
             <div className="font-medium">{employee.firstName} {employee.lastName}</div>
             <div className="text-sm text-gray-500">{employee.position}</div>
           </div>
-          
+
           {/* Utilization indicator */}
           {showUtilizationBars && (
             <div className="flex items-center gap-2">
               <div className="text-sm font-medium">
-                {utilization.utilizationRate}%
+                {Math.round(utilization.utilizationRate)}%
               </div>
-              <div 
+              <div
                 data-testid={`utilization-bar-${employee.id}`}
                 className="w-16 h-2 bg-gray-200 rounded"
               >
@@ -213,11 +205,11 @@ const EmployeeTimelineRow = ({
           )}
 
           {/* Overallocation warning */}
-          {utilization.overallocated && showConflicts && (
+          {utilization.overallocated && showConflicts && utilization.conflicts.length > 0 && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <AlertTriangle 
+                  <AlertTriangle
                     className="h-4 w-4 text-red-500"
                     data-testid={`overallocation-warning-${employee.id}`}
                   />
@@ -235,14 +227,14 @@ const EmployeeTimelineRow = ({
         </div>
 
         {/* Timeline */}
-        <div 
+        <div
           ref={drop}
           className="flex-1 relative min-h-[60px] bg-white"
           data-testid={`timeline-scale-${timeScale}`}
         >
           {/* Available capacity background */}
           {showAvailableCapacity && utilization.availableHours > 0 && (
-            <div 
+            <div
               className="absolute inset-0 bg-green-100 opacity-30"
               data-testid={`available-capacity-${employee.id}`}
             >
@@ -258,7 +250,6 @@ const EmployeeTimelineRow = ({
               key={allocation.id}
               allocation={allocation}
               employee={employee}
-              timelineWidth={800} // This would be calculated from container
               startDate={startDate}
               endDate={endDate}
               onAllocationClick={onAllocationClick}
@@ -270,7 +261,7 @@ const EmployeeTimelineRow = ({
             <TooltipProvider key={conflict.id}>
               <Tooltip>
                 <TooltipTrigger>
-                  <div 
+                  <div
                     className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"
                     data-testid={`conflict-indicator-${employee.id}`}
                   />
@@ -297,8 +288,6 @@ export const ResourceTimeline: React.FC<ResourceTimelineProps> = ({
   showAvailableCapacity = false,
   showConflicts = true,
   onAllocationClick,
-  onAllocationUpdated,
-  onTimeRangeChange,
   className,
 }) => {
   const [timelineData, setTimelineData] = useState<TimelineData>({});
@@ -311,7 +300,7 @@ export const ResourceTimeline: React.FC<ResourceTimelineProps> = ({
     const end = parseISO(endDate);
     const dates: Date[] = [];
     let current = start;
-    
+
     while (current <= end) {
       dates.push(new Date(current));
       if (currentTimeScale === 'day') {
@@ -322,7 +311,7 @@ export const ResourceTimeline: React.FC<ResourceTimelineProps> = ({
         current = addDays(current, 30); // Approximate month
       }
     }
-    
+
     return dates;
   }, [startDate, endDate, currentTimeScale]);
 
@@ -330,13 +319,46 @@ export const ResourceTimeline: React.FC<ResourceTimelineProps> = ({
   const loadTimelineData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const employeeIds = employees.map(e => e.id);
-      const utilization = await AllocationService.getMultipleEmployeeUtilization(
-        employeeIds,
-        startDate,
-        endDate
-      );
-      setTimelineData(utilization);
+      const utilizationData: TimelineData = {};
+
+      // Load utilization for each employee
+      for (const employee of employees) {
+        try {
+          // Get employee utilization data
+          const response = await AllocationService.getEmployeeUtilization(
+            employee.id,
+            startDate,
+            endDate
+          );
+
+          // Transform to timeline format
+          const weeklyCapacity = employee.weeklyCapacity || employee.capacity || 40;
+          utilizationData[employee.id] = {
+            ...response,
+            totalCapacity: weeklyCapacity,
+            totalAllocated: response.allocatedHours,
+          };
+        } catch (error) {
+          console.error(`Failed to load utilization for employee ${employee.id}:`, error);
+          // Provide default data on error
+          const weeklyCapacity = employee.weeklyCapacity || employee.capacity || 40;
+          utilizationData[employee.id] = {
+            employeeId: employee.id,
+            employeeName: `${employee.firstName} ${employee.lastName}`,
+            weeklyCapacity,
+            allocatedHours: 0,
+            availableHours: weeklyCapacity,
+            utilizationRate: 0,
+            overallocated: false,
+            conflicts: [],
+            allocations: [],
+            totalCapacity: weeklyCapacity,
+            totalAllocated: 0,
+          };
+        }
+      }
+
+      setTimelineData(utilizationData);
     } catch (error) {
       console.error('Failed to load timeline data:', error);
     } finally {
@@ -347,20 +369,6 @@ export const ResourceTimeline: React.FC<ResourceTimelineProps> = ({
   useEffect(() => {
     loadTimelineData();
   }, [loadTimelineData]);
-
-  // Handle allocation updates
-  const handleAllocationUpdated = useCallback(async (dragItem: DragItem, newEndDate: string) => {
-    try {
-      const result = await AllocationService.updateAllocation(dragItem.allocationId, {
-        endDate: newEndDate,
-      });
-      
-      onAllocationUpdated?.(result.allocation);
-      loadTimelineData();
-    } catch (error) {
-      console.error('Failed to update allocation:', error);
-    }
-  }, [onAllocationUpdated, loadTimelineData]);
 
   // Time scale controls
   const handleZoomIn = () => {
@@ -391,19 +399,15 @@ export const ResourceTimeline: React.FC<ResourceTimelineProps> = ({
             <CardTitle>Resource Timeline</CardTitle>
             <div className="flex items-center gap-2">
               {/* Time Scale Selector */}
-              <Select
+              <select
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm w-24"
                 value={currentTimeScale}
-                onValueChange={(value: 'day' | 'week' | 'month') => setCurrentTimeScale(value)}
+                onChange={(e) => setCurrentTimeScale(e.target.value as 'day' | 'week' | 'month')}
               >
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day">Day</SelectItem>
-                  <SelectItem value="week">Week</SelectItem>
-                  <SelectItem value="month">Month</SelectItem>
-                </SelectContent>
-              </Select>
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+                <option value="month">Month</option>
+              </select>
 
               {/* Zoom Controls */}
               <div className="flex items-center gap-1 border rounded">
@@ -435,7 +439,7 @@ export const ResourceTimeline: React.FC<ResourceTimelineProps> = ({
               <div className="w-48 p-3 border-r bg-gray-100 font-medium">
                 Employee
               </div>
-              <div 
+              <div
                 className="flex-1 flex overflow-x-auto"
                 data-testid="timeline-scroll-container"
               >
@@ -498,9 +502,9 @@ export const ResourceTimeline: React.FC<ResourceTimelineProps> = ({
                   <span>Over 100%</span>
                 </div>
               </div>
-              
+
               <div className="text-gray-600">
-                {employees.length} employees • 
+                {employees.length} employees •
                 {Object.values(timelineData).filter(u => u.overallocated).length} overallocated
               </div>
             </div>

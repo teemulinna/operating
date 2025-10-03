@@ -18,7 +18,7 @@ describe('Playwright Configuration Validation', () => {
   beforeAll(async () => {
     const configPath = path.resolve(__dirname, '../../playwright.config.ts')
     const packagePath = path.resolve(__dirname, '../../package.json')
-    
+
     configContent = await readFile(configPath, 'utf-8')
     packageJsonContent = await readFile(packagePath, 'utf-8')
   })
@@ -27,130 +27,97 @@ describe('Playwright Configuration Validation', () => {
     it('should use "chromium" as the standard project name, not "Desktop Chrome"', () => {
       // Should have a chromium project
       expect(configContent).toMatch(/name:\s*['"]chromium['"]/)
-      
+
       // Should not reference "Desktop Chrome" in project names
       expect(configContent).not.toMatch(/name:\s*['"]Desktop Chrome['"]/)
-      
+
       // Should use devices['Desktop Chrome'] for browser config only
       expect(configContent).toMatch(/devices\['Desktop Chrome'\]/)
     })
 
-    it('should have consistent PRD project naming', () => {
-      const expectedProjects = [
-        'PRD-Alex-Planner-Workflow',
-        'PRD-Business-Value', 
-        'PRD-Performance-Benchmark',
-        'PRD-CSV-Export',
-        'chromium',
-        'PRD-Critical'  // Fixed from "PRD Critical" (no space)
-      ]
+    it('should have consistent project naming (simplified config)', () => {
+      // Simplified config only has chromium project
+      expect(configContent).toMatch(/name:\s*['"]chromium['"]/)
 
-      expectedProjects.forEach(projectName => {
-        expect(configContent).toMatch(new RegExp(`name:\\s*['"]${projectName.replace(/[-\s]/g, '[-\\s]')}['"]`))
-      })
+      // Should not have spaces in any project names
+      expect(configContent).not.toMatch(/name:\s*['"][^'"]*\s[^'"]*['"]/)
     })
 
     it('should not have spaces in project names', () => {
-      // Check that "PRD Critical" is fixed to "PRD-Critical"
-      expect(configContent).not.toMatch(/name:\s*['"]PRD Critical['"]/)
-      expect(configContent).toMatch(/name:\s*['"]PRD-Critical['"]/)
+      // Verify no project names contain spaces
+      const projectNameMatches = configContent.match(/name:\s*['"]([^'"]+)['"]/g) || []
+      projectNameMatches.forEach(match => {
+        const name = match.match(/name:\s*['"]([^'"]+)['"]/)?.[1]
+        if (name) {
+          expect(name).not.toMatch(/\s/)
+        }
+      })
     })
   })
 
   describe('Project Configuration Completeness', () => {
-    it('should have proper testMatch patterns for PRD projects', () => {
-      const prdProjectPatterns = [
-        { project: 'PRD-Alex-Planner-Workflow', pattern: 'prd-validation-alex-planner.spec.ts' },
-        { project: 'PRD-Business-Value', pattern: 'business-value-validation.spec.ts' },
-        { project: 'PRD-Performance-Benchmark', pattern: 'performance-benchmark.spec.ts' },
-        { project: 'PRD-CSV-Export', pattern: 'csv-export-validation.spec.ts' },
-        { project: 'PRD-Critical', pattern: 'prd-critical-functionality.spec.ts' }
-      ]
+    it('should have chromium project configured', () => {
+      // Simplified config has single chromium project
+      expect(configContent).toMatch(/name:\s*['"]chromium['"]/)
 
-      prdProjectPatterns.forEach(({ project, pattern }) => {
-        expect(configContent).toMatch(new RegExp(`name:\\s*['"]${project}['"][\\s\\S]*?testMatch:\\s*['"][^'"]*${pattern}['"]`))
-      })
+      // Should use Desktop Chrome device
+      expect(configContent).toMatch(/devices\['Desktop Chrome'\]/)
     })
 
-    it('should have chromium project with proper testIgnore patterns', () => {
-      // Check for chromium project 
-      expect(configContent).toMatch(/name:\s*['"]chromium['"]/)  
-      
-      // Should have global testIgnore patterns that include non-e2e tests
-      expect(configContent).toMatch(/testIgnore:\s*\[/)
-      
-      // Should ignore integration and component tests at global level
-      const globalIgnoredPatterns = [
-        '**/integration/**',
-        '**/components/**',
-        '**/hooks/**',
-        '**/services/**'
-      ]
+    it('should have proper browser configuration', () => {
+      // Check for chromium project
+      expect(configContent).toMatch(/name:\s*['"]chromium['"]/)
 
-      globalIgnoredPatterns.forEach(pattern => {
-        const escapedPattern = pattern.replace(/\*/g, '\\*').replace(/\//g, '\\/')
-        expect(configContent).toMatch(new RegExp(`['"]${escapedPattern}['"]`))
-      })
-      
-      // Chromium project should have its own testIgnore for PRD tests (if present)
-      const prdIgnorePatterns = [
-        'prd-validation-*.spec.ts',
-        'business-value-*.spec.ts', 
-        'performance-*.spec.ts',
-        'csv-export-*.spec.ts'
-      ]
+      // Should have launch options configured
+      expect(configContent).toMatch(/launchOptions:\s*\{/)
 
-      // Check if chromium has project-level testIgnore
-      const chromiumProjectMatch = configContent.match(/name:\s*['"]chromium['"][^}]*}/s)
-      if (chromiumProjectMatch && chromiumProjectMatch[0].includes('testIgnore')) {
-        prdIgnorePatterns.forEach(pattern => {
-          expect(configContent).toMatch(new RegExp(`['"]\\*\\*/\\${pattern}['"]`))
-        })
-      }
-    })
-
-    it('should have consistent browser configuration', () => {
-      // All PRD projects should use Desktop Chrome device
-      const prdProjects = ['PRD-Alex-Planner-Workflow', 'PRD-Business-Value', 'PRD-Performance-Benchmark', 'PRD-CSV-Export']
-      
-      prdProjects.forEach(project => {
-        expect(configContent).toMatch(
-          new RegExp(`name:\\s*['"]${project}['"][\\s\\S]*?\\.\\.\\.devices\\['Desktop Chrome'\\]`)
-        )
-      })
+      // Should disable web security for testing
+      expect(configContent).toMatch(/--disable-web-security/)
     })
   })
 
   describe('Package.json Script Alignment', () => {
-    it('should have matching script names for all PRD projects', () => {
+    it('should have matching script names for E2E tests', () => {
       const packageJson = JSON.parse(packageJsonContent)
-      const scripts = packageJson.scripts
+      const scripts = packageJson.scripts || {}
 
-      // Verify PRD validation scripts exist and match project names
-      expect(scripts['prd-validation:alex']).toMatch(/PRD-Alex-Planner-Workflow/)
-      expect(scripts['prd-validation:business']).toMatch(/PRD-Business-Value/)
-      expect(scripts['prd-validation:performance']).toMatch(/PRD-Performance-Benchmark/)
-      expect(scripts['prd-validation:export']).toMatch(/PRD-CSV-Export/)
-      
-      // The "PRD Critical" should be fixed to "PRD-Critical" in scripts too
-      if (scripts['prd-validation:critical']) {
-        expect(scripts['prd-validation:critical']).toMatch(/PRD-Critical/)
-      }
+      // Verify basic Playwright scripts exist
+      const requiredScripts = [
+        'test:e2e',
+        'test:e2e:ui',
+        'test:e2e:headed'
+      ]
+
+      requiredScripts.forEach(scriptName => {
+        expect(scripts[scriptName]).toBeDefined()
+      })
     })
   })
 
   describe('Configuration Structure', () => {
     it('should have proper timeout configurations', () => {
-      expect(configContent).toMatch(/timeout:\s*15\s*\*\s*60\s*\*\s*1000/) // 15 minutes
-      expect(configContent).toMatch(/globalTimeout:\s*30\s*\*\s*60\s*\*\s*1000/) // 30 minutes
+      // Should have timeout configured
+      expect(configContent).toMatch(/timeout:\s*\d+/)
+
+      // Verify timeout is reasonable (30s - 10min)
+      const timeoutMatch = configContent.match(/timeout:\s*(\d+)/)
+      if (timeoutMatch) {
+        const timeout = parseInt(timeoutMatch[1])
+        expect(timeout).toBeGreaterThanOrEqual(30000) // At least 30 seconds
+        expect(timeout).toBeLessThanOrEqual(600000) // At most 10 minutes
+      }
     })
 
     it('should have proper reporter configuration', () => {
+      // Should have reporter array configured
       expect(configContent).toMatch(/reporter:\s*\[/)
-      expect(configContent).toMatch(/'line'/)
+
+      // Should include html reporter
       expect(configContent).toMatch(/'html'/)
-      expect(configContent).toMatch(/'json'/)
-      expect(configContent).toMatch(/'junit'/)
+
+      // Should include line or list reporter
+      const hasConsoleReporter = configContent.match(/'line'/) || configContent.match(/'list'/)
+      expect(hasConsoleReporter).toBeTruthy()
     })
 
     it('should have baseURL configured', () => {
@@ -159,9 +126,14 @@ describe('Playwright Configuration Validation', () => {
     })
 
     it('should have webServer configuration', () => {
-      expect(configContent).toMatch(/webServer:\s*{/)
+      // Should have web server configured
+      expect(configContent).toMatch(/webServer:\s*\{/)
+
+      // Should have command to start dev server
       expect(configContent).toMatch(/command:\s*['"]npm run dev['"]/)
-      expect(configContent).toMatch(/url:\s*['"]http:\/\/localhost:\d+['"]/)  // Port may vary
+
+      // Should have URL configured
+      expect(configContent).toMatch(/url:\s*['"]http:\/\/localhost:\d+['"]/)
     })
   })
 })

@@ -1,6 +1,4 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
 import { CapacityWarningIndicator } from '../ui/CapacityWarningIndicator';
 import { User, AlertTriangle, Clock } from 'lucide-react';
 import { OverAllocationSummary } from '../../services/over-allocation-calculation.service';

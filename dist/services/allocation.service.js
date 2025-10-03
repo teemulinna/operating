@@ -342,10 +342,11 @@ class AllocationService {
         }
     }
     static async checkOverAllocationWarnings(employeeId, startDate, endDate, allocatedHours) {
+        const warningService = new over_allocation_warning_service_1.OverAllocationWarningService();
         const warnings = [];
         const weeks = over_allocation_warning_service_1.OverAllocationWarningService['getWeeksBetween'](startDate, endDate);
         for (const week of weeks) {
-            const warning = await over_allocation_warning_service_1.OverAllocationWarningService.checkWeeklyOverAllocation(employeeId, week.weekStartDate, week.weekEndDate);
+            const warning = await warningService.checkWeeklyOverAllocation(employeeId, week.weekStartDate, week.weekEndDate);
             if (warning) {
                 warnings.push(warning);
             }
@@ -353,7 +354,8 @@ class AllocationService {
         return warnings;
     }
     static async getOverAllocationSummary(startDate, endDate) {
-        return over_allocation_warning_service_1.OverAllocationWarningService.getScheduleViewWarnings(startDate, endDate);
+        const warningService = new over_allocation_warning_service_1.OverAllocationWarningService();
+        return warningService.getScheduleViewWarnings(startDate, endDate);
     }
     static async exportAllocationsToCSV(options = {}) {
         const { AllocationCSVExportService } = await Promise.resolve().then(() => __importStar(require('./allocation-csv-export.service')));

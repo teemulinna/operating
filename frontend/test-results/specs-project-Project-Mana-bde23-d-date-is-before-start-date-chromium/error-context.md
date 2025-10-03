@@ -1,0 +1,532 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link "Dashboard" [ref=e5] [cursor=pointer]:
+      - /url: /
+    - link "Employees" [ref=e6] [cursor=pointer]:
+      - /url: /employees
+    - link "Projects" [ref=e7] [cursor=pointer]:
+      - /url: /projects
+    - link "Allocations" [ref=e8] [cursor=pointer]:
+      - /url: /allocations
+    - link "Schedule" [ref=e9] [cursor=pointer]:
+      - /url: /schedule
+    - link "Enhanced Schedule" [ref=e10] [cursor=pointer]:
+      - /url: /enhanced-schedule
+    - link "Reports" [ref=e11] [cursor=pointer]:
+      - /url: /reports
+    - link "Planning" [ref=e12] [cursor=pointer]:
+      - /url: /planning
+    - link "Heat Map" [ref=e13] [cursor=pointer]:
+      - /url: /heat-map
+    - link "Availability" [ref=e14] [cursor=pointer]:
+      - /url: /availability
+    - link "What-If" [ref=e15] [cursor=pointer]:
+      - /url: /scenarios
+    - link "Team" [ref=e16] [cursor=pointer]:
+      - /url: /team-dashboard
+  - main [ref=e17]:
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - heading "Projects" [level=1] [ref=e21]
+        - button "Add Project" [ref=e22] [cursor=pointer]:
+          - img [ref=e23] [cursor=pointer]
+          - text: Add Project
+      - generic [ref=e25]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - heading "Valid Budget Rate 1759261188667" [level=3] [ref=e30]
+            - generic [ref=e31]:
+              - button "Edit project" [ref=e32] [cursor=pointer]:
+                - img [ref=e33] [cursor=pointer]
+              - button "Delete project" [ref=e35] [cursor=pointer]:
+                - img [ref=e36] [cursor=pointer]
+          - generic [ref=e38]:
+            - generic [ref=e39]: Active
+            - generic [ref=e40]: High
+          - generic [ref=e41]:
+            - img [ref=e42]
+            - generic [ref=e44]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: "Budget:"
+              - generic [ref=e48]: $100,000
+            - generic [ref=e50]:
+              - generic [ref=e51]: "Progress:"
+              - generic [ref=e52]: 76%
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: "Team:"
+              - generic [ref=e59]: 0 members
+            - generic [ref=e60]:
+              - generic [ref=e61]: "Roles:"
+              - generic [ref=e62]: 0/0
+          - generic [ref=e63]: 88 days remaining
+        - generic [ref=e65]:
+          - generic [ref=e66]:
+            - heading "Negative Rate 1759261188663" [level=3] [ref=e68]
+            - generic [ref=e69]:
+              - button "Edit project" [ref=e70] [cursor=pointer]:
+                - img [ref=e71] [cursor=pointer]
+              - button "Delete project" [ref=e73] [cursor=pointer]:
+                - img [ref=e74] [cursor=pointer]
+          - generic [ref=e76]:
+            - generic [ref=e77]: Active
+            - generic [ref=e78]: High
+          - generic [ref=e79]:
+            - img [ref=e80]
+            - generic [ref=e82]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - generic [ref=e85]: "Budget:"
+              - generic [ref=e86]: $100,000
+            - generic [ref=e88]:
+              - generic [ref=e89]: "Progress:"
+              - generic [ref=e90]: 76%
+          - generic [ref=e94]:
+            - generic [ref=e95]:
+              - generic [ref=e96]: "Team:"
+              - generic [ref=e97]: 0 members
+            - generic [ref=e98]:
+              - generic [ref=e99]: "Roles:"
+              - generic [ref=e100]: 0/0
+          - generic [ref=e101]: 88 days remaining
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - heading "Allocation Test Project 1759261188153" [level=3] [ref=e106]
+            - generic [ref=e107]:
+              - button "Edit project" [ref=e108] [cursor=pointer]:
+                - img [ref=e109] [cursor=pointer]
+              - button "Delete project" [ref=e111] [cursor=pointer]:
+                - img [ref=e112] [cursor=pointer]
+          - generic [ref=e114]:
+            - generic [ref=e115]: Active
+            - generic [ref=e116]: High
+          - generic [ref=e117]:
+            - img [ref=e118]
+            - generic [ref=e120]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e121]:
+            - generic [ref=e122]:
+              - generic [ref=e123]: "Budget:"
+              - generic [ref=e124]: $100,000
+            - generic [ref=e126]:
+              - generic [ref=e127]: "Progress:"
+              - generic [ref=e128]: 76%
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]: "Team:"
+              - generic [ref=e135]: 0 members
+            - generic [ref=e136]:
+              - generic [ref=e137]: "Roles:"
+              - generic [ref=e138]: 0/0
+          - generic [ref=e139]: 88 days remaining
+        - generic [ref=e141]:
+          - generic [ref=e142]:
+            - heading "Allocation Test Project 1759261188141" [level=3] [ref=e144]
+            - generic [ref=e145]:
+              - button "Edit project" [ref=e146] [cursor=pointer]:
+                - img [ref=e147] [cursor=pointer]
+              - button "Delete project" [ref=e149] [cursor=pointer]:
+                - img [ref=e150] [cursor=pointer]
+          - generic [ref=e152]:
+            - generic [ref=e153]: Active
+            - generic [ref=e154]: High
+          - generic [ref=e155]:
+            - img [ref=e156]
+            - generic [ref=e158]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e159]:
+            - generic [ref=e160]:
+              - generic [ref=e161]: "Budget:"
+              - generic [ref=e162]: $100,000
+            - generic [ref=e164]:
+              - generic [ref=e165]: "Progress:"
+              - generic [ref=e166]: 76%
+          - generic [ref=e170]:
+            - generic [ref=e171]:
+              - generic [ref=e172]: "Team:"
+              - generic [ref=e173]: 0 members
+            - generic [ref=e174]:
+              - generic [ref=e175]: "Roles:"
+              - generic [ref=e176]: 0/0
+          - generic [ref=e177]: 88 days remaining
+        - generic [ref=e179]:
+          - generic [ref=e180]:
+            - heading "Allocation Test Project 1759261188114" [level=3] [ref=e182]
+            - generic [ref=e183]:
+              - button "Edit project" [ref=e184] [cursor=pointer]:
+                - img [ref=e185] [cursor=pointer]
+              - button "Delete project" [ref=e187] [cursor=pointer]:
+                - img [ref=e188] [cursor=pointer]
+          - generic [ref=e190]:
+            - generic [ref=e191]: Active
+            - generic [ref=e192]: High
+          - generic [ref=e193]:
+            - img [ref=e194]
+            - generic [ref=e196]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - generic [ref=e199]: "Budget:"
+              - generic [ref=e200]: $100,000
+            - generic [ref=e202]:
+              - generic [ref=e203]: "Progress:"
+              - generic [ref=e204]: 76%
+          - generic [ref=e208]:
+            - generic [ref=e209]:
+              - generic [ref=e210]: "Team:"
+              - generic [ref=e211]: 0 members
+            - generic [ref=e212]:
+              - generic [ref=e213]: "Roles:"
+              - generic [ref=e214]: 0/0
+          - generic [ref=e215]: 88 days remaining
+        - generic [ref=e217]:
+          - generic [ref=e218]:
+            - heading "Allocation Test Project 1759261188096" [level=3] [ref=e220]
+            - generic [ref=e221]:
+              - button "Edit project" [ref=e222] [cursor=pointer]:
+                - img [ref=e223] [cursor=pointer]
+              - button "Delete project" [ref=e225] [cursor=pointer]:
+                - img [ref=e226] [cursor=pointer]
+          - generic [ref=e228]:
+            - generic [ref=e229]: Active
+            - generic [ref=e230]: High
+          - generic [ref=e231]:
+            - img [ref=e232]
+            - generic [ref=e234]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e235]:
+            - generic [ref=e236]:
+              - generic [ref=e237]: "Budget:"
+              - generic [ref=e238]: $100,000
+            - generic [ref=e240]:
+              - generic [ref=e241]: "Progress:"
+              - generic [ref=e242]: 76%
+          - generic [ref=e246]:
+            - generic [ref=e247]:
+              - generic [ref=e248]: "Team:"
+              - generic [ref=e249]: 0 members
+            - generic [ref=e250]:
+              - generic [ref=e251]: "Roles:"
+              - generic [ref=e252]: 0/0
+          - generic [ref=e253]: 88 days remaining
+        - generic [ref=e255]:
+          - generic [ref=e256]:
+            - heading "Valid Priority 1759261188094" [level=3] [ref=e258]
+            - generic [ref=e259]:
+              - button "Edit project" [ref=e260] [cursor=pointer]:
+                - img [ref=e261] [cursor=pointer]
+              - button "Delete project" [ref=e263] [cursor=pointer]:
+                - img [ref=e264] [cursor=pointer]
+          - generic [ref=e266]:
+            - generic [ref=e267]: Active
+            - generic [ref=e268]: High
+          - generic [ref=e269]:
+            - img [ref=e270]
+            - generic [ref=e272]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e273]:
+            - generic [ref=e274]:
+              - generic [ref=e275]: "Budget:"
+              - generic [ref=e276]: $100,000
+            - generic [ref=e278]:
+              - generic [ref=e279]: "Progress:"
+              - generic [ref=e280]: 76%
+          - generic [ref=e284]:
+            - generic [ref=e285]:
+              - generic [ref=e286]: "Team:"
+              - generic [ref=e287]: 0 members
+            - generic [ref=e288]:
+              - generic [ref=e289]: "Roles:"
+              - generic [ref=e290]: 0/0
+          - generic [ref=e291]: 88 days remaining
+        - generic [ref=e293]:
+          - generic [ref=e294]:
+            - heading "Valid Budget Rate 1759261188075" [level=3] [ref=e296]
+            - generic [ref=e297]:
+              - button "Edit project" [ref=e298] [cursor=pointer]:
+                - img [ref=e299] [cursor=pointer]
+              - button "Delete project" [ref=e301] [cursor=pointer]:
+                - img [ref=e302] [cursor=pointer]
+          - generic [ref=e304]:
+            - generic [ref=e305]: Active
+            - generic [ref=e306]: High
+          - generic [ref=e307]:
+            - img [ref=e308]
+            - generic [ref=e310]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e311]:
+            - generic [ref=e312]:
+              - generic [ref=e313]: "Budget:"
+              - generic [ref=e314]: $100,000
+            - generic [ref=e316]:
+              - generic [ref=e317]: "Progress:"
+              - generic [ref=e318]: 76%
+          - generic [ref=e322]:
+            - generic [ref=e323]:
+              - generic [ref=e324]: "Team:"
+              - generic [ref=e325]: 0 members
+            - generic [ref=e326]:
+              - generic [ref=e327]: "Roles:"
+              - generic [ref=e328]: 0/0
+          - generic [ref=e329]: 88 days remaining
+        - generic [ref=e331]:
+          - generic [ref=e332]:
+            - heading "Valid Status 1759261188069" [level=3] [ref=e334]
+            - generic [ref=e335]:
+              - button "Edit project" [ref=e336] [cursor=pointer]:
+                - img [ref=e337] [cursor=pointer]
+              - button "Delete project" [ref=e339] [cursor=pointer]:
+                - img [ref=e340] [cursor=pointer]
+          - generic [ref=e342]:
+            - generic [ref=e343]: Active
+            - generic [ref=e344]: High
+          - generic [ref=e345]:
+            - img [ref=e346]
+            - generic [ref=e348]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e349]:
+            - generic [ref=e350]:
+              - generic [ref=e351]: "Budget:"
+              - generic [ref=e352]: $100,000
+            - generic [ref=e354]:
+              - generic [ref=e355]: "Progress:"
+              - generic [ref=e356]: 76%
+          - generic [ref=e360]:
+            - generic [ref=e361]:
+              - generic [ref=e362]: "Team:"
+              - generic [ref=e363]: 0 members
+            - generic [ref=e364]:
+              - generic [ref=e365]: "Roles:"
+              - generic [ref=e366]: 0/0
+          - generic [ref=e367]: 88 days remaining
+        - generic [ref=e369]:
+          - generic [ref=e370]:
+            - heading "Negative Rate 1759261188064" [level=3] [ref=e372]
+            - generic [ref=e373]:
+              - button "Edit project" [ref=e374] [cursor=pointer]:
+                - img [ref=e375] [cursor=pointer]
+              - button "Delete project" [ref=e377] [cursor=pointer]:
+                - img [ref=e378] [cursor=pointer]
+          - generic [ref=e380]:
+            - generic [ref=e381]: Active
+            - generic [ref=e382]: High
+          - generic [ref=e383]:
+            - img [ref=e384]
+            - generic [ref=e386]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e387]:
+            - generic [ref=e388]:
+              - generic [ref=e389]: "Budget:"
+              - generic [ref=e390]: $100,000
+            - generic [ref=e392]:
+              - generic [ref=e393]: "Progress:"
+              - generic [ref=e394]: 76%
+          - generic [ref=e398]:
+            - generic [ref=e399]:
+              - generic [ref=e400]: "Team:"
+              - generic [ref=e401]: 0 members
+            - generic [ref=e402]:
+              - generic [ref=e403]: "Roles:"
+              - generic [ref=e404]: 0/0
+          - generic [ref=e405]: 88 days remaining
+        - generic [ref=e407]:
+          - generic [ref=e408]:
+            - heading "Valid Dates 1759261188054" [level=3] [ref=e410]
+            - generic [ref=e411]:
+              - button "Edit project" [ref=e412] [cursor=pointer]:
+                - img [ref=e413] [cursor=pointer]
+              - button "Delete project" [ref=e415] [cursor=pointer]:
+                - img [ref=e416] [cursor=pointer]
+          - generic [ref=e418]:
+            - generic [ref=e419]: Active
+            - generic [ref=e420]: High
+          - generic [ref=e421]:
+            - img [ref=e422]
+            - generic [ref=e424]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e425]:
+            - generic [ref=e426]:
+              - generic [ref=e427]: "Budget:"
+              - generic [ref=e428]: $100,000
+            - generic [ref=e430]:
+              - generic [ref=e431]: "Progress:"
+              - generic [ref=e432]: 76%
+          - generic [ref=e436]:
+            - generic [ref=e437]:
+              - generic [ref=e438]: "Team:"
+              - generic [ref=e439]: 0 members
+            - generic [ref=e440]:
+              - generic [ref=e441]: "Roles:"
+              - generic [ref=e442]: 0/0
+          - generic [ref=e443]: 88 days remaining
+        - generic [ref=e445]:
+          - generic [ref=e446]:
+            - heading "API Test Project" [level=3] [ref=e448]
+            - generic [ref=e449]:
+              - button "Edit project" [ref=e450] [cursor=pointer]:
+                - img [ref=e451] [cursor=pointer]
+              - button "Delete project" [ref=e453] [cursor=pointer]:
+                - img [ref=e454] [cursor=pointer]
+          - paragraph [ref=e456]: Testing project creation
+          - generic [ref=e457]:
+            - generic [ref=e458]: Planning
+            - generic [ref=e459]: Medium
+          - generic [ref=e460]:
+            - img [ref=e461]
+            - generic [ref=e463]: Jan 1, 2025 - Dec 31, 2025
+          - generic [ref=e466]:
+            - generic [ref=e467]: "Progress:"
+            - generic [ref=e468]: 76%
+          - generic [ref=e472]:
+            - generic [ref=e473]:
+              - generic [ref=e474]: "Team:"
+              - generic [ref=e475]: 0 members
+            - generic [ref=e476]:
+              - generic [ref=e477]: "Roles:"
+              - generic [ref=e478]: 0/0
+          - generic [ref=e479]: 88 days remaining
+        - generic [ref=e481]:
+          - generic [ref=e482]:
+            - generic [ref=e483]:
+              - heading "API Integration Platform" [level=3] [ref=e484]
+              - generic [ref=e485]:
+                - img [ref=e486]
+                - generic [ref=e488]: DataSync Solutions
+            - generic [ref=e489]:
+              - button "Edit project" [ref=e490] [cursor=pointer]:
+                - img [ref=e491] [cursor=pointer]
+              - button "Delete project" [ref=e493] [cursor=pointer]:
+                - img [ref=e494] [cursor=pointer]
+          - paragraph [ref=e496]: Build RESTful API platform for third-party integrations
+          - generic [ref=e497]:
+            - generic [ref=e498]: Active
+            - generic [ref=e499]: Medium
+          - generic [ref=e500]:
+            - img [ref=e501]
+            - generic [ref=e503]: Jan 15, 2025 - May 15, 2025
+          - generic [ref=e504]:
+            - generic [ref=e505]:
+              - generic [ref=e506]: "Budget:"
+              - generic [ref=e507]: $120,000
+            - generic [ref=e509]:
+              - generic [ref=e510]: "Progress:"
+              - generic [ref=e511]: 100%
+          - generic [ref=e515]:
+            - generic [ref=e516]:
+              - generic [ref=e517]: "Team:"
+              - generic [ref=e518]: 3 members
+            - generic [ref=e519]:
+              - generic [ref=e520]: "Roles:"
+              - generic [ref=e521]: 0/0
+          - generic [ref=e522]:
+            - generic [ref=e523]: "⚠️ Overdue:"
+            - text: This project has passed its end date.
+        - generic [ref=e525]:
+          - generic [ref=e526]:
+            - generic [ref=e527]:
+              - heading "Mobile App Development" [level=3] [ref=e528]
+              - generic [ref=e529]:
+                - img [ref=e530]
+                - generic [ref=e532]: RetailMax
+            - generic [ref=e533]:
+              - button "Edit project" [ref=e534] [cursor=pointer]:
+                - img [ref=e535] [cursor=pointer]
+              - button "Delete project" [ref=e537] [cursor=pointer]:
+                - img [ref=e538] [cursor=pointer]
+          - paragraph [ref=e540]: Native iOS and Android app for customer portal
+          - generic [ref=e541]:
+            - generic [ref=e542]: Active
+            - generic [ref=e543]: High
+          - generic [ref=e544]:
+            - img [ref=e545]
+            - generic [ref=e547]: Feb 1, 2025 - Aug 31, 2025
+          - generic [ref=e548]:
+            - generic [ref=e549]:
+              - generic [ref=e550]: "Budget:"
+              - generic [ref=e551]: $250,000
+            - generic [ref=e553]:
+              - generic [ref=e554]: "Progress:"
+              - generic [ref=e555]: 100%
+          - generic [ref=e559]:
+            - generic [ref=e560]:
+              - generic [ref=e561]: "Team:"
+              - generic [ref=e562]: 3 members
+            - generic [ref=e563]:
+              - generic [ref=e564]: "Roles:"
+              - generic [ref=e565]: 0/0
+          - generic [ref=e566]:
+            - generic [ref=e567]: "⚠️ Overdue:"
+            - text: This project has passed its end date.
+        - generic [ref=e569]:
+          - generic [ref=e570]:
+            - generic [ref=e571]:
+              - heading "Website Redesign" [level=3] [ref=e572]
+              - generic [ref=e573]:
+                - img [ref=e574]
+                - generic [ref=e576]: TechCorp Inc
+            - generic [ref=e577]:
+              - button "Edit project" [ref=e578] [cursor=pointer]:
+                - img [ref=e579] [cursor=pointer]
+              - button "Delete project" [ref=e581] [cursor=pointer]:
+                - img [ref=e582] [cursor=pointer]
+          - paragraph [ref=e584]: Complete redesign of company website with modern UI/UX
+          - generic [ref=e585]:
+            - generic [ref=e586]: Active
+            - generic [ref=e587]: High
+          - generic [ref=e588]:
+            - img [ref=e589]
+            - generic [ref=e591]: Jan 1, 2025 - Jun 30, 2025
+          - generic [ref=e592]:
+            - generic [ref=e593]:
+              - generic [ref=e594]: "Budget:"
+              - generic [ref=e595]: $150,000
+            - generic [ref=e597]:
+              - generic [ref=e598]: "Progress:"
+              - generic [ref=e599]: 100%
+          - generic [ref=e603]:
+            - generic [ref=e604]:
+              - generic [ref=e605]: "Team:"
+              - generic [ref=e606]: 3 members
+            - generic [ref=e607]:
+              - generic [ref=e608]: "Roles:"
+              - generic [ref=e609]: 0/0
+          - generic [ref=e610]:
+            - generic [ref=e611]: "⚠️ Overdue:"
+            - text: This project has passed its end date.
+      - paragraph [ref=e613]: "Total: 15 projects"
+      - dialog "Add Project" [ref=e614]:
+        - generic [ref=e616]:
+          - heading "Add Project" [level=2] [ref=e617]
+          - generic [ref=e618]:
+            - generic [ref=e619]:
+              - generic [ref=e620]: Project Name *
+              - textbox "Project Name *" [active] [ref=e621]
+            - generic [ref=e622]:
+              - generic [ref=e623]: Description
+              - textbox "Description" [ref=e624]
+            - generic [ref=e625]:
+              - generic [ref=e626]: Client
+              - textbox "Client" [ref=e627]
+            - generic [ref=e628]:
+              - generic [ref=e629]: Start Date *
+              - textbox "Start Date *" [ref=e630]: 2025-10-02
+            - generic [ref=e631]:
+              - generic [ref=e632]: End Date *
+              - textbox "End Date *" [ref=e633]
+            - generic [ref=e634]:
+              - generic [ref=e635]: Budget
+              - spinbutton "Budget" [ref=e636]
+            - generic [ref=e637]:
+              - generic [ref=e638]: Status
+              - combobox "Status" [ref=e639]:
+                - option "Planning" [selected]
+                - option "Active"
+                - option "On Hold"
+                - option "Completed"
+                - option "Cancelled"
+            - generic [ref=e640]:
+              - generic [ref=e641]: Priority
+              - combobox "Priority" [ref=e642]:
+                - option "Low"
+                - option "Medium" [selected]
+                - option "High"
+                - option "Critical"
+            - generic [ref=e643]:
+              - button "Cancel" [ref=e644] [cursor=pointer]
+              - button "Create Project" [ref=e645] [cursor=pointer]
+```

@@ -493,21 +493,22 @@ export class AllocationService {
     allocatedHours: number
   ): Promise<OverAllocationWarning[]> {
     // Get weeks that overlap with the allocation period
+    const warningService = new OverAllocationWarningService();
     const warnings: OverAllocationWarning[] = [];
-    const weeks = OverAllocationWarningService['getWeeksBetween'](startDate, endDate);
-    
+    const weeks = (OverAllocationWarningService as any)['getWeeksBetween'](startDate, endDate);
+
     for (const week of weeks) {
-      const warning = await OverAllocationWarningService.checkWeeklyOverAllocation(
+      const warning = await warningService.checkWeeklyOverAllocation(
         employeeId,
         week.weekStartDate,
         week.weekEndDate
       );
-      
+
       if (warning) {
         warnings.push(warning);
       }
     }
-    
+
     return warnings;
   }
 
@@ -518,7 +519,8 @@ export class AllocationService {
     startDate: Date,
     endDate: Date
   ) {
-    return OverAllocationWarningService.getScheduleViewWarnings(startDate, endDate);
+    const warningService = new OverAllocationWarningService();
+    return warningService.getScheduleViewWarnings(startDate, endDate);
   }
 
   /**

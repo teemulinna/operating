@@ -7,16 +7,28 @@ const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:3001/api';
 describe('API-Database Integration Tests', () => {
   let dbPool: Pool;
   let testEmployeeId: string;
+  let engineeringDeptId: string;
 
   beforeAll(async () => {
-    // Setup database connection
+    // Setup database connection - USE REAL PRODUCTION DATABASE
     dbPool = new Pool({
-      user: process.env.TEST_DB_USER || 'postgres',
-      host: process.env.TEST_DB_HOST || 'localhost',
-      database: process.env.TEST_DB_NAME || 'employee_management_test',
-      password: process.env.TEST_DB_PASSWORD || 'password',
-      port: parseInt(process.env.TEST_DB_PORT || '5432'),
+      user: process.env.DB_USER || 'teemulinna',
+      host: process.env.DB_HOST || 'localhost',
+      database: process.env.DB_NAME || 'employee_management',
+      password: process.env.DB_PASS || '',
+      port: parseInt(process.env.DB_PORT || '5432'),
     });
+
+    // Get real Engineering department ID from database
+    const deptResult = await dbPool.query(
+      'SELECT id FROM departments WHERE name = $1',
+      ['Engineering']
+    );
+    engineeringDeptId = deptResult.rows[0]?.id;
+
+    if (!engineeringDeptId) {
+      throw new Error('Engineering department not found in database. Database must have departments seeded.');
+    }
 
     // Ensure clean test environment
     await dbPool.query('DELETE FROM employees WHERE email LIKE \'%test-integration%\'');
@@ -41,12 +53,11 @@ describe('API-Database Integration Tests', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'john.doe.test-integration@example.com',
-        phoneNumber: '+1-555-0101',
         position: 'Software Engineer',
-        department: 'Engineering',
+        departmentId: engineeringDeptId,
+        weeklyCapacity: 40,
         salary: 75000,
-        hireDate: '2023-01-15',
-        status: 'active'
+        hireDate: '2023-01-15'
       };
 
       // Create employee via API

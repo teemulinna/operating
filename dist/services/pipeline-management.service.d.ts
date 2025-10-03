@@ -40,5 +40,6 @@ export declare class PipelineManagementService {
         stageDistribution: Record<string, number>;
     }>;
     private camelToSnake;
+    private calculateAverageCycleTime;
 }
 //# sourceMappingURL=pipeline-management.service.d.ts.map

@@ -1,12 +1,12 @@
 // Core CRUD Hooks
 export { useToastManager } from './useToastManager';
-export type { ToastState } from './useToastManager';
+export type { UseToastManagerReturn, Toast } from './useToastManager';
 
 export { useCrudOperations } from './useCrudOperations';
-export type { CrudState, CrudOperations, CrudConfig } from './useCrudOperations';
+export type { CrudState, UseCrudOperationsReturn, CrudOperationConfig } from './useCrudOperations';
 
 export { useModalManager } from './useModalManager';
-export type { ModalState, ModalManager } from './useModalManager';
+export type { ModalState, UseModalManagerReturn } from './useModalManager';
 
 export { useApiData } from './useApiData';
 export type { ApiDataState, ApiDataManager, ApiDataConfig } from './useApiData';

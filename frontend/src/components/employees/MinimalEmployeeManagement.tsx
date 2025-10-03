@@ -282,8 +282,8 @@ export default function MinimalEmployeeManagement() {
         skills: formData.skills.split(',').map(s => s.trim()).filter(Boolean),
         status: 'active'
       });
-      
-      setEmployees(prev => [...prev, newEmployee]);
+
+      setEmployees((prev: Employee[]) => [...prev, newEmployee as Employee]);
       setDialogOpen(false);
     } catch (err) {
       const error = err as ServiceError;

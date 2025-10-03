@@ -15,6 +15,7 @@ const skill_routes_1 = require("./routes/skill.routes");
 const capacity_routes_1 = require("./routes/capacity.routes");
 const resource_routes_1 = __importDefault(require("./routes/resource.routes"));
 const project_routes_1 = require("./routes/project.routes");
+const dashboard_routes_1 = __importDefault(require("./routes/dashboard.routes"));
 const allocation_routes_1 = __importDefault(require("./routes/allocation.routes"));
 const allocation_direct_routes_1 = __importDefault(require("./routes/allocation-direct.routes"));
 const allocation_csv_routes_1 = __importDefault(require("./routes/allocation-csv.routes"));
@@ -26,6 +27,7 @@ const skill_matching_routes_1 = __importDefault(require("./routes/skill-matching
 const skills_matching_routes_1 = __importDefault(require("./routes/skills-matching.routes"));
 const forecasting_routes_1 = __importDefault(require("./routes/forecasting.routes"));
 const exportRoutes_1 = require("./routes/exportRoutes");
+const availability_routes_1 = __importDefault(require("./routes/availability.routes"));
 const analytics_routes_1 = __importDefault(require("./routes/analytics.routes"));
 const reporting_routes_1 = __importDefault(require("./routes/reporting.routes"));
 const allocation_templates_routes_1 = __importDefault(require("./routes/allocation-templates.routes"));
@@ -100,6 +102,7 @@ app.get('/api', (_req, res) => {
             projects: '/api/projects',
             allocations: '/api/allocations',
             allocation_templates: '/api/allocation-templates',
+            availability: '/api/availability',
             analytics: '/api/analytics',
             pipeline: '/api/pipeline',
             scenarios: '/api/scenarios',
@@ -153,11 +156,18 @@ app.get('/api', (_req, res) => {
             'Built-in Industry Templates',
             'Template Customization and Preview',
             'Template Rating and Community Features',
-            'Quick Project Creation from Templates'
+            'Quick Project Creation from Templates',
+            'Availability Pattern Management',
+            'Weekly/Biweekly/Monthly/Custom Patterns',
+            'Holiday Calendar Integration',
+            'Exception Handling for Leave/Training',
+            'Effective Availability Calculation',
+            'Availability Analytics and Forecasting'
         ]
     });
 });
 console.log('🔓 Authentication disabled for development environment');
+app.use('/api/dashboard', dashboard_routes_1.default);
 app.use('/api/employees', employee_routes_1.employeeRoutes);
 app.use('/api/departments', department_routes_1.departmentRoutes);
 app.use('/api/skills', skill_routes_1.skillRoutes);
@@ -170,6 +180,7 @@ app.use('/api/allocations', allocation_direct_routes_1.default);
 app.use('/api/allocations/export', allocation_csv_routes_1.default);
 app.use('/api/working-allocations', working_allocations_routes_1.default);
 app.use('/api/allocation-templates', allocation_templates_routes_1.default);
+app.use('/api/availability', availability_routes_1.default);
 app.use('/api/analytics', analytics_routes_1.default);
 app.use('/api/reporting', reporting_routes_1.default);
 app.use('/api/notifications', notification_routes_1.default);
@@ -186,7 +197,7 @@ app.use('*', (req, res) => {
     res.status(404).json({
         error: 'Route not found',
         message: `The requested route ${req.originalUrl} does not exist`,
-        availableRoutes: ['/api/employees', '/api/departments', '/api/skills', '/api/capacity', '/api/resources', '/api/projects', '/api/pipeline', '/api/allocations', '/api/analytics', '/api/reporting', '/api/notifications', '/api/scenarios', '/api/forecasting', '/api/ml-optimization', '/api/optimization', '/api/matching', '/api/budgets', '/api/templates', '/api/tasks', '/api/dependencies']
+        availableRoutes: ['/api/employees', '/api/departments', '/api/skills', '/api/capacity', '/api/resources', '/api/projects', '/api/pipeline', '/api/allocations', '/api/availability', '/api/analytics', '/api/reporting', '/api/notifications', '/api/scenarios', '/api/forecasting', '/api/ml-optimization', '/api/optimization', '/api/matching', '/api/budgets', '/api/templates', '/api/tasks', '/api/dependencies']
     });
 });
 app.use(error_handler_1.errorHandler);

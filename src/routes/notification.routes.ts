@@ -1,17 +1,4 @@
 import { Router, Request, Response } from 'express';
-
-// Extend Request interface to include user property
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email?: string;
-        role?: string;
-      };
-    }
-  }
-}
 import { NotificationController } from '../controllers/notification.controller';
 import { SlackService } from '../services/slack.service';
 import { PushService } from '../services/push.service';

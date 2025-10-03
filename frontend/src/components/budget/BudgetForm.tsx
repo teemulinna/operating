@@ -6,12 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Plus, AlertCircle } from 'lucide-react';
+import { Trash2, AlertCircle } from 'lucide-react';
 
 const budgetSchema = z.object({
   projectId: z.number(),
@@ -20,7 +20,7 @@ const budgetSchema = z.object({
   status: z.enum(['draft', 'approved', 'active', 'completed', 'overbudget', 'cancelled']).default('draft'),
   contingencyPercentage: z.number().min(0).max(100).default(10),
   notes: z.string().optional(),
-  costCategories: z.record(z.object({
+  costCategories: z.record(z.string(), z.object({
     budgeted: z.number().min(0),
     allocated: z.number().min(0).default(0),
     spent: z.number().min(0).default(0),
@@ -29,6 +29,13 @@ const budgetSchema = z.object({
 });
 
 type BudgetFormData = z.infer<typeof budgetSchema>;
+
+interface CategoryData {
+  budgeted: number;
+  allocated: number;
+  spent: number;
+  committed: number;
+}
 
 const COST_CATEGORIES = [
   { value: 'labor', label: 'Labor' },
@@ -59,7 +66,7 @@ const BUDGET_STATUSES = [
 
 interface BudgetFormProps {
   projectId: number;
-  initialData?: Partial<BudgetFormData>;
+  initialData?: Partial<BudgetFormData> & { id?: number };
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -72,7 +79,7 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [costCategories, setCostCategories] = useState<{[key: string]: {budgeted: number}}>(
+  const [costCategories, setCostCategories] = useState<Record<string, CategoryData>>(
     initialData?.costCategories || {
       labor: { budgeted: 0, allocated: 0, spent: 0, committed: 0 },
       overhead: { budgeted: 0, allocated: 0, spent: 0, committed: 0 }
@@ -232,17 +239,12 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
                     name="currency"
                     control={control}
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CURRENCIES.map((currency) => (
-                            <SelectItem key={currency.value} value={currency.value}>
-                              {currency.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
+                      <Select {...field}>
+                        {CURRENCIES.map((currency) => (
+                          <option key={currency.value} value={currency.value}>
+                            {currency.label}
+                          </option>
+                        ))}
                       </Select>
                     )}
                   />
@@ -254,17 +256,12 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
                     name="status"
                     control={control}
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {BUDGET_STATUSES.map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              {status.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
+                      <Select {...field}>
+                        {BUDGET_STATUSES.map((status) => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        ))}
                       </Select>
                     )}
                   />
@@ -300,17 +297,22 @@ export const BudgetForm: React.FC<BudgetFormProps> = ({
             <TabsContent value="categories" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Cost Categories</h3>
-                <Select onValueChange={addCostCategory}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Add category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COST_CATEGORIES.filter(cat => !costCategories[cat.value]).map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <Select
+                  className="w-[200px]"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      addCostCategory(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
+                  defaultValue=""
+                >
+                  <option value="">Add category</option>
+                  {COST_CATEGORIES.filter(cat => !costCategories[cat.value]).map((category) => (
+                    <option key={category.value} value={category.value}>
+                      {category.label}
+                    </option>
+                  ))}
                 </Select>
               </div>
 

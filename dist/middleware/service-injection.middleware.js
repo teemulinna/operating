@@ -41,12 +41,26 @@ const serviceInjectionMiddleware = async (req, res, next) => {
             const { initializeAppServices } = await Promise.resolve().then(() => __importStar(require('../app')));
             await initializeAppServices();
         }
+        const databaseService = service_registration_1.Services.database();
+        const cacheService = service_registration_1.Services.cache();
+        const websocketService = service_registration_1.Services.websocket();
+        const availabilityPatternService = service_registration_1.Services.availabilityPattern();
         req.services = {
-            database: service_registration_1.Services.database(),
+            database: databaseService,
             department: service_registration_1.Services.department(),
             employee: service_registration_1.Services.employee(),
             skill: service_registration_1.Services.skill(),
             allocation: service_registration_1.Services.allocation(),
+            cache: cacheService,
+            websocket: websocketService,
+            availabilityPattern: availabilityPatternService,
+            scenarioPlanner: service_registration_1.Services.scenarioPlanner(),
+            resourceAnalytics: service_registration_1.Services.resourceAnalytics(),
+            heatMap: service_registration_1.Services.heatMap(),
+            db: databaseService.getPool(),
+            cacheService: cacheService,
+            wsService: websocketService,
+            availabilityService: availabilityPatternService,
         };
         next();
     }

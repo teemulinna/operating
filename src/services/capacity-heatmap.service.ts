@@ -159,7 +159,7 @@ export class CapacityHeatmapService {
       return heatmapData;
     } catch (error) {
       logger.error('Error getting heatmap data:', error);
-      throw new ApiError('Failed to retrieve heatmap data', 500);
+      throw new ApiError(500, 'Failed to retrieve heatmap data');
     }
   }
 
@@ -212,7 +212,7 @@ export class CapacityHeatmapService {
       }));
     } catch (error) {
       logger.error('Error getting bottlenecks:', error);
-      throw new ApiError('Failed to retrieve capacity bottlenecks', 500);
+      throw new ApiError(500, 'Failed to retrieve capacity bottlenecks');
     }
   }
 
@@ -278,7 +278,7 @@ export class CapacityHeatmapService {
       }));
     } catch (error) {
       logger.error('Error getting capacity trends:', error);
-      throw new ApiError('Failed to retrieve capacity trends', 500);
+      throw new ApiError(500, 'Failed to retrieve capacity trends');
     }
   }
 
@@ -319,7 +319,7 @@ export class CapacityHeatmapService {
       return csv;
     } catch (error) {
       logger.error('Error exporting heatmap to CSV:', error);
-      throw new ApiError('Failed to export heatmap data', 500);
+      throw new ApiError(500, 'Failed to export heatmap data');
     }
   }
 
@@ -343,7 +343,7 @@ export class CapacityHeatmapService {
       });
     } catch (error) {
       logger.error('Error refreshing heatmap views:', error);
-      throw new ApiError('Failed to refresh heatmap views', 500);
+      throw new ApiError(500, 'Failed to refresh heatmap views');
     }
   }
 
@@ -382,7 +382,7 @@ export class CapacityHeatmapService {
       const result = await this.db.query(query, [departmentId, targetDate]);
 
       if (result.rows.length === 0) {
-        throw new ApiError('Department summary not found', 404);
+        throw new ApiError(404, 'Department summary not found');
       }
 
       return result.rows[0];

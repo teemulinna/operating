@@ -240,7 +240,7 @@ export class SkillsManagementService {
     return result.rows.map(this.mapEmployeeSkillWithSkill);
   }
 
-  async updateEmployeeSkill(employeeId: string, updates: {
+  async updateEmployeeSkill(employeeId: string, skillId: string, updates: {
     proficiencyLevel?: number;
     certificationLevel?: string;
     yearsOfExperience?: number;

@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Select } from '../ui/select';
-import { Textarea } from '../ui/textarea';
 import { Loader2 } from 'lucide-react';
 
 interface EmployeeFormData {
@@ -268,9 +266,6 @@ export function EmployeeForm({ onSubmit, onCancel, isSubmitting, initialData }: 
       {/* Department */}
       <div>
         <Label htmlFor="departmentId">Department *</Label>
-        {console.log('Render - departmentsLoading:', departmentsLoading)}
-        {console.log('Render - departments:', departments)}
-        {console.log('Render - departments length:', departments.length)}
         {departmentsLoading ? (
           <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
             <Loader2 className="h-4 w-4 animate-spin inline mr-2" />

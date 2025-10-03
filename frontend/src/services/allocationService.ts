@@ -12,7 +12,6 @@ import type {
   EmployeeUtilization,
   ProjectTeamAllocation,
   ConflictResolution,
-  ApiError,
 } from '@/types/allocation';
 import { transformApiAllocation, transformToApiRequest } from '@/types/allocation';
 

@@ -62,8 +62,8 @@ class OverAllocationCalculationService {
     const severity = this.calculateSeverity(maxUtilizationRate, hasOverAllocation);
 
     // Generate warnings and suggestions
-    const warnings = this.generateWarnings(weeklyData, weeklyCapacity);
-    const suggestions = this.generateSuggestions(weeklyData, weeklyCapacity);
+    const warnings = this.generateWarnings(weeklyData);
+    const suggestions = this.generateSuggestions(weeklyData);
 
     return {
       employeeId,
@@ -231,7 +231,7 @@ class OverAllocationCalculationService {
   /**
    * Generate warning messages
    */
-  private generateWarnings(weeklyData: WeeklyAllocation[], weeklyCapacity: number): string[] {
+  private generateWarnings(weeklyData: WeeklyAllocation[]): string[] {
     const warnings: string[] = [];
     const overAllocatedWeeks = weeklyData.filter(week => week.isOverAllocated);
 
@@ -270,7 +270,7 @@ class OverAllocationCalculationService {
   /**
    * Generate resolution suggestions
    */
-  private generateSuggestions(weeklyData: WeeklyAllocation[], weeklyCapacity: number): string[] {
+  private generateSuggestions(weeklyData: WeeklyAllocation[]): string[] {
     const suggestions: string[] = [];
     const overAllocatedWeeks = weeklyData.filter(week => week.isOverAllocated);
 

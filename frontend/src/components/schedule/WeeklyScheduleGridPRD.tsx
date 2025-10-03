@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { format, addWeeks, startOfWeek, endOfWeek, eachWeekOfInterval, isSameWeek } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { ChevronLeft, ChevronRight, Calendar, Plus, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, AlertTriangle } from 'lucide-react';
 import { apiService, Employee, Project, Allocation, ServiceError } from '../../services/api';
 
 interface CellData {
@@ -195,7 +195,7 @@ const WeeklyScheduleGrid: React.FC = () => {
                           {cellData.allocations.length > 0 ? (
                             <div className="space-y-1">
                               {cellData.allocations.map(alloc => {
-                                const project = getProject(alloc.projectId);
+                                const project = getProject(Number(alloc.projectId));
                                 return (
                                   <div
                                     key={alloc.id}

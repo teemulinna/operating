@@ -41,7 +41,7 @@ export declare class AllocationService {
     private validateAllocationInput;
     private validateBusinessRules;
     static checkOverAllocationWarnings(employeeId: string, startDate: Date, endDate: Date, allocatedHours: number): Promise<OverAllocationWarning[]>;
-    static getOverAllocationSummary(startDate: Date, endDate: Date): Promise<any>;
+    static getOverAllocationSummary(startDate: Date, endDate: Date): Promise<import("../types").OverAllocationSummary>;
     static exportAllocationsToCSV(options?: {
         startDate?: Date;
         endDate?: Date;

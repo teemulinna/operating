@@ -180,10 +180,7 @@ router.get('/projects/:id', (0, express_validator_1.param)('id').isUUID().withMe
 });
 router.put('/projects/:id', (0, express_validator_1.param)('id').isUUID().withMessage('Project ID must be a valid UUID'), updatePipelineProjectValidation, validate_middleware_1.handleValidationErrors, async (req, res) => {
     try {
-        const project = await pipelineService.updatePipelineProject({
-            id: req.params.id,
-            ...req.body
-        });
+        const project = await pipelineService.updatePipelineProject(req.params.id, req.body);
         res.json({
             success: true,
             data: project,

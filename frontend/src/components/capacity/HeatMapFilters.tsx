@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { Input } from '../ui/input';
@@ -130,7 +130,7 @@ export const HeatMapFilters: React.FC<HeatMapFiltersProps> = ({
             <Label htmlFor="department">Department</Label>
             <Select
               value={selectedDepartment || 'all'}
-              onValueChange={handleDepartmentChange}
+              onChange={(e) => handleDepartmentChange(e.target.value)}
             >
               <SelectTrigger id="department">
                 <SelectValue placeholder="Select department" />

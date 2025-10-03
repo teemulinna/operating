@@ -35,6 +35,33 @@ export interface MultiProjectAssignment {
     createdAt: string;
     updatedAt: string;
 }
+export interface AssignmentOptions {
+    employees: Array<{
+        id: string;
+        skills: string[];
+        availability: number;
+    }>;
+    projects: Array<{
+        id: number;
+        requiredSkills: string[];
+        duration: number;
+    }>;
+    constraints: {
+        minSkillMatch: number;
+        maxUtilization: number;
+        maxProjectsPerEmployee?: number;
+    };
+}
+export interface Assignment {
+    employeeId: string;
+    projectId: number;
+    allocationPercentage: number;
+}
+export interface AssignmentResult {
+    assignments: Assignment[];
+    totalUtilization: number;
+    conflicts: any[];
+}
 export interface EmployeeUtilization {
     employeeId: string;
     employeeName: string;
@@ -63,7 +90,7 @@ export declare class MultiProjectAssignmentService {
         status?: string;
         startDate?: string;
         endDate?: string;
-        employeeId: string;
+        employeeId?: string;
         projectId?: number;
     }): Promise<MultiProjectAssignment[]>;
     getEmployeeUtilization(employeeId: string): Promise<EmployeeUtilization>;

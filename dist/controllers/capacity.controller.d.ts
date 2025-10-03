@@ -14,5 +14,11 @@ export declare class CapacityController {
     static updateEmployeeCapacity: (req: Request, res: Response, next: NextFunction) => void;
     static bulkImportCapacity: (req: Request, res: Response, next: NextFunction) => void;
     static exportCapacityCSV: (req: Request, res: Response, next: NextFunction) => void;
+    static getHeatmap: (req: Request, res: Response, next: NextFunction) => void;
+    static getBottlenecks: (req: Request, res: Response, next: NextFunction) => void;
+    static getCapacityTrends: (req: Request, res: Response, next: NextFunction) => void;
+    static exportHeatmapCSV: (req: Request, res: Response, next: NextFunction) => void;
+    static refreshHeatmapViews: (req: Request, res: Response, next: NextFunction) => void;
+    static getDepartmentCapacitySummary: (req: Request, res: Response, next: NextFunction) => void;
 }
 //# sourceMappingURL=capacity.controller.d.ts.map

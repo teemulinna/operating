@@ -1,7 +1,8 @@
 // Resource Allocation Types
+import { Employee } from './api';
 
 export type AllocationStatus = 'active' | 'planned' | 'completed' | 'cancelled';
-export type ConflictType = 'time_overlap' | 'overallocation' | 'availability' | 'skill_mismatch';
+export type ConflictType = 'time_overlap' | 'overallocation' | 'availability' | 'skill_mismatch' | 'capacity_exceeded';
 
 // API Response Allocation (matches backend)
 export interface ApiAllocation {
@@ -54,6 +55,7 @@ export interface AllocationConflict {
   type: ConflictType;
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
+  message?: string; // Optional message for UI display (alias/complement to description)
   affectedAllocations: string[]; // Allocation IDs
   suggestedResolution?: string;
   canAutoResolve: boolean;
@@ -102,6 +104,16 @@ export interface CreateAllocationRequest {
   // Conflict checking options
   checkConflicts?: boolean;
   forceCreate?: boolean; // Create even if conflicts exist
+}
+
+// Time slot for scheduler grid
+export interface TimeSlot {
+  date: string;
+  isWeekend: boolean;
+  isToday: boolean;
+  isHoliday?: boolean; // Optional holiday flag
+  totalCapacity?: number; // Total capacity for this time slot
+  totalAllocated?: number; // Total allocated hours for this slot
 }
 
 export interface UpdateAllocationRequest extends Partial<CreateAllocationRequest> {
@@ -167,15 +179,66 @@ export interface CalendarDay {
   allocations: Allocation[];
 }
 
-export interface DragDropAllocation {
-  allocationId: string;
+// Drag-drop allocation interface (extends Allocation with drag-specific properties)
+export interface DragDropAllocation extends Allocation {
+  // Core allocation properties inherited from Allocation:
+  // id, employeeId, projectId, startDate, endDate, allocatedHours,
+  // role, status, notes, isActive, createdAt, updatedAt,
+  // employeeName, projectName, clientName, duration, totalHours, isOverdue, isUpcoming
+
+  // Drag-drop specific properties
+  allocationId: string; // Alias for id (for backward compatibility)
+  originalStartDate: string; // Original start date before drag
+  originalEndDate: string; // Original end date before drag
+  newStartDate: string; // New start date after drag
+  newEndDate: string; // New end date after drag
+
+  // Additional properties commonly needed in drag-drop context
+  hours: number; // Alias for allocatedHours
+  billableRate?: number; // Optional billable rate
+}
+
+// Resource lane for drag-drop scheduler
+export interface ResourceLane {
+  id: string;
   employeeId: string;
-  projectId: string;
-  originalStartDate: string;
-  originalEndDate: string;
-  newStartDate: string;
-  newEndDate: string;
-  allocatedHours: number;
+  employeeName: string;
+  employee: Employee; // Full employee object
+  capacity: number;
+  allocations: DragDropAllocation[];
+  utilization: number;
+}
+
+// Undo/Redo state for allocation operations
+export interface UndoRedoState {
+  past: AllocationOperation[];
+  future: AllocationOperation[];
+  canUndo: boolean;
+  canRedo: boolean;
+}
+
+// Single allocation operation for undo/redo
+export interface AllocationOperation {
+  type: 'create' | 'update' | 'delete' | 'move';
+  allocation: DragDropAllocation;
+  previousState?: DragDropAllocation;
+  timestamp: number;
+}
+
+// Selection state for multi-select allocations
+export interface SelectionState {
+  selectedIds: string[];
+  isMultiSelect: boolean;
+  lastSelectedId: string | null;
+}
+
+// Validation result for drag-drop operations
+export interface DropValidationResult {
+  isValid: boolean;
+  conflicts: AllocationConflict[];
+  warnings: string[];
+  canProceed: boolean;
+  affectedAllocations?: string[];
 }
 
 // Timeline view types

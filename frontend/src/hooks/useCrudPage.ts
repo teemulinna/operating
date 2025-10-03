@@ -1,24 +1,8 @@
 import { useEffect } from 'react';
-import { useToastManager } from './useToastManager';
-import { useCrudOperations, CrudOperations, CrudConfig } from './useCrudOperations';
-import { useModalManager, ModalManager } from './useModalManager';
+import { useToastManager, UseToastManagerReturn } from './useToastManager';
+import { useCrudOperations, UseCrudOperationsReturn, CrudOperationConfig } from './useCrudOperations';
+import { useModalManager, UseModalManagerReturn } from './useModalManager';
 import { useFormValidation, FormValidationManager, ValidationRule } from './useFormValidation';
-import { parseServerErrors, ValidationError } from '../components/ui/ValidationErrorDisplay';
-
-// Define ToastManager type locally since it's not exported
-export interface ToastManager {
-  showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning', duration?: number) => void;
-  hideToast: () => void;
-  showSuccess: (message: string) => void;
-  showError: (message: string) => void;
-  showInfo: (message: string) => void;
-  showWarning: (message: string) => void;
-  toast: {
-    message: string;
-    type: 'success' | 'error' | 'info' | 'warning';
-    isVisible: boolean;
-  };
-}
 
 export interface CrudPageConfig<T> {
   endpoint: string;
@@ -27,23 +11,23 @@ export interface CrudPageConfig<T> {
   autoFetch?: boolean;
 }
 
-export interface CrudPageManager<T> extends CrudOperations<T> {
-  toast: ToastManager;
-  modal: ModalManager<T>;
+export interface CrudPageManager<T> extends UseCrudOperationsReturn<T> {
+  toast: UseToastManagerReturn;
+  modal: UseModalManagerReturn<T>;
   validation: FormValidationManager<T>;
-  
+
   // Integrated operations that handle all concerns
   handleCreate: (formData: Partial<T>) => Promise<void>;
   handleUpdate: (id: string | number, formData: Partial<T>) => Promise<void>;
   handleDelete: (id: string | number) => Promise<void>;
-  
+
   // Form helpers
   openCreateForm: () => void;
   openEditForm: (item: T) => void;
   closeForm: () => void;
   submitForm: (formData: Partial<T>) => Promise<void>;
-  
-  // Delete helpers  
+
+  // Delete helpers
   openDeleteConfirmation: (item: T) => void;
   closeDeleteConfirmation: () => void;
   confirmDelete: () => Promise<void>;
@@ -51,21 +35,21 @@ export interface CrudPageManager<T> extends CrudOperations<T> {
 
 /**
  * Master hook that combines all CRUD-related hooks for maximum code reuse
- * 
+ *
  * This is the ultimate solution for eliminating code duplication across
  * EmployeePage, ProjectPage, AllocationsPage, and similar CRUD pages.
  * It provides a complete, integrated solution with:
  * - CRUD operations with optimistic updates
  * - Toast notifications
- * - Modal state management  
+ * - Modal state management
  * - Form validation
  * - Error handling
  * - Loading states
- * 
+ *
  * @template T - The type of items being managed
  * @param config - Configuration for endpoints, validation, and behavior
  * @returns Comprehensive CrudPageManager with all functionality
- * 
+ *
  * @example
  * ```tsx
  * interface Employee {
@@ -74,13 +58,13 @@ export interface CrudPageManager<T> extends CrudOperations<T> {
  *   lastName: string;
  *   email: string;
  * }
- * 
+ *
  * const employeeValidationRules: ValidationRule<Employee>[] = [
  *   { field: 'firstName', required: true, minLength: 2 },
  *   { field: 'lastName', required: true, minLength: 2 },
  *   { field: 'email', required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ }
  * ];
- * 
+ *
  * function EmployeePage() {
  *   const {
  *     state: { items: employees, loading },
@@ -98,7 +82,7 @@ export interface CrudPageManager<T> extends CrudOperations<T> {
  *     validationRules: employeeValidationRules,
  *     optimisticUpdates: true
  *   });
- * 
+ *
  *   // Now the component is dramatically simplified - just render!
  * ```
  */
@@ -113,10 +97,9 @@ export function useCrudPage<T extends { id: string | number }>(
   const validation = useFormValidation<T>();
 
   // Configure CRUD operations with error handling
-  const crudConfig: CrudConfig = {
+  const crudConfig: CrudOperationConfig = {
     optimisticUpdates,
-    parseServerErrors,
-    onError: (error, operation) => {
+    onError: (error: Error, operation: string) => {
       let message = error.message;
       switch (operation) {
         case 'create':
@@ -171,7 +154,7 @@ export function useCrudPage<T extends { id: string | number }>(
     }
 
     const { editingItem } = modal.state;
-    
+
     try {
       if (editingItem) {
         await handleUpdate(editingItem.id, formData);
@@ -209,13 +192,13 @@ export function useCrudPage<T extends { id: string | number }>(
 
   // Enhanced CRUD operations with integrated feedback
   const handleCreate = async (formData: Partial<T>) => {
-    await crud.createItem(endpoint, formData, (newItem) => {
+    await crud.createItem(endpoint, formData, () => {
       toast.showToast('Item created successfully', 'success');
     });
   };
 
   const handleUpdate = async (id: string | number, formData: Partial<T>) => {
-    await crud.updateItem(endpoint, id, formData, (updatedItem) => {
+    await crud.updateItem(endpoint, id, formData, () => {
       toast.showToast('Item updated successfully', 'success');
     });
   };
@@ -229,23 +212,23 @@ export function useCrudPage<T extends { id: string | number }>(
   return {
     // Expose all CRUD functionality
     ...crud,
-    
+
     // Expose sub-managers
     toast,
     modal,
     validation,
-    
+
     // Integrated operations
     handleCreate,
     handleUpdate,
     handleDelete,
-    
+
     // Form helpers
     openCreateForm,
     openEditForm,
     closeForm,
     submitForm,
-    
+
     // Delete helpers
     openDeleteConfirmation,
     closeDeleteConfirmation,

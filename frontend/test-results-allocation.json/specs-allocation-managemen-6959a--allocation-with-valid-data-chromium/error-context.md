@@ -1,0 +1,354 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link "Dashboard" [ref=e5] [cursor=pointer]:
+      - /url: /
+    - link "Employees" [ref=e6] [cursor=pointer]:
+      - /url: /employees
+    - link "Projects" [ref=e7] [cursor=pointer]:
+      - /url: /projects
+    - link "Allocations" [ref=e8] [cursor=pointer]:
+      - /url: /allocations
+    - link "Schedule" [ref=e9] [cursor=pointer]:
+      - /url: /schedule
+    - link "Enhanced Schedule" [ref=e10] [cursor=pointer]:
+      - /url: /enhanced-schedule
+    - link "Reports" [ref=e11] [cursor=pointer]:
+      - /url: /reports
+    - link "Planning" [ref=e12] [cursor=pointer]:
+      - /url: /planning
+    - link "Heat Map" [ref=e13] [cursor=pointer]:
+      - /url: /heat-map
+    - link "Availability" [ref=e14] [cursor=pointer]:
+      - /url: /availability
+    - link "What-If" [ref=e15] [cursor=pointer]:
+      - /url: /scenarios
+    - link "Team" [ref=e16] [cursor=pointer]:
+      - /url: /team-dashboard
+  - main [ref=e17]:
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - heading "Resource Allocations" [level=1] [ref=e22]
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - button "List" [ref=e25] [cursor=pointer]
+            - button "Timeline" [ref=e26] [cursor=pointer]
+          - button "Add Allocation" [ref=e27] [cursor=pointer]
+      - generic [ref=e28]:
+        - list [ref=e29]:
+          - listitem [ref=e30]:
+            - generic [ref=e31]:
+              - generic [ref=e34]:
+                - generic [ref=e35]:
+                  - generic [ref=e37]: DB
+                  - generic [ref=e38]:
+                    - paragraph [ref=e39]: David Brown
+                    - paragraph
+                - paragraph [ref=e40]: "Project: Unknown Project"
+                - generic [ref=e41]:
+                  - generic [ref=e42]:
+                    - img [ref=e43]
+                    - generic [ref=e45]: 20h/week
+                  - generic [ref=e46]:
+                    - img [ref=e47]
+                    - generic [ref=e49]: 10/7/2025 - 11/6/2025
+                  - generic [ref=e50]: Pending
+                - generic [ref=e51]:
+                  - img [ref=e52]
+                  - generic [ref=e54]: "Role: Team Member"
+                - paragraph [ref=e56]: "\"Test allocation created by E2E test\""
+              - generic [ref=e57]:
+                - button "Edit" [ref=e58] [cursor=pointer]
+                - button "Delete" [ref=e59] [cursor=pointer]
+          - listitem [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e64]:
+                - generic [ref=e65]:
+                  - generic [ref=e67]: DB
+                  - generic [ref=e68]:
+                    - paragraph [ref=e69]: David Brown
+                    - paragraph
+                - paragraph [ref=e70]: "Project: Unknown Project"
+                - generic [ref=e71]:
+                  - generic [ref=e72]:
+                    - img [ref=e73]
+                    - generic [ref=e75]: 8h/week
+                  - generic [ref=e76]:
+                    - img [ref=e77]
+                    - generic [ref=e79]: 10/1/2025 - 10/31/2025
+                  - generic [ref=e80]: Pending
+                - generic [ref=e81]:
+                  - img [ref=e82]
+                  - generic [ref=e84]: "Role: Team Member"
+              - generic [ref=e85]:
+                - button "Edit" [ref=e86] [cursor=pointer]
+                - button "Delete" [ref=e87] [cursor=pointer]
+          - listitem [ref=e88]:
+            - generic [ref=e89]:
+              - generic [ref=e92]:
+                - generic [ref=e93]:
+                  - generic [ref=e95]: MJ
+                  - generic [ref=e96]:
+                    - paragraph [ref=e97]: Mike Johnson
+                    - paragraph
+                - paragraph [ref=e98]: "Project: Unknown Project"
+                - generic [ref=e99]:
+                  - generic [ref=e100]:
+                    - img [ref=e101]
+                    - generic [ref=e103]: 6h/week
+                  - generic [ref=e104]:
+                    - img [ref=e105]
+                    - generic [ref=e107]: 2/1/2025 - 8/31/2025
+                  - generic [ref=e108]: Pending
+                - generic [ref=e109]:
+                  - img [ref=e110]
+                  - generic [ref=e112]: "Role: Team Member"
+              - generic [ref=e113]:
+                - button "Edit" [ref=e114] [cursor=pointer]
+                - button "Delete" [ref=e115] [cursor=pointer]
+          - listitem [ref=e116]:
+            - generic [ref=e117]:
+              - generic [ref=e120]:
+                - generic [ref=e121]:
+                  - generic [ref=e123]: RM
+                  - generic [ref=e124]:
+                    - paragraph [ref=e125]: Robert Miller
+                    - paragraph
+                - paragraph [ref=e126]: "Project: Unknown Project"
+                - generic [ref=e127]:
+                  - generic [ref=e128]:
+                    - img [ref=e129]
+                    - generic [ref=e131]: 10h/week
+                  - generic [ref=e132]:
+                    - img [ref=e133]
+                    - generic [ref=e135]: 2/1/2025 - 8/31/2025
+                  - generic [ref=e136]: Pending
+                - generic [ref=e137]:
+                  - img [ref=e138]
+                  - generic [ref=e140]: "Role: Team Member"
+              - generic [ref=e141]:
+                - button "Edit" [ref=e142] [cursor=pointer]
+                - button "Delete" [ref=e143] [cursor=pointer]
+          - listitem [ref=e144]:
+            - generic [ref=e145]:
+              - generic [ref=e148]:
+                - generic [ref=e149]:
+                  - generic [ref=e151]: DB
+                  - generic [ref=e152]:
+                    - paragraph [ref=e153]: David Brown
+                    - paragraph
+                - paragraph [ref=e154]: "Project: Unknown Project"
+                - generic [ref=e155]:
+                  - generic [ref=e156]:
+                    - img [ref=e157]
+                    - generic [ref=e159]: 15h/week
+                  - generic [ref=e160]:
+                    - img [ref=e161]
+                    - generic [ref=e163]: 2/1/2025 - 8/31/2025
+                  - generic [ref=e164]: Pending
+                - generic [ref=e165]:
+                  - img [ref=e166]
+                  - generic [ref=e168]: "Role: Team Member"
+              - generic [ref=e169]:
+                - button "Edit" [ref=e170] [cursor=pointer]
+                - button "Delete" [ref=e171] [cursor=pointer]
+          - listitem [ref=e172]:
+            - generic [ref=e173]:
+              - generic [ref=e176]:
+                - generic [ref=e177]:
+                  - generic [ref=e179]: RM
+                  - generic [ref=e180]:
+                    - paragraph [ref=e181]: Robert Miller
+                    - paragraph
+                - paragraph [ref=e182]: "Project: Unknown Project"
+                - generic [ref=e183]:
+                  - generic [ref=e184]:
+                    - img [ref=e185]
+                    - generic [ref=e187]: 25h/week
+                  - generic [ref=e188]:
+                    - img [ref=e189]
+                    - generic [ref=e191]: 1/15/2025 - 5/15/2025
+                  - generic [ref=e192]: Pending
+                - generic [ref=e193]:
+                  - img [ref=e194]
+                  - generic [ref=e196]: "Role: Team Member"
+              - generic [ref=e197]:
+                - button "Edit" [ref=e198] [cursor=pointer]
+                - button "Delete" [ref=e199] [cursor=pointer]
+          - listitem [ref=e200]:
+            - generic [ref=e201]:
+              - generic [ref=e204]:
+                - generic [ref=e205]:
+                  - generic [ref=e207]: TE
+                  - generic [ref=e208]:
+                    - paragraph [ref=e209]: Test Employee
+                    - paragraph
+                - paragraph [ref=e210]: "Project: Unknown Project"
+                - generic [ref=e211]:
+                  - generic [ref=e212]:
+                    - img [ref=e213]
+                    - generic [ref=e215]: 35h/week
+                  - generic [ref=e216]:
+                    - img [ref=e217]
+                    - generic [ref=e219]: 1/15/2025 - 5/15/2025
+                  - generic [ref=e220]: Pending
+                - generic [ref=e221]:
+                  - img [ref=e222]
+                  - generic [ref=e224]: "Role: Team Member"
+              - generic [ref=e225]:
+                - button "Edit" [ref=e226] [cursor=pointer]
+                - button "Delete" [ref=e227] [cursor=pointer]
+          - listitem [ref=e228]:
+            - generic [ref=e229]:
+              - generic [ref=e232]:
+                - generic [ref=e233]:
+                  - generic [ref=e235]: JD
+                  - generic [ref=e236]:
+                    - paragraph [ref=e237]: John Doe Updated
+                    - paragraph
+                - paragraph [ref=e238]: "Project: Unknown Project"
+                - generic [ref=e239]:
+                  - generic [ref=e240]:
+                    - img [ref=e241]
+                    - generic [ref=e243]: 10h/week
+                  - generic [ref=e244]:
+                    - img [ref=e245]
+                    - generic [ref=e247]: 1/15/2025 - 5/15/2025
+                  - generic [ref=e248]: Pending
+                - generic [ref=e249]:
+                  - img [ref=e250]
+                  - generic [ref=e252]: "Role: Team Member"
+              - generic [ref=e253]:
+                - button "Edit" [ref=e254] [cursor=pointer]
+                - button "Delete" [ref=e255] [cursor=pointer]
+          - listitem [ref=e256]:
+            - generic [ref=e257]:
+              - generic [ref=e260]:
+                - generic [ref=e261]:
+                  - generic [ref=e263]: JD
+                  - generic [ref=e264]:
+                    - paragraph [ref=e265]: John Doe Updated
+                    - paragraph
+                - paragraph [ref=e266]: "Project: Unknown Project"
+                - generic [ref=e267]:
+                  - generic [ref=e268]:
+                    - img [ref=e269]
+                    - generic [ref=e271]: 25h/week
+                  - generic [ref=e272]:
+                    - img [ref=e273]
+                    - generic [ref=e275]: 1/1/2025 - 6/30/2025
+                  - generic [ref=e276]: Pending
+                - generic [ref=e277]:
+                  - img [ref=e278]
+                  - generic [ref=e280]: "Role: Team Member"
+              - generic [ref=e281]:
+                - button "Edit" [ref=e282] [cursor=pointer]
+                - button "Delete" [ref=e283] [cursor=pointer]
+          - listitem [ref=e284]:
+            - generic [ref=e285]:
+              - generic [ref=e288]:
+                - generic [ref=e289]:
+                  - generic [ref=e291]: ED
+                  - generic [ref=e292]:
+                    - paragraph [ref=e293]: Emily Davis
+                    - paragraph
+                - paragraph [ref=e294]: "Project: Unknown Project"
+                - generic [ref=e295]:
+                  - generic [ref=e296]:
+                    - img [ref=e297]
+                    - generic [ref=e299]: 30h/week
+                  - generic [ref=e300]:
+                    - img [ref=e301]
+                    - generic [ref=e303]: 1/1/2025 - 6/30/2025
+                  - generic [ref=e304]: Pending
+                - generic [ref=e305]:
+                  - img [ref=e306]
+                  - generic [ref=e308]: "Role: Team Member"
+              - generic [ref=e309]:
+                - button "Edit" [ref=e310] [cursor=pointer]
+                - button "Delete" [ref=e311] [cursor=pointer]
+          - listitem [ref=e312]:
+            - generic [ref=e313]:
+              - generic [ref=e316]:
+                - generic [ref=e317]:
+                  - generic [ref=e319]: DB
+                  - generic [ref=e320]:
+                    - paragraph [ref=e321]: David Brown
+                    - paragraph
+                - paragraph [ref=e322]: "Project: Unknown Project"
+                - generic [ref=e323]:
+                  - generic [ref=e324]:
+                    - img [ref=e325]
+                    - generic [ref=e327]: 20h/week
+                  - generic [ref=e328]:
+                    - img [ref=e329]
+                    - generic [ref=e331]: 1/1/2025 - 6/30/2025
+                  - generic [ref=e332]: Pending
+                - generic [ref=e333]:
+                  - img [ref=e334]
+                  - generic [ref=e336]: "Role: Team Member"
+              - generic [ref=e337]:
+                - button "Edit" [ref=e338] [cursor=pointer]
+                - button "Delete" [ref=e339] [cursor=pointer]
+        - generic [ref=e341]:
+          - generic [ref=e342]: "Total: 11 allocations"
+          - generic [ref=e343]:
+            - generic [ref=e344]: "Active: 0"
+            - generic [ref=e345]: "Planned: 0"
+      - generic [ref=e347]:
+        - heading "Add New Allocation" [level=2] [ref=e348]
+        - generic [ref=e349]:
+          - generic [ref=e350]:
+            - generic [ref=e351]:
+              - generic [ref=e352]: Employee *
+              - combobox [ref=e353]:
+                - option "Select employee"
+                - option "David Brown ()" [selected]
+                - option "Test Capacity ()"
+                - option "Test Capacity ()"
+                - option "Test Capacity ()"
+                - option "Test Capacity1758526635975 ()"
+                - option "Emily Davis ()"
+                - option "John Doe Updated ()"
+                - option "Test Employee ()"
+                - option "Mike Johnson ()"
+                - option "Robert Miller ()"
+            - generic [ref=e354]:
+              - generic [ref=e355]: Project *
+              - combobox [ref=e356]:
+                - option "Select project"
+                - option "E-commerce Platform (completed)" [selected]
+                - option "Legacy System Migrations (active)"
+                - option "API Integration Platform (active)"
+                - option "Mobile App Development (active)"
+                - option "Website Redesign (active)"
+            - generic [ref=e357]:
+              - generic [ref=e358]:
+                - generic [ref=e359]: Start Date *
+                - textbox [ref=e360]: 2025-10-07
+              - generic [ref=e361]:
+                - generic [ref=e362]: End Date *
+                - textbox [ref=e363]: 2025-11-06
+            - generic [ref=e364]:
+              - generic [ref=e365]: Hours per Week *
+              - spinbutton [ref=e366]: "20"
+              - paragraph [ref=e367]: Enter the number of hours per week for this allocation (1-80 hours)
+            - generic [ref=e368]:
+              - generic [ref=e369]: Role on Project
+              - textbox "e.g., Developer, Designer, Analyst, Team Lead" [ref=e370]: Test Developer
+            - generic [ref=e371]:
+              - generic [ref=e372]: Status
+              - combobox [ref=e373]:
+                - option "Planned" [selected]
+                - option "Active"
+                - option "Completed"
+                - option "Cancelled"
+            - generic [ref=e374]:
+              - generic [ref=e375]: Notes
+              - textbox "Optional notes about this allocation (special requirements, context, etc.)" [ref=e376]: Test allocation created by E2E test
+          - generic [ref=e377]:
+            - button "Cancel" [ref=e378] [cursor=pointer]
+            - button "Create Allocation" [active] [ref=e379] [cursor=pointer]
+```

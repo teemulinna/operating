@@ -1,4 +1,12 @@
-import { Project, CreateProjectRequest, ApiResponse } from '../../types/project';
+import { Project, CreateProjectRequest } from '../../types/project';
+
+// Generic API Response type
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data: T;
+  message?: string;
+  error?: string;
+}
 
 export interface ProjectFormData {
   name: string;
@@ -55,4 +63,4 @@ export interface ProjectApiResponse extends ApiResponse<Project[]> {
   data: Project[];
 }
 
-export { Project, CreateProjectRequest } from '../../types/project';
+export type { Project, CreateProjectRequest } from '../../types/project';

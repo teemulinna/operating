@@ -55,7 +55,7 @@ export const useOverAllocationCheck = (
     return weeks;
   };
 
-  const getWeeklyUtilization = React.useCallback((employeeId: string) => {
+  const getWeeklyUtilization = React.useCallback((employeeId: string, weekStart: Date) => {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
 

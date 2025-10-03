@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { format, eachWeekOfInterval, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
 
@@ -34,7 +33,6 @@ function exportWeeklyScheduleToCSV(data: {
   });
 
   // Create lookup maps
-  const employeeMap = new Map(employees.map(emp => [emp.id, emp]));
   const projectMap = new Map(projects.map(proj => [proj.id, proj]));
   
   // Create CSV header with week columns

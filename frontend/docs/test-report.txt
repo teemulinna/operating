@@ -1,0 +1,258 @@
+
+Running 35 tests using 1 worker
+
+[1A[2K[1/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:42:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.1: Grid shows Monday-Friday columns
+[1A[2K[2/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:55:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.2: Rows display employees with names
+[1A[2K[3/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:55:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.2: Rows display employees with names (retry #1)
+[1A[2K  1) [chromium] › tests/e2e/specs/schedule-views.spec.ts:55:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.2: Rows display employees with names 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: > [32m0[39m
+    Received:   [31m0[39m
+
+      60 |       // Verify employee names are visible
+      61 |       const employeeNames = await page.locator('[data-testid="employee-name"], .employee-name').count();
+    > 62 |       expect(employeeNames).toBeGreaterThan(0);
+         |                             ^
+      63 |     } else {
+      64 |       // If no employees, verify empty state
+      65 |       const emptyState = await page.locator('text="No employees found"').count();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/schedule-views.spec.ts:62:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-eda30-isplay-employees-with-names-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-eda30-isplay-employees-with-names-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-schedule-views-US-SV-eda30-isplay-employees-with-names-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: > [32m0[39m
+    Received:   [31m0[39m
+
+      60 |       // Verify employee names are visible
+      61 |       const employeeNames = await page.locator('[data-testid="employee-name"], .employee-name').count();
+    > 62 |       expect(employeeNames).toBeGreaterThan(0);
+         |                             ^
+      63 |     } else {
+      64 |       // If no employees, verify empty state
+      65 |       const emptyState = await page.locator('text="No employees found"').count();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/schedule-views.spec.ts:62:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-eda30-isplay-employees-with-names-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-eda30-isplay-employees-with-names-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-schedule-views-US-SV-eda30-isplay-employees-with-names-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-eda30-isplay-employees-with-names-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-schedule-views-US-SV-eda30-isplay-employees-with-names-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[4/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:70:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.3: Employee weekly capacity displayed
+[1A[2K[5/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:70:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.3: Employee weekly capacity displayed (retry #1)
+[1A[2K  2) [chromium] › tests/e2e/specs/schedule-views.spec.ts:70:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.3: Employee weekly capacity displayed 
+
+    Error: locator.count: Unexpected token "=" while parsing css selector "[data-testid="weekly-capacity"], text=/\d+h/". Did you mean to CSS.escape it?
+
+      69 |
+      70 |   test('US-SV1.3: Employee weekly capacity displayed', async ({ page }) => {
+    > 71 |     const capacityElements = await page.locator('[data-testid="weekly-capacity"], text=/\\d+h/').count();
+         |                                                                                                  ^
+      72 |
+      73 |     // Either capacity is shown or no employees exist
+      74 |     const hasEmployees = await page.locator('[data-testid="employee-row"], .employee-row').count();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/schedule-views.spec.ts:71:98
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-2bf49-e-weekly-capacity-displayed-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-2bf49-e-weekly-capacity-displayed-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-schedule-views-US-SV-2bf49-e-weekly-capacity-displayed-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: locator.count: Unexpected token "=" while parsing css selector "[data-testid="weekly-capacity"], text=/\d+h/". Did you mean to CSS.escape it?
+
+      69 |
+      70 |   test('US-SV1.3: Employee weekly capacity displayed', async ({ page }) => {
+    > 71 |     const capacityElements = await page.locator('[data-testid="weekly-capacity"], text=/\\d+h/').count();
+         |                                                                                                  ^
+      72 |
+      73 |     // Either capacity is shown or no employees exist
+      74 |     const hasEmployees = await page.locator('[data-testid="employee-row"], .employee-row').count();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/schedule-views.spec.ts:71:98
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-2bf49-e-weekly-capacity-displayed-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-2bf49-e-weekly-capacity-displayed-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-schedule-views-US-SV-2bf49-e-weekly-capacity-displayed-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-2bf49-e-weekly-capacity-displayed-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-schedule-views-US-SV-2bf49-e-weekly-capacity-displayed-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[6/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:85:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.4: Allocations shown as colored blocks
+[1A[2K[7/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:92:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.5: Project name visible in allocation blocks
+[1A[2K[8/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:106:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.6: Hours allocated displayed
+[1A[2K[9/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:118:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.7: Role shown if available
+[1A[2K[10/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:129:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.8: Total hours per employee calculated
+[1A[2K[11/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:139:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.9: Utilization percentage shown
+[1A[2K[12/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:149:3 › US-SV: Schedule View - Weekly Schedule Grid › US-SV1.10: Over-allocation highlighted in red
+[1A[2K[13/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:169:3 › US-SV2: Schedule View - Week Navigation › US-SV2.1: Previous week button functional
+[1A[2K[14/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:169:3 › US-SV2: Schedule View - Week Navigation › US-SV2.1: Previous week button functional (retry #1)
+[1A[2K  3) [chromium] › tests/e2e/specs/schedule-views.spec.ts:169:3 › US-SV2: Schedule View - Week Navigation › US-SV2.1: Previous week button functional 
+
+    Error: locator.textContent: Unexpected token "=" while parsing css selector "[data-testid="current-week"], .current-week, text=/Week of/". Did you mean to CSS.escape it?
+    Call log:
+    [2m  - waiting for [data-testid="current-week"], .current-week, text=/Week of/[22m
+
+
+      176 |     if (exists > 0) {
+      177 |       // Get current week display
+    > 178 |       const currentWeekText = await page.locator('[data-testid="current-week"], .current-week, text=/Week of/').textContent();
+          |                                                                                                                 ^
+      179 |
+      180 |       // Click previous button
+      181 |       await prevButton.click();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/schedule-views.spec.ts:178:113
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ddc52-ious-week-button-functional-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ddc52-ious-week-button-functional-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-schedule-views-US-SV-ddc52-ious-week-button-functional-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: locator.textContent: Unexpected token "=" while parsing css selector "[data-testid="current-week"], .current-week, text=/Week of/". Did you mean to CSS.escape it?
+    Call log:
+    [2m  - waiting for [data-testid="current-week"], .current-week, text=/Week of/[22m
+
+
+      176 |     if (exists > 0) {
+      177 |       // Get current week display
+    > 178 |       const currentWeekText = await page.locator('[data-testid="current-week"], .current-week, text=/Week of/').textContent();
+          |                                                                                                                 ^
+      179 |
+      180 |       // Click previous button
+      181 |       await prevButton.click();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/schedule-views.spec.ts:178:113
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ddc52-ious-week-button-functional-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ddc52-ious-week-button-functional-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-schedule-views-US-SV-ddc52-ious-week-button-functional-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ddc52-ious-week-button-functional-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-schedule-views-US-SV-ddc52-ious-week-button-functional-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[15/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:190:3 › US-SV2: Schedule View - Week Navigation › US-SV2.2: Next week button functional
+[1A[2K[16/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:190:3 › US-SV2: Schedule View - Week Navigation › US-SV2.2: Next week button functional (retry #1)
+[1A[2K  4) [chromium] › tests/e2e/specs/schedule-views.spec.ts:190:3 › US-SV2: Schedule View - Week Navigation › US-SV2.2: Next week button functional 
+
+    Error: locator.textContent: Unexpected token "=" while parsing css selector "[data-testid="current-week"], .current-week, text=/Week of/". Did you mean to CSS.escape it?
+    Call log:
+    [2m  - waiting for [data-testid="current-week"], .current-week, text=/Week of/[22m
+
+
+      197 |     if (exists > 0) {
+      198 |       // Get current week display
+    > 199 |       const currentWeekText = await page.locator('[data-testid="current-week"], .current-week, text=/Week of/').textContent();
+          |                                                                                                                 ^
+      200 |
+      201 |       // Click next button
+      202 |       await nextButton.click();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/schedule-views.spec.ts:199:113
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ff829-Next-week-button-functional-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ff829-Next-week-button-functional-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-schedule-views-US-SV-ff829-Next-week-button-functional-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: locator.textContent: Unexpected token "=" while parsing css selector "[data-testid="current-week"], .current-week, text=/Week of/". Did you mean to CSS.escape it?
+    Call log:
+    [2m  - waiting for [data-testid="current-week"], .current-week, text=/Week of/[22m
+
+
+      197 |     if (exists > 0) {
+      198 |       // Get current week display
+    > 199 |       const currentWeekText = await page.locator('[data-testid="current-week"], .current-week, text=/Week of/').textContent();
+          |                                                                                                                 ^
+      200 |
+      201 |       // Click next button
+      202 |       await nextButton.click();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/schedule-views.spec.ts:199:113
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ff829-Next-week-button-functional-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ff829-Next-week-button-functional-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-schedule-views-US-SV-ff829-Next-week-button-functional-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-schedule-views-US-SV-ff829-Next-week-button-functional-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-schedule-views-US-SV-ff829-Next-week-button-functional-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[17/35] [chromium] › tests/e2e/specs/schedule-views.spec.ts:211:3 › US-SV2: Schedule View - Week Navigation › US-SV2.3: "This Week" button returns to current week

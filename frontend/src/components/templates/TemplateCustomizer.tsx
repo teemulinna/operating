@@ -3,7 +3,6 @@ import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
 import { Badge } from '../ui/badge';
 import { ProjectTemplate, DefaultTask, DefaultMilestone, ApplyTemplateOptions } from '../../types/template';
 
@@ -279,7 +278,6 @@ export const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({
                     <Label className="text-xs">Duration (days)</Label>
                     <Input
                       type="number"
-                      size="sm"
                       value={modifications.duration ?? task.duration}
                       onChange={(e) => handleTaskModification(task.id, 'duration', parseInt(e.target.value))}
                     />
@@ -288,7 +286,6 @@ export const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({
                     <Label className="text-xs">Hours</Label>
                     <Input
                       type="number"
-                      size="sm"
                       value={modifications.estimatedHours ?? task.estimatedHours}
                       onChange={(e) => handleTaskModification(task.id, 'estimatedHours', parseInt(e.target.value))}
                     />
@@ -309,7 +306,6 @@ export const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({
                   <div>
                     <Label className="text-xs">Assign To</Label>
                     <Input
-                      size="sm"
                       placeholder="Employee IDs"
                       value={teamAssignments[task.id]?.join(', ') || ''}
                       onChange={(e) => setTeamAssignments(prev => ({
@@ -381,7 +377,6 @@ export const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({
                     <Label className="text-xs">Days from Start</Label>
                     <Input
                       type="number"
-                      size="sm"
                       value={modifications.daysFromStart ?? milestone.daysFromStart}
                       onChange={(e) => handleMilestoneModification(milestone.id, 'daysFromStart', parseInt(e.target.value))}
                     />
@@ -389,7 +384,6 @@ export const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({
                   <div>
                     <Label className="text-xs">Modified Name</Label>
                     <Input
-                      size="sm"
                       value={modifications.name ?? milestone.name}
                       onChange={(e) => handleMilestoneModification(milestone.id, 'name', e.target.value)}
                     />

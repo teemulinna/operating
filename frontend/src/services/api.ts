@@ -96,11 +96,16 @@ export interface Allocation {
   employeeId: string;
   projectId: string | number; // Support both string and number projectIds
   hours: number;
-  date: string;
+  allocatedHours?: number; // Some APIs return this instead of hours
+  date?: string;
+  startDate?: string;
+  endDate?: string;
   week?: string;
-  status: 'active' | 'inactive' | 'completed' | 'pending' | 'planned' | 'cancelled';
+  status?: 'active' | 'inactive' | 'completed' | 'pending' | 'planned' | 'cancelled';
+  isActive?: boolean; // Some APIs return this instead of status
   billableRate?: number;
   notes?: string;
+  roleOnProject?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -278,20 +283,20 @@ export class ProjectService extends BaseService {
     super('/projects');
   }
 
-  async getAll(params?: any): Promise<PaginatedResponse<Project>> {
+  override async getAll<T = BackendProject>(params?: any): Promise<PaginatedResponse<T>> {
     const response = await this.request<any>({
       method: 'GET',
       url: this.resourcePath,
       params,
     });
-    
+
     // Handle the backend response format
-    const projects = response.data ? 
-      response.data.map(DataTransformer.toProject) : 
+    const projects = response.data ?
+      response.data.map(DataTransformer.toProject) :
       [];
-    
+
     return {
-      data: projects,
+      data: projects as T[],
       pagination: response.pagination || {
         currentPage: 1,
         totalPages: 1,
@@ -300,7 +305,7 @@ export class ProjectService extends BaseService {
         hasNext: false,
         hasPrev: false,
       },
-    };
+    } as PaginatedResponse<T>;
   }
 
   async getProjectById(id: number): Promise<Project> {
@@ -563,7 +568,7 @@ export const apiService = {
   async getProjects(): Promise<Project[]> {
     const service = ServiceFactory.getProjectService();
     const response = await service.getAll();
-    return response.data;
+    return response.data.map(DataTransformer.toProject);
   },
   
   async getProject(id: number) {
@@ -668,6 +673,12 @@ export const apiService = {
     return service.getDashboardStats();
   },
 };
+
+// Export service instances for direct use
+export const employeeService = ServiceFactory.getEmployeeService();
+export const projectService = ServiceFactory.getProjectService();
+export const allocationService = ServiceFactory.getAllocationService();
+export const analyticsService = ServiceFactory.getAnalyticsService();
 
 // Export types and utilities
 export { ServiceError };

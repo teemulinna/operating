@@ -16,6 +16,7 @@ import { WebSocketService } from '../websocket/websocket.service';
 import { AvailabilityPatternService } from '../services/availability-pattern.service';
 import { ScenarioPlanner } from '../services/scenario-planner.service';
 import { ResourceAnalyticsService } from '../services/resource-analytics.service';
+import { HeatMapService } from '../services/heat-map.service';
 import { ExportController } from '../controllers/exportController';
 import { initializeModels } from '../models';
 
@@ -35,6 +36,7 @@ export const SERVICE_NAMES = {
   AVAILABILITY_PATTERN: 'AvailabilityPatternService',
   SCENARIO_PLANNER: 'ScenarioPlanner',
   RESOURCE_ANALYTICS: 'ResourceAnalyticsService',
+  HEAT_MAP: 'HeatMapService',
 } as const;
 
 /**
@@ -148,6 +150,14 @@ export function configureServices(): void {
       return new ScenarioPlanner(db.getPool(), cache, ws, availability, analytics);
     }
   );
+
+  // Register HeatMapService
+  registerService.singleton(
+    SERVICE_NAMES.HEAT_MAP,
+    () => {
+      return new HeatMapService();
+    }
+  );
 }
 
 /**
@@ -166,6 +176,7 @@ export const Services = {
   availabilityPattern: () => container.resolve<AvailabilityPatternService>(SERVICE_NAMES.AVAILABILITY_PATTERN),
   scenarioPlanner: () => container.resolve<ScenarioPlanner>(SERVICE_NAMES.SCENARIO_PLANNER),
   resourceAnalytics: () => container.resolve<ResourceAnalyticsService>(SERVICE_NAMES.RESOURCE_ANALYTICS),
+  heatMap: () => container.resolve<HeatMapService>(SERVICE_NAMES.HEAT_MAP),
 };
 
 /**

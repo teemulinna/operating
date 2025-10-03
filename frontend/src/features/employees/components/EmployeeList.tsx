@@ -1,4 +1,3 @@
-import React from 'react';
 import { EmployeeListProps } from '../types/employee.types';
 import EmployeeCard from './EmployeeCard';
 import { LoadingSkeleton } from '../../../components/ui/LoadingSkeleton';

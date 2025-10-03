@@ -274,9 +274,9 @@ class EmployeeSkillModel {
             averageExperience: parseFloat(row.average_experience) || 0
         }));
     }
-    static async getTopSkillsForEmployee(employeeId = 5) {
+    static async getTopSkillsForEmployee(employeeId, limit = 5) {
         const query = `
-      SELECT 
+      SELECT
         es.proficiency_level::integer as proficiency_level,
         es.years_of_experience,
         json_build_object(

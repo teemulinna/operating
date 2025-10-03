@@ -8,19 +8,17 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-  closestCorners,
   rectIntersection,
 } from '@dnd-kit/core';
 import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
-import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isWeekend } from 'date-fns';
+import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isWeekend, isToday } from 'date-fns';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { cn } from '../../lib/utils';
 import { ResourceLane } from './ResourceLane';
 import { AllocationCard } from './AllocationCard';
 import { TimeGrid } from './TimeGrid';
-import { toast } from '../ui/toast';
+import { useToast } from '../ui/toast-provider';
 import {
   DragDropAllocation,
   ResourceLane as ResourceLaneType,
@@ -29,9 +27,10 @@ import {
   AllocationOperation,
   SelectionState,
   DropValidationResult,
+  Allocation,
 } from '../../types/allocation';
 import { Employee, Project } from '../../types/api';
-import { apiService } from '../../services/api';
+import { apiService, Allocation as ApiAllocation } from '../../services/api';
 
 interface DragDropSchedulerProps {
   employees: Employee[];
@@ -44,6 +43,55 @@ interface DragDropSchedulerProps {
   readOnly?: boolean;
 }
 
+// Helper function to convert both Allocation types to DragDropAllocation
+const toDragDropAllocation = (allocation: Allocation | ApiAllocation): DragDropAllocation => {
+  // Handle allocation from types/allocation.ts
+  if ('allocatedHours' in allocation && allocation.allocatedHours !== undefined) {
+    return {
+      ...allocation,
+      id: allocation.id.toString(),
+      employeeId: allocation.employeeId.toString(),
+      projectId: allocation.projectId.toString(),
+      startDate: allocation.startDate || '',
+      endDate: allocation.endDate || '',
+      allocatedHours: allocation.allocatedHours,
+      allocationId: allocation.id.toString(),
+      originalStartDate: allocation.startDate || '',
+      originalEndDate: allocation.endDate || '',
+      newStartDate: allocation.startDate || '',
+      newEndDate: allocation.endDate || '',
+      hours: allocation.allocatedHours,
+      role: (allocation as any).role || '',
+      status: allocation.status as 'planned' | 'active' | 'completed',
+      notes: allocation.notes || '',
+      isActive: allocation.isActive ?? true,
+    };
+  }
+
+  // Handle allocation from services/api.ts
+  const apiAlloc = allocation as ApiAllocation;
+  const hours = apiAlloc.allocatedHours || apiAlloc.hours || 0;
+  return {
+    ...apiAlloc,
+    id: apiAlloc.id.toString(),
+    employeeId: apiAlloc.employeeId,
+    projectId: apiAlloc.projectId?.toString() || '',
+    startDate: apiAlloc.startDate || apiAlloc.date || '',
+    endDate: apiAlloc.endDate || apiAlloc.date || '',
+    allocatedHours: hours,
+    allocationId: apiAlloc.id.toString(),
+    originalStartDate: apiAlloc.startDate || apiAlloc.date || '',
+    originalEndDate: apiAlloc.endDate || apiAlloc.date || '',
+    newStartDate: apiAlloc.startDate || apiAlloc.date || '',
+    newEndDate: apiAlloc.endDate || apiAlloc.date || '',
+    hours,
+    role: apiAlloc.roleOnProject,
+    status: (apiAlloc.status || 'active') as 'planned' | 'active' | 'completed',
+    notes: apiAlloc.notes,
+    isActive: apiAlloc.isActive !== undefined ? apiAlloc.isActive : true,
+  };
+};
+
 export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
   employees,
   projects,
@@ -54,17 +102,20 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
   selectedDate = new Date(),
   readOnly = false,
 }) => {
+  const { addToast } = useToast();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [resourceLanes, setResourceLanes] = useState<ResourceLaneType[]>([]);
   const [conflicts, setConflicts] = useState<AllocationConflict[]>([]);
   const [undoRedoState, setUndoRedoState] = useState<UndoRedoState>({
-    operations: [],
-    currentIndex: -1,
-    maxOperations: 50,
+    past: [],
+    future: [],
+    canUndo: false,
+    canRedo: false,
   });
   const [selectionState, setSelectionState] = useState<SelectionState>({
-    selectedAllocations: new Set(),
-    selectionMode: 'single',
+    selectedIds: [],
+    isMultiSelect: false,
+    lastSelectedId: null,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showConflicts, setShowConflicts] = useState(true);
@@ -87,7 +138,7 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
   const timeSlots = useMemo(() => {
     const start = startOfWeek(selectedDate);
     let end;
-    
+
     switch (viewMode) {
       case 'week':
         end = endOfWeek(selectedDate);
@@ -105,6 +156,7 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
     return eachDayOfInterval({ start, end }).map(date => ({
       date: format(date, 'yyyy-MM-dd'),
       isWeekend: isWeekend(date),
+      isToday: isToday(date),
       isHoliday: false, // TODO: Implement holiday detection
       totalCapacity: 0,
       totalAllocated: 0,
@@ -115,7 +167,7 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
   useEffect(() => {
     const lanes = employees.map(employee => {
       const employeeAllocations = allocations.filter(
-        allocation => allocation.employeeId.toString() === employee.id
+        allocation => allocation.employeeId.toString() === employee.id.toString()
       );
 
       const utilization = employeeAllocations.reduce(
@@ -123,13 +175,16 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
         0
       );
 
+      const weeklyCapacity = employee.weeklyCapacity || 40; // Default 40 hours per week
+
       return {
         id: employee.id,
-        employee,
-        capacity: employee.capacity || 40, // Default 40 hours per week
-        utilization: Math.min(utilization, employee.capacity || 40),
+        employeeId: employee.id,
+        employeeName: `${employee.firstName} ${employee.lastName}`,
+        employee: employee,
+        capacity: weeklyCapacity,
+        utilization: Math.min(utilization, weeklyCapacity),
         allocations: employeeAllocations,
-        conflicts: [],
       };
     });
 
@@ -146,9 +201,12 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
         detectedConflicts.push({
           id: `capacity-${lane.id}`,
           type: 'capacity_exceeded',
-          message: `${lane.employee.name} is over-allocated (${lane.utilization}h/${lane.capacity}h)`,
-          severity: 'error',
-          affectedAllocations: lane.allocations.map(a => a.id),
+          message: `${lane.employeeName} is over-allocated (${lane.utilization}h/${lane.capacity}h)`,
+          description: `The employee is allocated ${lane.utilization} hours, exceeding their capacity of ${lane.capacity} hours.`,
+          severity: 'high',
+          affectedAllocations: lane.allocations.map(a => a.id.toString()),
+          suggestedResolution: 'Reduce allocation hours or distribute work to other team members.',
+          canAutoResolve: false,
         });
       }
 
@@ -163,10 +221,13 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
           if (start1 <= end2 && start2 <= end1) {
             detectedConflicts.push({
               id: `overlap-${allocation1.id}-${allocation2.id}`,
-              type: 'overlap',
-              message: `Overlapping allocations detected for ${lane.employee.name}`,
-              severity: 'warning',
-              affectedAllocations: [allocation1.id, allocation2.id],
+              type: 'time_overlap',
+              message: `Overlapping allocations detected for ${lane.employeeName}`,
+              description: `Allocations overlap between ${format(start1 > start2 ? start1 : start2, 'MMM d')} and ${format(end1 < end2 ? end1 : end2, 'MMM d, yyyy')}.`,
+              severity: 'medium',
+              affectedAllocations: [allocation1.id.toString(), allocation2.id.toString()],
+              suggestedResolution: 'Adjust the dates to remove overlap or reduce allocation hours.',
+              canAutoResolve: true,
             });
           }
         });
@@ -174,8 +235,8 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
 
       // Check skill mismatch
       lane.allocations.forEach(allocation => {
-        const project = projects.find(p => p.id === allocation.projectId);
-        if (project && lane.employee.skills) {
+        const project = projects.find(p => p.id.toString() === allocation.projectId.toString());
+        if (project && employees.find(e => e.id === lane.employeeId)?.skills) {
           // TODO: Implement skill requirement checking
           // This would require project skill requirements data
         }
@@ -183,7 +244,7 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
     });
 
     return detectedConflicts;
-  }, [projects]);
+  }, [projects, employees]);
 
   // Update conflicts when lanes change
   useEffect(() => {
@@ -202,60 +263,66 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
     if (!targetLane) {
       return {
         isValid: false,
+        canProceed: false,
         conflicts: [],
         warnings: ['Invalid target employee'],
+        affectedAllocations: [],
       };
     }
 
-    // Create temporary allocation for validation
-    const tempAllocation = {
+    // Create temporary allocation for validation - ensure it's a full DragDropAllocation
+    const tempAllocation: DragDropAllocation = {
       ...allocation,
-      employeeId: parseInt(targetEmployeeId),
-      date: targetDate,
+      employeeId: targetEmployeeId,
+      startDate: targetDate,
+      newStartDate: targetDate,
     };
 
     // Create temporary lanes with the new allocation
-    const tempLanes = resourceLanes.map(lane => {
+    const tempLanes: ResourceLaneType[] = resourceLanes.map(lane => {
       if (lane.id === targetEmployeeId) {
-        const updatedAllocations = [...lane.allocations, tempAllocation];
+        // Remove the old allocation if it exists in this lane and add the updated one
+        const filteredAllocations = lane.allocations.filter(a => a.id !== allocation.id);
+        const updatedAllocations = [...filteredAllocations, tempAllocation];
         return {
           ...lane,
           allocations: updatedAllocations,
           utilization: updatedAllocations.reduce((sum, a) => sum + (a.hours || 0), 0),
         };
       }
-      return lane;
+      // Remove from other lanes if it was there
+      return {
+        ...lane,
+        allocations: lane.allocations.filter(a => a.id !== allocation.id),
+      };
     });
 
     const validationConflicts = detectConflicts(tempLanes);
-    const hasErrors = validationConflicts.some(c => c.severity === 'error');
+    const hasErrors = validationConflicts.some(c => c.severity === 'high' || c.severity === 'critical');
 
     return {
       isValid: !hasErrors,
+      canProceed: !hasErrors,
       conflicts: validationConflicts,
       warnings: validationConflicts
-        .filter(c => c.severity === 'warning')
-        .map(c => c.message),
+        .filter(c => c.severity === 'medium')
+        .map(c => c.message || c.description),
+      affectedAllocations: validationConflicts
+        .flatMap(c => c.affectedAllocations)
+        .filter((id): id is string => id !== undefined && id !== null),
     };
   }, [resourceLanes, detectConflicts]);
 
   // Add operation to undo/redo stack
   const addOperation = useCallback((operation: AllocationOperation) => {
     setUndoRedoState(prev => {
-      const newOperations = [
-        ...prev.operations.slice(0, prev.currentIndex + 1),
-        operation,
-      ];
-
-      // Limit the number of operations
-      if (newOperations.length > prev.maxOperations) {
-        newOperations.shift();
-      }
+      const newPast = [...prev.past, operation];
 
       return {
-        ...prev,
-        operations: newOperations,
-        currentIndex: newOperations.length - 1,
+        past: newPast,
+        future: [],
+        canUndo: newPast.length > 0,
+        canRedo: false,
       };
     });
   }, []);
@@ -267,8 +334,8 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
 
   // Handle drag end
   const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over, delta } = event;
-    
+    const { active, over } = event;
+
     if (!over || readOnly) {
       setActiveId(null);
       return;
@@ -287,26 +354,26 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
     }
 
     const targetEmployeeId = overData.employeeId;
-    const targetDate = overData.date || activeAllocation.date;
+    const targetDate = overData.date || activeAllocation.startDate;
 
     // Validate the drop
     const validation = validateDrop(activeAllocation, targetEmployeeId, targetDate);
-    
+
     if (!validation.isValid) {
-      toast({
+      addToast({
         title: 'Invalid Drop',
-        description: validation.warnings.join(', ') || 'Cannot move allocation here',
-        variant: 'destructive',
+        message: validation.warnings.join(', ') || 'Cannot move allocation here',
+        type: 'error',
       });
       setActiveId(null);
       return;
     }
 
     if (validation.warnings.length > 0) {
-      toast({
+      addToast({
         title: 'Warning',
-        description: validation.warnings.join(', '),
-        variant: 'default',
+        message: validation.warnings.join(', '),
+        type: 'warning',
       });
     }
 
@@ -314,25 +381,29 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
 
     try {
       const previousData = { ...activeAllocation };
-      const updatedAllocation = {
+      const updatedAllocation: DragDropAllocation = {
         ...activeAllocation,
-        employeeId: parseInt(targetEmployeeId),
-        date: targetDate,
-        position: {
-          x: activeAllocation.position.x + delta.x,
-          y: activeAllocation.position.y + delta.y,
-        },
+        employeeId: targetEmployeeId,
+        startDate: targetDate,
+        newStartDate: targetDate,
       };
 
-      // Update the allocation via API
+      // Update the allocation via API - convert string ID to number if needed
+      const allocationId = typeof activeAllocation.id === 'string'
+        ? parseInt(activeAllocation.id, 10)
+        : activeAllocation.id;
+
       const result = await apiService.updateAllocation(
-        activeAllocation.id,
+        allocationId,
         updatedAllocation
       );
 
       if (result) {
+        // Transform API result to DragDropAllocation
+        const transformedResult = toDragDropAllocation(result);
+
         const updatedAllocations = allocations.map(allocation =>
-          allocation.id === activeAllocation.id ? updatedAllocation : allocation
+          allocation.id.toString() === activeAllocation.id.toString() ? transformedResult : allocation
         );
 
         onAllocationChange(updatedAllocations);
@@ -340,23 +411,26 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
         // Add to undo stack
         addOperation({
           type: 'move',
-          allocation: updatedAllocation,
-          previousData,
+          allocation: transformedResult,
+          previousState: previousData,
           timestamp: Date.now(),
         });
 
-        toast({
+        const targetEmployee = employees.find(e => e.id === targetEmployeeId);
+        const employeeName = targetEmployee ? `${targetEmployee.firstName} ${targetEmployee.lastName}` : 'unknown employee';
+
+        addToast({
           title: 'Allocation Moved',
-          description: `Successfully moved allocation to ${employees.find(e => e.id === targetEmployeeId)?.name}`,
-          variant: 'default',
+          message: `Successfully moved allocation to ${employeeName}`,
+          type: 'success',
         });
       }
     } catch (error) {
       console.error('Failed to move allocation:', error);
-      toast({
+      addToast({
         title: 'Move Failed',
-        description: 'Failed to move allocation. Please try again.',
-        variant: 'destructive',
+        message: 'Failed to move allocation. Please try again.',
+        type: 'error',
       });
     } finally {
       setIsLoading(false);
@@ -367,7 +441,7 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
   // Handle allocation creation
   const handleCreateAllocation = useCallback(async (
     employeeId: string,
-    projectId: number,
+    projectId: string,
     startDate: string,
     endDate: string,
     hours: number
@@ -377,63 +451,71 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
     setIsLoading(true);
 
     try {
+      // Create allocation data matching api.ts Allocation interface
       const newAllocation = {
-        employeeId: parseInt(employeeId),
-        projectId,
+        employeeId,
+        projectId, // Keep as string to match CreateAllocationData (which is Omit<Allocation, ...>)
         hours,
-        date: startDate,
+        allocatedHours: hours, // Include both for compatibility
         startDate,
         endDate,
-        duration: Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)),
         status: 'active' as const,
-        position: { x: 0, y: 0 },
-        dimensions: { width: 200, height: 60 },
+        isActive: true,
       };
 
       const result = await apiService.createAllocation(newAllocation);
 
       if (result) {
-        const updatedAllocations = [...allocations, result];
+        // Transform the result to DragDropAllocation
+        const dragDropAllocation = toDragDropAllocation(result);
+
+        const updatedAllocations = [...allocations, dragDropAllocation];
         onAllocationChange(updatedAllocations);
 
         addOperation({
           type: 'create',
-          allocation: result,
+          allocation: dragDropAllocation,
           timestamp: Date.now(),
         });
 
-        toast({
+        addToast({
           title: 'Allocation Created',
-          description: 'New allocation created successfully',
-          variant: 'default',
+          message: 'New allocation created successfully',
+          type: 'success',
         });
       }
     } catch (error) {
       console.error('Failed to create allocation:', error);
-      toast({
+      addToast({
         title: 'Creation Failed',
-        description: 'Failed to create allocation. Please try again.',
-        variant: 'destructive',
+        message: 'Failed to create allocation. Please try again.',
+        type: 'error',
       });
     } finally {
       setIsLoading(false);
     }
-  }, [allocations, onAllocationChange, addOperation, readOnly]);
+  }, [allocations, onAllocationChange, addOperation, readOnly, addToast]);
 
   // Handle allocation deletion
-  const handleDeleteAllocation = useCallback(async (allocationId: number) => {
+  const handleDeleteAllocation = useCallback(async (allocationId: string) => {
     if (readOnly) return;
 
-    const allocation = allocations.find(a => a.id === allocationId);
+    const allocation = allocations.find(a => {
+      const allocIdString = a.id.toString();
+      const targetIdString = allocationId.toString();
+      return allocIdString === targetIdString;
+    });
     if (!allocation) return;
 
     setIsLoading(true);
 
     try {
-      const success = await apiService.deleteAllocation(allocationId);
+      // Convert string ID to number for API
+      const numericId = typeof allocationId === 'string' ? parseInt(allocationId, 10) : allocationId;
+      const success = await apiService.deleteAllocation(numericId);
 
       if (success) {
-        const updatedAllocations = allocations.filter(a => a.id !== allocationId);
+        const updatedAllocations = allocations.filter(a => a.id.toString() !== allocationId.toString());
         onAllocationChange(updatedAllocations);
 
         addOperation({
@@ -442,51 +524,61 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
           timestamp: Date.now(),
         });
 
-        toast({
+        addToast({
           title: 'Allocation Deleted',
-          description: 'Allocation deleted successfully',
-          variant: 'default',
+          message: 'Allocation deleted successfully',
+          type: 'success',
         });
       }
     } catch (error) {
       console.error('Failed to delete allocation:', error);
-      toast({
+      addToast({
         title: 'Deletion Failed',
-        description: 'Failed to delete allocation. Please try again.',
-        variant: 'destructive',
+        message: 'Failed to delete allocation. Please try again.',
+        type: 'error',
       });
     } finally {
       setIsLoading(false);
     }
-  }, [allocations, onAllocationChange, addOperation, readOnly]);
+  }, [allocations, onAllocationChange, addOperation, readOnly, addToast]);
 
   // Handle undo
   const handleUndo = useCallback(() => {
-    if (undoRedoState.currentIndex >= 0) {
-      const operation = undoRedoState.operations[undoRedoState.currentIndex];
+    if (undoRedoState.canUndo && undoRedoState.past.length > 0) {
+      const lastOperation = undoRedoState.past[undoRedoState.past.length - 1];
       // TODO: Implement undo logic
-      console.log('Undo operation:', operation);
-      setUndoRedoState(prev => ({ ...prev, currentIndex: prev.currentIndex - 1 }));
+      console.log('Undo operation:', lastOperation);
+      setUndoRedoState(prev => ({
+        past: prev.past.slice(0, -1),
+        future: [lastOperation, ...prev.future],
+        canUndo: prev.past.length > 1,
+        canRedo: true,
+      }));
     }
   }, [undoRedoState]);
 
   // Handle redo
   const handleRedo = useCallback(() => {
-    if (undoRedoState.currentIndex < undoRedoState.operations.length - 1) {
-      const operation = undoRedoState.operations[undoRedoState.currentIndex + 1];
+    if (undoRedoState.canRedo && undoRedoState.future.length > 0) {
+      const nextOperation = undoRedoState.future[0];
       // TODO: Implement redo logic
-      console.log('Redo operation:', operation);
-      setUndoRedoState(prev => ({ ...prev, currentIndex: prev.currentIndex + 1 }));
+      console.log('Redo operation:', nextOperation);
+      setUndoRedoState(prev => ({
+        past: [...prev.past, nextOperation],
+        future: prev.future.slice(1),
+        canUndo: true,
+        canRedo: prev.future.length > 1,
+      }));
     }
   }, [undoRedoState]);
 
   // Handle bulk selection
-  const handleSelectionChange = useCallback((allocationIds: number[], mode: 'single' | 'multiple' = 'single') => {
-    setSelectionState(prev => ({
-      ...prev,
-      selectedAllocations: new Set(allocationIds),
-      selectionMode: mode,
-    }));
+  const handleSelectionChange = useCallback((allocationIds: string[], mode: 'single' | 'multiple' = 'single') => {
+    setSelectionState({
+      selectedIds: allocationIds,
+      isMultiSelect: mode === 'multiple',
+      lastSelectedId: allocationIds.length > 0 ? allocationIds[allocationIds.length - 1] : null,
+    });
   }, []);
 
   const activeAllocation = activeId ? allocations.find(a => a.id.toString() === activeId) : null;
@@ -501,7 +593,7 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
               variant="outline"
               size="sm"
               onClick={handleUndo}
-              disabled={undoRedoState.currentIndex < 0 || isLoading}
+              disabled={!undoRedoState.canUndo || isLoading}
             >
               Undo
             </Button>
@@ -509,9 +601,7 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
               variant="outline"
               size="sm"
               onClick={handleRedo}
-              disabled={
-                undoRedoState.currentIndex >= undoRedoState.operations.length - 1 || isLoading
-              }
+              disabled={!undoRedoState.canRedo || isLoading}
             >
               Redo
             </Button>
@@ -525,13 +615,13 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
               {showConflicts ? 'Hide' : 'Show'} Conflicts
             </Button>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Badge variant={conflicts.length > 0 ? 'destructive' : 'default'}>
               {conflicts.length} Conflicts
             </Badge>
             <Badge variant="outline">
-              {selectionState.selectedAllocations.size} Selected
+              {selectionState.selectedIds.length} Selected
             </Badge>
           </div>
         </div>
@@ -563,13 +653,12 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
                 key={lane.id}
                 lane={lane}
                 projects={projects}
-                timeSlots={timeSlots}
-                conflicts={showConflicts ? conflicts.filter(c => 
-                  c.affectedAllocations.some(id => 
-                    lane.allocations.some(a => a.id === id)
+                conflicts={showConflicts ? conflicts.filter(c =>
+                  c.affectedAllocations.some(id =>
+                    lane.allocations.some(a => a.id.toString() === id)
                   )
                 ) : []}
-                selectedAllocations={selectionState.selectedAllocations}
+                selectedAllocations={new Set(selectionState.selectedIds)}
                 onAllocationSelect={handleSelectionChange}
                 onAllocationDelete={handleDeleteAllocation}
                 onAllocationCreate={handleCreateAllocation}
@@ -582,11 +671,11 @@ export const DragDropScheduler: React.FC<DragDropSchedulerProps> = ({
             {activeAllocation && (
               <AllocationCard
                 allocation={activeAllocation}
-                project={projects.find(p => p.id === activeAllocation.projectId)}
-                conflicts={conflicts.filter(c => 
-                  c.affectedAllocations.includes(activeAllocation.id)
+                project={projects.find(p => p.id.toString() === activeAllocation.projectId.toString())}
+                conflicts={conflicts.filter(c =>
+                  c.affectedAllocations.includes(activeAllocation.id.toString())
                 )}
-                isSelected={selectionState.selectedAllocations.has(activeAllocation.id)}
+                isSelected={selectionState.selectedIds.includes(activeAllocation.id.toString())}
                 isDragging
                 readOnly={readOnly}
               />

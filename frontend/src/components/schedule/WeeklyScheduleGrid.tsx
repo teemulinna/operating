@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Employee as ApiEmployee, Project as ApiProject, Allocation as ApiAllocation } from '../../services/api';
+import type { Employee as ApiEmployee, Project as ApiProject, Allocation as ApiAllocation } from '../../services/api';
 
 interface Employee {
   id: string;
@@ -64,7 +64,7 @@ const WeeklyScheduleGrid: React.FC = () => {
           return response.json();
         };
 
-        const collectAllPages = async <T>(endpoint: string, limit: number): Promise<{ items: T[] }> => {
+        const collectAllPages = async <T,>(endpoint: string, limit: number): Promise<{ items: T[] }> => {
           let page = 1;
           let totalPages = 1;
           const items: T[] = [];
@@ -124,9 +124,23 @@ const WeeklyScheduleGrid: React.FC = () => {
   }, []);
 
   const getEmployeeAllocations = (employeeId: string) => {
-    return allocations.filter(allocation => 
+    return allocations.filter(allocation =>
       allocation.employeeId === employeeId && allocation.status === 'active'
     );
+  };
+
+  // Get allocations for a specific employee on a specific date
+  const getAllocationsForDate = (employeeId: string, date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return allocations.filter(allocation => {
+      if (allocation.employeeId !== employeeId) return false;
+      if (allocation.status !== 'active') return false;
+
+      const allocStart = new Date(allocation.startDate).toISOString().split('T')[0];
+      const allocEnd = new Date(allocation.endDate).toISOString().split('T')[0];
+
+      return dateStr >= allocStart && dateStr <= allocEnd;
+    });
   };
 
   const getProjectName = (projectId: string) => {
@@ -161,21 +175,21 @@ const WeeklyScheduleGrid: React.FC = () => {
             <button
               onClick={() => navigateWeek('prev')}
               className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
-              data-testid="prev-week-btn"
+              data-testid="previous-week-button"
             >
               ← Previous
             </button>
             <button
               onClick={() => setCurrentWeek(new Date())}
               className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 rounded"
-              data-testid="current-week-btn"
+              data-testid="today-button"
             >
               This Week
             </button>
             <button
               onClick={() => navigateWeek('next')}
               className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
-              data-testid="next-week-btn"
+              data-testid="next-week-button"
             >
               Next →
             </button>
@@ -185,14 +199,14 @@ const WeeklyScheduleGrid: React.FC = () => {
 
       {/* Schedule Grid */}
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" data-testid="grid-table">
           <thead>
             <tr className="border-b border-gray-200">
               <th className="p-3 text-left text-sm font-medium text-gray-600 w-48">
                 Employee
               </th>
               {weekDates.map((date, index) => (
-                <th key={index} className="p-3 text-left text-sm font-medium text-gray-600 min-w-40">
+                <th key={index} className="p-3 text-left text-sm font-medium text-gray-600 min-w-40" data-testid={`week-header-${index}`}>
                   <div>
                     {date.toLocaleDateString('en-US', { weekday: 'short' })}
                   </div>
@@ -213,7 +227,7 @@ const WeeklyScheduleGrid: React.FC = () => {
               const isOverAllocated = totalHours > employee.weeklyCapacity;
 
               return (
-                <tr key={employee.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <tr key={employee.id} className="border-b border-gray-100 hover:bg-gray-50" data-testid={`employee-row-${employee.id}`}>
                   <td className="p-3">
                     <div>
                       <div className="font-medium text-gray-900" data-testid={`employee-${employee.id}-name`}>
@@ -223,36 +237,55 @@ const WeeklyScheduleGrid: React.FC = () => {
                         {employee.weeklyCapacity}h/week capacity
                       </div>
                       {isOverAllocated && (
-                        <div className="mt-1 text-xs text-red-600 font-medium" data-testid={`overallocation-warning-${employee.id}`}>
+                        <div className="mt-1 text-xs text-red-600 font-medium" data-testid={`over-allocation-warning-${employee.id}`}>
                           ⚠️ Over-allocated: {totalHours}h / {employee.weeklyCapacity}h
                         </div>
                       )}
                     </div>
                   </td>
                   
-                  {weekDates.map((date, dayIndex) => (
-                    <td key={dayIndex} className="p-3 align-top">
-                      <div className="space-y-1">
-                        {employeeAllocations.map((allocation) => (
-                          <div 
-                            key={allocation.id}
-                            className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
-                            data-testid={`allocation-${allocation.id}-${dayIndex}`}
-                          >
-                            <div className="font-medium truncate">
-                              {getProjectName(allocation.projectId)}
-                            </div>
-                            <div>{allocation.allocatedHours}h</div>
-                            {allocation.roleOnProject && (
-                              <div className="text-blue-600">
-                                {allocation.roleOnProject}
+                  {weekDates.map((date, dayIndex) => {
+                    const dayAllocations = getAllocationsForDate(employee.id, date);
+                    const dayTotalHours = dayAllocations.reduce((sum, a) => sum + a.allocatedHours, 0);
+                    const dailyCapacity = employee.weeklyCapacity / 5; // Assuming 5-day work week
+                    const isDayOverAllocated = dayTotalHours > dailyCapacity;
+
+                    return (
+                      <td
+                        key={dayIndex}
+                        className={`p-3 align-top ${isDayOverAllocated ? 'bg-red-200' : ''}`}
+                        data-testid={`grid-cell-${employee.id}-${dayIndex}`}
+                      >
+                        <div className="space-y-1">
+                          {dayAllocations.map((allocation) => (
+                            <div
+                              key={allocation.id}
+                              className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
+                              data-testid={`allocation-${allocation.id}-${dayIndex}`}
+                            >
+                              <div className="font-medium truncate">
+                                {getProjectName(allocation.projectId)}
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                  ))}
+                              <div>{allocation.allocatedHours}h</div>
+                              {allocation.roleOnProject && (
+                                <div className="text-blue-600">
+                                  {allocation.roleOnProject}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {isDayOverAllocated && (
+                            <div
+                              className="text-xs text-red-700 font-bold flex items-center gap-1 mt-1"
+                              data-testid={`over-allocation-warning-${employee.id}-${dayIndex}`}
+                            >
+                              ⚠️ Over {dayTotalHours}h/{dailyCapacity.toFixed(0)}h
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
                   
                   <td className="p-3">
                     <div className="text-right">

@@ -3,13 +3,11 @@ import { ViewMode } from 'gantt-task-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ZoomIn, 
-  ZoomOut, 
+import {
+  ZoomIn,
+  ZoomOut,
   RotateCcw,
   Download,
-  Eye,
-  EyeOff,
   BarChart3,
   GitBranch,
   Target,
@@ -26,16 +24,15 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import { 
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -59,7 +56,6 @@ interface GanttToolbarProps {
   onToggleCriticalPath: () => void;
   isLoading?: boolean;
   readOnly?: boolean;
-  onFilter?: (filters: any) => void;
   onSearch?: (query: string) => void;
   onRefresh?: () => void;
   isFullScreen?: boolean;
@@ -90,8 +86,6 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
   onToggleDependencies,
   onToggleCriticalPath,
   isLoading = false,
-  readOnly = false,
-  onFilter,
   onSearch,
   onRefresh,
   isFullScreen = false,
@@ -114,6 +108,11 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
     return option ? option.icon : Calendar;
   };
 
+  const getCurrentViewModeLabel = (mode: ViewMode) => {
+    const option = viewModeOptions.find(opt => opt.value === mode);
+    return option ? option.label : 'Day';
+  };
+
   return (
     <Card className="border-b border-l-0 border-r-0 border-t-0 rounded-none">
       <CardContent className="p-4">
@@ -121,14 +120,14 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
           {/* Left section - View controls */}
           <div className="flex items-center gap-2">
             {/* View Mode Selector */}
-            <Select 
-              value={viewMode.toString()} 
-              onValueChange={(value) => onViewModeChange(parseInt(value) as ViewMode)}
+            <Select
+              value={viewMode.toString()}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onViewModeChange(parseInt(e.target.value) as unknown as ViewMode)}
             >
               <SelectTrigger className="w-32">
                 <div className="flex items-center gap-2">
                   {React.createElement(getViewModeIcon(viewMode), { className: "w-4 h-4" })}
-                  <SelectValue />
+                  <SelectValue placeholder={getCurrentViewModeLabel(viewMode)} />
                 </div>
               </SelectTrigger>
               <SelectContent>
@@ -159,11 +158,11 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
               >
                 <ZoomOut className="w-4 h-4" />
               </Button>
-              
+
               <Badge variant="secondary" className="min-w-[4rem] justify-center">
                 {zoomLevel}%
               </Badge>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -173,7 +172,7 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
               >
                 <ZoomIn className="w-4 h-4" />
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -198,7 +197,7 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
               >
                 <BarChart3 className="w-4 h-4" />
               </Button>
-              
+
               <Button
                 variant={showDependencies ? "default" : "outline"}
                 size="sm"
@@ -208,7 +207,7 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
               >
                 <GitBranch className="w-4 h-4" />
               </Button>
-              
+
               <Button
                 variant={showCriticalPath ? "default" : "outline"}
                 size="sm"
@@ -232,7 +231,7 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
                 className="pl-10"
               />
             </div>
-            
+
             <Popover open={showFilters} onOpenChange={setShowFilters}>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="px-2">
@@ -244,43 +243,43 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
                   <div>
                     <Label className="text-sm font-medium">Filter Options</Label>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="completed-tasks" className="text-sm">Show Completed</Label>
                       <Switch id="completed-tasks" />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <Label htmlFor="on-hold-tasks" className="text-sm">Show On Hold</Label>
                       <Switch id="on-hold-tasks" />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <Label htmlFor="overdue-tasks" className="text-sm">Show Overdue</Label>
                       <Switch id="overdue-tasks" />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <Label htmlFor="milestones" className="text-sm">Show Milestones</Label>
                       <Switch id="milestones" defaultChecked />
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div>
                     <Label className="text-sm font-medium mb-2 block">Priority Filter</Label>
                     <div className="space-y-2">
                       {['Critical', 'High', 'Medium', 'Low'].map((priority) => (
                         <div key={priority} className="flex items-center space-x-2">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             id={`priority-${priority.toLowerCase()}`}
                             defaultChecked
                             className="rounded"
                           />
-                          <Label 
+                          <Label
                             htmlFor={`priority-${priority.toLowerCase()}`}
                             className="text-sm"
                           >
@@ -290,18 +289,18 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setShowFilters(false)}
                       className="flex-1"
                     >
                       Apply Filters
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => setShowFilters(false)}
                     >
@@ -396,22 +395,22 @@ export const GanttToolbar: React.FC<GanttToolbarProps> = ({
             <BarChart3 className="w-4 h-4" />
             <span>Progress: <strong>65%</strong></span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Target className="w-4 h-4 text-red-500" />
             <span>Critical Path: <strong>3 tasks</strong></span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Clock className="w-4 h-4 text-orange-500" />
             <span>Behind Schedule: <strong>2 tasks</strong></span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <GitBranch className="w-4 h-4" />
             <span>Dependencies: <strong>8 links</strong></span>
           </div>
-          
+
           {isLoading && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Loader2 className="w-4 h-4 animate-spin" />

@@ -1,5 +1,5 @@
-import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
-import { ApiErrorType } from '../types/api';
+import { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 
 export interface ServiceConfig {
   baseURL?: string;

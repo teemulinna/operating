@@ -11,7 +11,7 @@ class ResourceAnalyticsService {
         ra.*,
         p.name as project_name,
         e.first_name || ' ' || e.last_name as employee_name,
-        e.default_hours
+        e.weekly_capacity
       FROM resource_allocations ra
       JOIN projects p ON ra.project_id = p.id
       JOIN employees e ON ra.employee_id = e.id
@@ -182,7 +182,7 @@ class ResourceAnalyticsService {
         SELECT 
           ra.*,
           e.first_name || ' ' || e.last_name as employee_name,
-          e.default_hours,
+          e.weekly_capacity,
           p.name as project_name,
           p.priority,
           STRING_AGG(DISTINCT s.name, ', ') as employee_skills
@@ -196,20 +196,20 @@ class ResourceAnalyticsService {
         AND p.is_active = true
         AND ra.start_date <= CURRENT_DATE + INTERVAL '30 days'
         AND ra.end_date >= CURRENT_DATE
-        GROUP BY ra.id, e.id, e.first_name, e.last_name, e.default_hours, p.id, p.name, p.priority
+        GROUP BY ra.id, e.id, e.first_name, e.last_name, e.weekly_capacity, p.id, p.name, p.priority
       `;
             const result = await this.pool.query(query);
             currentAllocations = result.rows;
         }
         for (const allocation of currentAllocations) {
             const allocatedHours = parseFloat(allocation.allocated_hours) || 0;
-            const defaultHours = parseFloat(allocation.default_hours) || 40;
-            const utilization = allocatedHours / defaultHours;
+            const weeklyCapacity = parseFloat(allocation.weekly_capacity) || 40;
+            const utilization = allocatedHours / weeklyCapacity;
             if (utilization > 1.0) {
-                const overAllocation = allocatedHours - defaultHours;
+                const overAllocation = allocatedHours - weeklyCapacity;
                 suggestions.push({
                     type: 'capacity_adjustment',
-                    employeeId: parseInt(allocation.employee_id),
+                    employeeId: String(allocation.employee_id),
                     adjustment: -overAllocation,
                     reason: `Over-allocated by ${overAllocation.toFixed(1)} hours (${(utilization * 100).toFixed(1)}% utilization)`,
                     expectedImprovement: (utilization - 1.0) * 100,
@@ -218,10 +218,10 @@ class ResourceAnalyticsService {
                 });
             }
             if (utilization < 0.7) {
-                const underAllocation = defaultHours * 0.8 - allocatedHours;
+                const underAllocation = weeklyCapacity * 0.8 - allocatedHours;
                 suggestions.push({
                     type: 'capacity_adjustment',
-                    employeeId: parseInt(allocation.employee_id),
+                    employeeId: String(allocation.employee_id),
                     adjustment: underAllocation,
                     reason: `Under-allocated by ${underAllocation.toFixed(1)} hours (${(utilization * 100).toFixed(1)}% utilization)`,
                     expectedImprovement: (0.8 - utilization) * 100,
@@ -236,7 +236,7 @@ class ResourceAnalyticsService {
                 if (skillMatch < 0.7) {
                     suggestions.push({
                         type: 'reassignment',
-                        employeeId: parseInt(allocation.employee_id),
+                        employeeId: String(allocation.employee_id),
                         fromProjectId: parseInt(allocation.project_id),
                         reason: `Skill mismatch: ${(skillMatch * 100).toFixed(0)}% match with project requirements`,
                         expectedImprovement: (0.8 - skillMatch) * 100,
@@ -260,7 +260,7 @@ class ResourceAnalyticsService {
     async calculateEmployeeUtilization(employeeMap, startDate, endDate) {
         const result = [];
         for (const [employeeId, assignments] of employeeMap) {
-            const defaultHours = parseFloat(assignments[0].default_hours) || 40;
+            const weeklyCapacity = parseFloat(assignments[0].weekly_capacity) || 40;
             const totalAllocated = assignments.reduce((sum, a) => sum + (parseFloat(a.allocated_hours) || 0), 0);
             const totalActual = assignments.reduce((sum, a) => sum + (parseFloat(a.actual_hours) || parseFloat(a.allocated_hours) || 0), 0);
             const projects = assignments.map(a => ({
@@ -269,12 +269,12 @@ class ResourceAnalyticsService {
                 allocatedHours: parseFloat(a.allocated_hours) || 0,
                 role: a.role_on_project || 'Team Member'
             }));
-            const utilizationRate = totalAllocated / defaultHours;
+            const utilizationRate = totalAllocated / weeklyCapacity;
             const efficiency = totalActual > 0 ? totalAllocated / totalActual : 1;
             result.push({
-                employeeId,
+                employeeId: String(employeeId),
                 employeeName: assignments[0].employee_name || `Employee ${employeeId}`,
-                totalCapacity: defaultHours,
+                totalCapacity: weeklyCapacity,
                 allocatedHours: totalAllocated,
                 actualHours: totalActual,
                 utilizationRate,
@@ -293,7 +293,7 @@ class ResourceAnalyticsService {
             const efficiency = actualHours > 0 ? plannedHours / actualHours : 1;
             const avgUtilization = assignments.reduce((sum, a) => {
                 const allocated = parseFloat(a.allocated_hours) || 0;
-                const capacity = parseFloat(a.default_hours) || 40;
+                const capacity = parseFloat(a.weekly_capacity) || 40;
                 return sum + (allocated / capacity);
             }, 0) / assignments.length;
             result.push({
@@ -313,7 +313,7 @@ class ResourceAnalyticsService {
       SELECT 
         DATE_TRUNC('month', ra.start_date) as period,
         SUM(ra.allocated_hours) as total_allocated,
-        SUM(e.default_hours) as total_capacity
+        SUM(e.weekly_capacity) as total_capacity
       FROM resource_allocations ra
       JOIN employees e ON ra.employee_id = e.id
       WHERE ra.is_active = true 
@@ -407,7 +407,7 @@ class ResourceAnalyticsService {
             if (skillsToTrain.length > 0) {
                 const priority = skillsToTrain.length + (parseFloat(employee.avg_proficiency) || 0);
                 trainingNeeds.push({
-                    employeeId: parseInt(employee.id),
+                    employeeId: String(employee.id),
                     employeeName: employee.name,
                     skillsToTrain: skillsToTrain.slice(0, 3),
                     priority: Math.round(priority),

@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
+import socketIOClient from 'socket.io-client';
+
+type SocketType = ReturnType<typeof socketIOClient>;
 
 interface WebSocketContextType {
-  socket: Socket | null;
+  socket: SocketType | null;
   isConnected: boolean;
   connectionError: string | null;
   reconnectAttempts: number;
@@ -26,7 +28,7 @@ export const useWebSocket = () => {
 interface WebSocketProviderProps {
   children: ReactNode;
   url?: string;
-  options?: any;
+  options?: Record<string, unknown>;
 }
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
@@ -34,14 +36,14 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   url = 'http://localhost:3001', // Default to backend server
   options = {},
 }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<SocketType | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
   useEffect(() => {
     // Initialize socket connection
-    const newSocket = io(url, {
+    const newSocket = socketIOClient(url, {
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
@@ -59,35 +61,35 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       setReconnectAttempts(0);
     });
 
-    newSocket.on('disconnect', (reason) => {
+    newSocket.on('disconnect', (reason: string) => {
       console.log('WebSocket disconnected:', reason);
       setIsConnected(false);
-      
+
       if (reason === 'io server disconnect') {
         // Server initiated disconnect, reconnect manually
         newSocket.connect();
       }
     });
 
-    newSocket.on('connect_error', (error) => {
+    newSocket.on('connect_error', (error: Error) => {
       console.error('WebSocket connection error:', error);
       setConnectionError(error.message);
       setIsConnected(false);
     });
 
-    newSocket.on('reconnect', (attemptNumber) => {
+    newSocket.on('reconnect', (attemptNumber: number) => {
       console.log('WebSocket reconnected after', attemptNumber, 'attempts');
       setIsConnected(true);
       setConnectionError(null);
       setReconnectAttempts(0);
     });
 
-    newSocket.on('reconnect_attempt', (attemptNumber) => {
+    newSocket.on('reconnect_attempt', (attemptNumber: number) => {
       console.log('WebSocket reconnection attempt:', attemptNumber);
       setReconnectAttempts(attemptNumber);
     });
 
-    newSocket.on('reconnect_error', (error) => {
+    newSocket.on('reconnect_error', (error: Error) => {
       console.error('WebSocket reconnection error:', error);
       setConnectionError(error.message);
     });
@@ -98,23 +100,23 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     });
 
     // Project-specific event handlers
-    newSocket.on('project:updated', (data) => {
+    newSocket.on('project:updated', (data: unknown) => {
       console.log('Project updated:', data);
     });
 
-    newSocket.on('allocation:created', (data) => {
+    newSocket.on('allocation:created', (data: unknown) => {
       console.log('Allocation created:', data);
     });
 
-    newSocket.on('allocation:updated', (data) => {
+    newSocket.on('allocation:updated', (data: unknown) => {
       console.log('Allocation updated:', data);
     });
 
-    newSocket.on('allocation:deleted', (data) => {
+    newSocket.on('allocation:deleted', (data: unknown) => {
       console.log('Allocation deleted:', data);
     });
 
-    newSocket.on('employee:updated', (data) => {
+    newSocket.on('employee:updated', (data: unknown) => {
       console.log('Employee updated:', data);
     });
 

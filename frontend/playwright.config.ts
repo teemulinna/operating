@@ -22,7 +22,7 @@ export default defineConfig({
   ],
   
   use: {
-    baseURL: 'http://localhost:3002',
+    baseURL: 'http://localhost:3003',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -56,13 +56,14 @@ export default defineConfig({
   // Web server configuration
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3002',
+    url: 'http://localhost:3003',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
     env: {
       NODE_ENV: 'test',
       VITE_NODE_ENV: 'test',
-      PLAYWRIGHT_TEST: 'true'
+      PLAYWRIGHT_TEST: 'true',
+      VITE_API_URL: 'http://localhost:3001'
     },
   },
 });

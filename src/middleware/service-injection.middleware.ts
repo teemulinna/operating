@@ -15,6 +15,7 @@ import { WebSocketService } from '../websocket/websocket.service';
 import { AvailabilityPatternService } from '../services/availability-pattern.service';
 import { ScenarioPlanner } from '../services/scenario-planner.service';
 import { ResourceAnalyticsService } from '../services/resource-analytics.service';
+import { HeatMapService } from '../services/heat-map.service';
 
 /**
  * Extended Request interface with injected services
@@ -31,6 +32,7 @@ export interface RequestWithServices extends Request {
     availabilityPattern: AvailabilityPatternService;
     scenarioPlanner: ScenarioPlanner;
     resourceAnalytics: ResourceAnalyticsService;
+    heatMap: HeatMapService;
     db?: any; // For backward compatibility with controllers expecting db directly
     cacheService?: CacheService; // Alternative name for compatibility
     wsService?: WebSocketService; // Alternative name for compatibility
@@ -70,6 +72,7 @@ export const serviceInjectionMiddleware = async (
       availabilityPattern: availabilityPatternService,
       scenarioPlanner: Services.scenarioPlanner(),
       resourceAnalytics: Services.resourceAnalytics(),
+      heatMap: Services.heatMap(),
       // Compatibility aliases
       db: databaseService.getPool(),
       cacheService: cacheService,

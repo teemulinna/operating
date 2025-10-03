@@ -332,7 +332,7 @@ export const CostAnalysis: React.FC<CostAnalysisProps> = ({
             <div className="space-y-3">
               {categoryVariances
                 .sort((a, b) => Math.abs(b.percentage) - Math.abs(a.percentage))
-                .map((variance, index) => {
+                .map((variance) => {
                   const isSignificant = Math.abs(variance.percentage) > 10;
                   return (
                     <div 

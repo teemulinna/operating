@@ -1,1 +1,33 @@
-import * as React from \"react\"\nimport * as ProgressPrimitive from \"@radix-ui/react-progress\"\n\nimport { cn } from \"../../lib/utils\"\n\ninterface ProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {\n  indicatorClassName?: string;\n}\n\nconst Progress = React.forwardRef<\n  React.ElementRef<typeof ProgressPrimitive.Root>,\n  ProgressProps\n>(({ className, value, indicatorClassName, ...props }, ref) => (\n  <ProgressPrimitive.Root\n    ref={ref}\n    className={cn(\n      \"relative h-4 w-full overflow-hidden rounded-full bg-secondary\",\n      className\n    )}\n    {...props}\n  >\n    <ProgressPrimitive.Indicator\n      className={cn(\n        \"h-full w-full flex-1 bg-primary transition-all\",\n        indicatorClassName\n      )}\n      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}\n    />\n  </ProgressPrimitive.Root>\n))\nProgress.displayName = ProgressPrimitive.Root.displayName\n\nexport { Progress }"
+import * as React from "react"
+import * as ProgressPrimitive from "@radix-ui/react-progress"
+
+import { cn } from "../../lib/utils"
+
+interface ProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
+  indicatorClassName?: string;
+}
+
+const Progress = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Root>,
+  ProgressProps
+>(({ className, value, indicatorClassName, ...props }, ref) => (
+  <ProgressPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
+      className
+    )}
+    {...props}
+  >
+    <ProgressPrimitive.Indicator
+      className={cn(
+        "h-full w-full flex-1 bg-primary transition-all",
+        indicatorClassName
+      )}
+      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+    />
+  </ProgressPrimitive.Root>
+))
+Progress.displayName = ProgressPrimitive.Root.displayName
+
+export { Progress }

@@ -383,6 +383,10 @@ export class WebSocketService {
   }
 
   // Public methods for other services to emit events
+  public broadcast(event: string, data: any): void {
+    this.io?.emit(event, data);
+  }
+
   public broadcastResourceUpdate(data: ResourceAllocationUpdate): void {
     this.io?.to('resource-allocation').emit('resource-allocation-updated', data);
   }
@@ -406,5 +410,17 @@ export class WebSocketService {
 
   public getUserCount(): number {
     return this.userSockets.size;
+  }
+
+  public on(event: string, callback: (data: any) => void): void {
+    this.io?.on(event, callback);
+  }
+
+  public off(event: string, callback?: (data: any) => void): void {
+    if (callback) {
+      this.io?.off(event, callback);
+    } else {
+      this.io?.removeAllListeners(event);
+    }
   }
 }

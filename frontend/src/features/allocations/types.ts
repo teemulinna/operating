@@ -91,7 +91,12 @@ export interface UseAllocationsHook {
   updateAllocation: (id: string | number, data: Partial<AllocationFormData>) => Promise<void>;
   deleteAllocation: (id: string | number) => Promise<void>;
   refreshData: () => Promise<void>;
-  detectOverAllocation: (employeeId: string) => Allocation[];
+  detectOverAllocation: (
+    employeeId: string,
+    startDate: string,
+    endDate: string,
+    excludeId?: string | number
+  ) => Allocation[];
 }
 
 // API Response types for allocations

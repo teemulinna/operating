@@ -16,14 +16,12 @@ interface UtilizationChartProps {
       utilization: number;
     }>;
   };
-  type?: 'bar' | 'line' | 'pie';
   loading?: boolean;
   height?: number;
 }
 
 export const UtilizationChart: React.FC<UtilizationChartProps> = ({
   data,
-  type = 'bar',
   loading = false,
   height = 300,
 }) => {
@@ -33,30 +31,30 @@ export const UtilizationChart: React.FC<UtilizationChartProps> = ({
     queryFn: async () => {
       const employeeService = ServiceFactory.getEmployeeService();
       const allocationService = ServiceFactory.getAllocationService();
-      
+
       try {
         // Get all active employees
-        const employeesResponse = await employeeService.getAll();
+        const employeesResponse = await employeeService.getAllEmployees();
         const employees = employeesResponse.data;
-        
+
         // Get all allocations
         const allocationsResponse = await allocationService.getAll();
         const allocations = allocationsResponse.data;
-        
+
         // Calculate utilization for each employee
         const employeeUtilization = employees.map(employee => {
           const employeeAllocations = allocations.filter(
-            allocation => allocation.employeeId.toString() === employee.id
+            (allocation: any) => allocation.employeeId.toString() === employee.id
           );
-          
+
           const totalAllocatedHours = employeeAllocations.reduce(
-            (sum, allocation) => sum + (allocation.hours || 0), 0
+            (sum: number, allocation: any) => sum + (allocation.hours || 0), 0
           );
-          
+
           // Assume 40 hours per week capacity
           const capacity = 40;
-          const utilization = capacity > 0 ? (totalAllocatedHours / capacity) * 100 : 0;
-          
+          const utilization = capacity > 0 ? (Number(totalAllocatedHours) / capacity) * 100 : 0;
+
           return {
             id: employee.id,
             name: `${employee.firstName} ${employee.lastName}`,
@@ -66,7 +64,7 @@ export const UtilizationChart: React.FC<UtilizationChartProps> = ({
             projects: employeeAllocations.length,
           };
         });
-        
+
         return {
           employees: employeeUtilization,
           trends: [], // Could be calculated from historical data
@@ -135,7 +133,7 @@ export const UtilizationChart: React.FC<UtilizationChartProps> = ({
               </div>
             </div>
             <div className="w-20 text-sm text-gray-600">
-              {employee.allocatedHours}h
+              {String(employee.allocatedHours)}h
             </div>
           </div>
         ))}

@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+// @ts-ignore - dom-to-image has no type definitions
 import domToImage from 'dom-to-image';
 import { GanttExportOptions } from '../types';
 
@@ -17,12 +18,6 @@ export const exportGanttChart = async (
   const {
     format,
     filename = 'gantt-chart',
-    title = 'Gantt Chart',
-    author = '',
-    includeHeader = true,
-    includeFooter = true,
-    pageOrientation = 'landscape',
-    pageSize = 'a4',
   } = options;
 
   try {
@@ -57,13 +52,12 @@ export const exportGanttChart = async (
 const exportToPNG = async (
   element: HTMLElement,
   filename: string,
-  options: GanttExportOptions
+  _options: GanttExportOptions
 ): Promise<void> => {
   const canvas = await html2canvas(element, {
     allowTaint: false,
     useCORS: true,
-    backgroundColor: '#ffffff',
-    scale: 2, // High resolution
+    background: '#ffffff',
     logging: false,
     width: element.scrollWidth,
     height: element.scrollHeight,
@@ -86,10 +80,10 @@ const exportToPNG = async (
 const exportToSVG = async (
   element: HTMLElement,
   filename: string,
-  options: GanttExportOptions
+  _options: GanttExportOptions
 ): Promise<void> => {
   const svgData = await domToImage.toSvg(element, {
-    backgroundColor: '#ffffff',
+    bgcolor: '#ffffff',
     width: element.scrollWidth,
     height: element.scrollHeight,
     style: {
@@ -130,8 +124,7 @@ const exportToPDF = async (
   const canvas = await html2canvas(element, {
     allowTaint: false,
     useCORS: true,
-    backgroundColor: '#ffffff',
-    scale: 1.5,
+    background: '#ffffff',
     logging: false,
     width: element.scrollWidth,
     height: element.scrollHeight,
@@ -217,7 +210,7 @@ const exportToPDF = async (
 const exportLargePDFInPages = async (
   pdf: jsPDF,
   canvas: HTMLCanvasElement,
-  options: GanttExportOptions
+  _options: GanttExportOptions
 ): Promise<void> => {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -267,7 +260,7 @@ const exportLargePDFInPages = async (
 const exportToExcel = async (
   element: HTMLElement,
   filename: string,
-  options: GanttExportOptions
+  _options: GanttExportOptions
 ): Promise<void> => {
   // This is a simplified Excel export - for full Excel support, 
   // you would want to use a library like xlsx or exceljs
@@ -300,7 +293,7 @@ const exportToExcel = async (
 const exportToCSV = async (
   element: HTMLElement,
   filename: string,
-  options: GanttExportOptions
+  _options: GanttExportOptions
 ): Promise<void> => {
   const taskData = extractTaskDataFromElement(element);
   const csvContent = convertTaskDataToCSV(taskData);
@@ -527,8 +520,7 @@ export const createGanttThumbnail = async (
   const canvas = await html2canvas(element, {
     allowTaint: false,
     useCORS: true,
-    backgroundColor: '#ffffff',
-    scale: 0.5, // Lower scale for thumbnail
+    background: '#ffffff',
     logging: false,
   });
 

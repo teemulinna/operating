@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { ProjectPage, ProjectData } from '../pages/ProjectPage';
+import { TestDataFactory } from '../utils/TestDataFactory';
 
 test.describe('Project Management - CRUD Operations', () => {
   let projectPage: ProjectPage;
@@ -15,8 +16,8 @@ test.describe('Project Management - CRUD Operations', () => {
       const projectData: ProjectData = {
         name: `Test Project ${Date.now()}`,
         description: 'A comprehensive test project for E2E testing',
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(60),
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(60),
         status: 'Planning',
         priority: 'High',
         budget: '50000',
@@ -43,8 +44,8 @@ test.describe('Project Management - CRUD Operations', () => {
     test('should create project with minimal required fields', async () => {
       const projectData: ProjectData = {
         name: `Minimal Project ${Date.now()}`,
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(30)
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(30)
       };
 
       await test.step('Create project with minimal data', async () => {
@@ -57,8 +58,8 @@ test.describe('Project Management - CRUD Operations', () => {
     });
 
     test('should create project with future start date', async () => {
-      const futureStart = projectPage.getFutureDateFormatted(7);
-      const futureEnd = projectPage.getFutureDateFormatted(37);
+      const futureStart = TestDataFactory.getFutureDateFormatted(7);
+      const futureEnd = TestDataFactory.getFutureDateFormatted(37);
       
       const projectData: ProjectData = {
         name: `Future Project ${Date.now()}`,
@@ -88,8 +89,8 @@ test.describe('Project Management - CRUD Operations', () => {
       await test.step('Try to submit without project name', async () => {
         await projectPage.fillProjectForm({
           name: '',
-          startDate: projectPage.getTodayFormatted(),
-          endDate: projectPage.getFutureDateFormatted(30)
+          startDate: TestDataFactory.getTodayFormatted(),
+          endDate: TestDataFactory.getFutureDateFormatted(30)
         });
       });
 
@@ -107,7 +108,7 @@ test.describe('Project Management - CRUD Operations', () => {
         await projectPage.fillProjectForm({
           name: 'Test Project',
           startDate: '',
-          endDate: projectPage.getFutureDateFormatted(30)
+          endDate: TestDataFactory.getFutureDateFormatted(30)
         });
       });
 
@@ -124,7 +125,7 @@ test.describe('Project Management - CRUD Operations', () => {
       await test.step('Try to submit without end date', async () => {
         await projectPage.fillProjectForm({
           name: 'Test Project',
-          startDate: projectPage.getTodayFormatted(),
+          startDate: TestDataFactory.getTodayFormatted(),
           endDate: ''
         });
       });
@@ -153,7 +154,7 @@ test.describe('Project Management - CRUD Operations', () => {
     });
 
     test('should allow same start and end date', async () => {
-      const today = projectPage.getTodayFormatted();
+      const today = TestDataFactory.getTodayFormatted();
       
       const projectData: ProjectData = {
         name: `Same Day Project ${Date.now()}`,
@@ -174,8 +175,8 @@ test.describe('Project Management - CRUD Operations', () => {
       const projectData: ProjectData = {
         name: `Long Term Project ${Date.now()}`,
         description: 'A project spanning multiple months',
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(365), // 1 year
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(365), // 1 year
         status: 'Planning',
         priority: 'Low'
       };
@@ -198,8 +199,8 @@ test.describe('Project Management - CRUD Operations', () => {
       testProject = {
         name: `Edit Test Project ${Date.now()}`,
         description: 'Project created for edit testing',
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(45),
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(45),
         status: 'Planning',
         priority: 'Medium'
       };
@@ -249,8 +250,8 @@ test.describe('Project Management - CRUD Operations', () => {
 
     test('should edit project dates', async () => {
       const updatedData = {
-        startDate: projectPage.getFutureDateFormatted(7),
-        endDate: projectPage.getFutureDateFormatted(77)
+        startDate: TestDataFactory.getFutureDateFormatted(7),
+        endDate: TestDataFactory.getFutureDateFormatted(77)
       };
 
       await test.step('Edit project dates', async () => {
@@ -291,8 +292,8 @@ test.describe('Project Management - CRUD Operations', () => {
       testProject = {
         name: `Delete Test Project ${Date.now()}`,
         description: 'Project created for deletion testing',
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(30),
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(30),
         status: 'On Hold',
         priority: 'Low'
       };
@@ -329,24 +330,24 @@ test.describe('Project Management - CRUD Operations', () => {
       {
         name: `Search Engineering Project ${Date.now()}`,
         description: 'Engineering focused project',
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(60),
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(60),
         status: 'Active',
         priority: 'High'
       },
       {
         name: `Search Marketing Campaign ${Date.now()}`,
         description: 'Marketing campaign project',
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(30),
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(30),
         status: 'Planning',
         priority: 'Medium'
       },
       {
         name: `Filter Critical Project ${Date.now()}`,
         description: 'Critical priority project',
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(90),
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(90),
         status: 'Active',
         priority: 'Critical'
       }
@@ -431,8 +432,8 @@ test.describe('Project Management - CRUD Operations', () => {
       await test.step('Add a new project', async () => {
         const newProject: ProjectData = {
           name: `Count Test Project ${Date.now()}`,
-          startDate: projectPage.getTodayFormatted(),
-          endDate: projectPage.getFutureDateFormatted(15)
+          startDate: TestDataFactory.getTodayFormatted(),
+          endDate: TestDataFactory.getFutureDateFormatted(15)
         };
         await projectPage.createProject(newProject);
       });
@@ -458,8 +459,8 @@ test.describe('Project Management - CRUD Operations', () => {
     test('should maintain list integrity after operations', async () => {
       const testProject: ProjectData = {
         name: `Integrity Test Project ${Date.now()}`,
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(45)
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(45)
       };
 
       await test.step('Create, edit, and verify project', async () => {
@@ -486,8 +487,8 @@ test.describe('Project Management - CRUD Operations', () => {
         await projectPage.fillProjectForm({
           name: 'Cancel Test Project',
           description: 'This should be cleared',
-          startDate: projectPage.getTodayFormatted(),
-          endDate: projectPage.getFutureDateFormatted(30)
+          startDate: TestDataFactory.getTodayFormatted(),
+          endDate: TestDataFactory.getFutureDateFormatted(30)
         });
       });
 
@@ -508,8 +509,8 @@ test.describe('Project Management - CRUD Operations', () => {
     test('should handle budget field correctly', async () => {
       const projectData: ProjectData = {
         name: `Budget Test Project ${Date.now()}`,
-        startDate: projectPage.getTodayFormatted(),
-        endDate: projectPage.getFutureDateFormatted(60),
+        startDate: TestDataFactory.getTodayFormatted(),
+        endDate: TestDataFactory.getFutureDateFormatted(60),
         budget: '100000'
       };
 
@@ -530,8 +531,8 @@ test.describe('Project Management - CRUD Operations', () => {
         
         const projectData: ProjectData = {
           name: `${status} Project ${Date.now()}`,
-          startDate: projectPage.getTodayFormatted(),
-          endDate: projectPage.getFutureDateFormatted(30),
+          startDate: TestDataFactory.getTodayFormatted(),
+          endDate: TestDataFactory.getFutureDateFormatted(30),
           status: status
         };
 
@@ -550,8 +551,8 @@ test.describe('Project Management - CRUD Operations', () => {
         
         const projectData: ProjectData = {
           name: `${priority} Priority Project ${Date.now()}`,
-          startDate: projectPage.getTodayFormatted(),
-          endDate: projectPage.getFutureDateFormatted(30),
+          startDate: TestDataFactory.getTodayFormatted(),
+          endDate: TestDataFactory.getFutureDateFormatted(30),
           priority: priority
         };
 

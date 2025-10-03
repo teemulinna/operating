@@ -450,13 +450,13 @@ class MultiProjectAssignmentService {
             });
             for (const employee of suitableEmployees.slice(0, Math.min(3, suitableEmployees.length))) {
                 const currentAssignments = assignments.filter(a => a.employeeId === employee.id);
-                if (currentAssignments.length < constraints.maxProjectsPerEmployee) {
+                const maxProjects = constraints.maxProjectsPerEmployee || 3;
+                if (currentAssignments.length < maxProjects) {
                     const allocation = Math.min(employee.availability * 100 / (currentAssignments.length + 1), 80);
                     assignments.push({
                         employeeId: employee.id,
                         projectId: project.id,
-                        allocation,
-                        skillMatch: this.calculateSkillMatch(employee.skills, project.requiredSkills)
+                        allocationPercentage: allocation
                     });
                 }
             }
@@ -464,13 +464,14 @@ class MultiProjectAssignmentService {
         const employeeUtilization = new Map();
         assignments.forEach(assignment => {
             const current = employeeUtilization.get(assignment.employeeId) || 0;
-            employeeUtilization.set(assignment.employeeId, current + assignment.allocation);
+            employeeUtilization.set(assignment.employeeId, current + assignment.allocationPercentage);
         });
         const totalUtilization = Array.from(employeeUtilization.values())
             .reduce((sum, util) => sum + Math.min(util, 100), 0) / employees.length;
         return {
             assignments,
-            totalUtilization: totalUtilization / 100
+            totalUtilization: totalUtilization / 100,
+            conflicts: []
         };
     }
     calculateSkillMatch(employeeSkills, requiredSkills) {

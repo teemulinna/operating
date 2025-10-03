@@ -245,19 +245,36 @@ export function transformApiProject(apiProject: ApiProject): Project {
   const now = new Date();
   const endDate = apiProject.end_date ? new Date(apiProject.end_date) : null;
   const startDate = new Date(apiProject.start_date);
-  
+
   // Parse numeric values from strings
   const budget = apiProject.budget ? parseFloat(apiProject.budget) : undefined;
   const hourlyRate = apiProject.hourly_rate ? parseFloat(apiProject.hourly_rate) : undefined;
   const actualHours = apiProject.actual_hours ? parseFloat(apiProject.actual_hours) : 0;
-  
+  const estimatedHours = apiProject.estimated_hours ?? undefined;
+
   // Calculate derived fields
-  const daysRemaining = endDate ? Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : undefined;
+  const rawDaysRemaining = endDate ? (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) : undefined;
+  const daysRemaining = rawDaysRemaining !== undefined ? Math.floor(rawDaysRemaining) : undefined;
   const isOverdue = endDate ? now > endDate && apiProject.status === 'active' : false;
   const budgetSpent = actualHours * (hourlyRate || 0);
   const isOverBudget = budget ? budgetSpent > budget : false;
-  const budgetUtilization = budget && budgetSpent > 0 ? (budgetSpent / budget) * 100 : 0;
-  const timeProgress = apiProject.estimated_hours && actualHours > 0 ? (actualHours / apiProject.estimated_hours) * 100 : 0;
+  const budgetUtilization = budget && budget > 0 ? (budgetSpent / budget) * 100 : 0;
+
+  let timeProgress: number | undefined;
+
+  if (estimatedHours && actualHours > 0) {
+    timeProgress = (actualHours / estimatedHours) * 100;
+  } else if (endDate) {
+    const totalDuration = endDate.getTime() - startDate.getTime();
+    const elapsedDuration = now.getTime() - startDate.getTime();
+    if (totalDuration > 0) {
+      timeProgress = (elapsedDuration / totalDuration) * 100;
+    }
+  }
+
+  if (timeProgress !== undefined) {
+    timeProgress = Math.max(0, Math.min(100, timeProgress));
+  }
 
   return {
     id: apiProject.id,
@@ -270,7 +287,7 @@ export function transformApiProject(apiProject: ApiProject): Project {
     endDate: apiProject.end_date,
     budget,
     hourlyRate,
-    estimatedHours: apiProject.estimated_hours,
+    estimatedHours,
     actualHours,
     createdAt: apiProject.created_at,
     updatedAt: apiProject.updated_at,

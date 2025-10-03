@@ -134,12 +134,14 @@ export class SkillController {
     try {
       const employeeId = req.params.employeeId;
       const limit = parseInt(req.query.limit as string) || 5;
-      
-      const recommendations = await this.skillService.getSkillRecommendations(employeeId, limit);
-      
+
+      const recommendations = await this.skillService.getSkillRecommendations(employeeId);
+      // Limit the recommendations if needed
+      const limitedRecommendations = recommendations.slice(0, limit);
+
       return res.status(200).json({
-        data: recommendations,
-        count: recommendations.length
+        data: limitedRecommendations,
+        count: limitedRecommendations.length
       });
     } catch (error: any) {
       next(error);

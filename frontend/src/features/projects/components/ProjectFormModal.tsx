@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { CreateProjectRequest, ProjectStatus, ProjectPriority } from '@/types/project';
+import { CreateProjectRequest } from '@/types/project';
 
 interface ProjectFormModalProps {
   isOpen: boolean;

@@ -189,7 +189,7 @@ export class AvailabilityPatternService {
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error('Error creating availability pattern:', error);
-      throw new ApiError('Failed to create availability pattern', 500);
+      throw new ApiError(500, 'Failed to create availability pattern');
     } finally {
       client.release();
     }
@@ -213,7 +213,7 @@ export class AvailabilityPatternService {
       const existingResult = await client.query(existingQuery, [patternId]);
 
       if (existingResult.rows.length === 0) {
-        throw new ApiError('Availability pattern not found', 404);
+        throw new ApiError(404, 'Availability pattern not found');
       }
 
       const existing = existingResult.rows[0];
@@ -303,7 +303,7 @@ export class AvailabilityPatternService {
       return result.rows.map(row => this.formatPattern(row));
     } catch (error) {
       logger.error('Error getting employee patterns:', error);
-      throw new ApiError('Failed to retrieve availability patterns', 500);
+      throw new ApiError(500, 'Failed to retrieve availability patterns');
     }
   }
 
@@ -374,7 +374,7 @@ export class AvailabilityPatternService {
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error('Error creating availability exception:', error);
-      throw new ApiError('Failed to create availability exception', 500);
+      throw new ApiError(500, 'Failed to create availability exception');
     } finally {
       client.release();
     }
@@ -405,7 +405,7 @@ export class AvailabilityPatternService {
       const result = await client.query(updateQuery, [exceptionId, approvedBy]);
 
       if (result.rows.length === 0) {
-        throw new ApiError('Exception not found', 404);
+        throw new ApiError(404, 'Exception not found');
       }
 
       const approved = result.rows[0];
@@ -480,7 +480,7 @@ export class AvailabilityPatternService {
       return result.rows.map(row => this.formatException(row));
     } catch (error) {
       logger.error('Error getting employee exceptions:', error);
-      throw new ApiError('Failed to retrieve availability exceptions', 500);
+      throw new ApiError(500, 'Failed to retrieve availability exceptions');
     }
   }
 
@@ -541,7 +541,7 @@ export class AvailabilityPatternService {
       return holidays;
     } catch (error) {
       logger.error('Error getting holidays:', error);
-      throw new ApiError('Failed to retrieve holidays', 500);
+      throw new ApiError(500, 'Failed to retrieve holidays');
     }
   }
 
@@ -583,7 +583,7 @@ export class AvailabilityPatternService {
       return this.formatHoliday(result.rows[0]);
     } catch (error) {
       logger.error('Error creating holiday:', error);
-      throw new ApiError('Failed to create holiday', 500);
+      throw new ApiError(500, 'Failed to create holiday');
     }
   }
 
@@ -672,7 +672,7 @@ export class AvailabilityPatternService {
       return effectiveAvailability;
     } catch (error) {
       logger.error('Error calculating effective availability:', error);
-      throw new ApiError('Failed to calculate effective availability', 500);
+      throw new ApiError(500, 'Failed to calculate effective availability');
     }
   }
 
@@ -697,7 +697,7 @@ export class AvailabilityPatternService {
       return availabilities;
     } catch (error) {
       logger.error('Error getting availability range:', error);
-      throw new ApiError('Failed to retrieve availability range', 500);
+      throw new ApiError(500, 'Failed to retrieve availability range');
     }
   }
 
@@ -764,7 +764,7 @@ export class AvailabilityPatternService {
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error('Error in bulk update:', error);
-      throw new ApiError('Failed to bulk update availability patterns', 500);
+      throw new ApiError(500, 'Failed to bulk update availability patterns');
     } finally {
       client.release();
     }
@@ -785,7 +785,7 @@ export class AvailabilityPatternService {
       return this.formatPattern(result.rows[0]);
     } catch (error) {
       logger.error('Error getting pattern by ID:', error);
-      throw new ApiError('Failed to retrieve availability pattern', 500);
+      throw new ApiError(500, 'Failed to retrieve availability pattern');
     }
   }
 
@@ -802,7 +802,7 @@ export class AvailabilityPatternService {
       const getResult = await client.query(getQuery, [patternId]);
 
       if (getResult.rows.length === 0) {
-        throw new ApiError('Pattern not found', 404);
+        throw new ApiError(404, 'Pattern not found');
       }
 
       const employeeId = getResult.rows[0].employee_id;
@@ -869,7 +869,7 @@ export class AvailabilityPatternService {
       return result.rows.map(row => this.formatException(row));
     } catch (error) {
       logger.error('Error getting exceptions:', error);
-      throw new ApiError('Failed to retrieve availability exceptions', 500);
+      throw new ApiError(500, 'Failed to retrieve availability exceptions');
     }
   }
 
@@ -937,7 +937,7 @@ export class AvailabilityPatternService {
       const result = await client.query(updateQuery, updateValues);
 
       if (result.rows.length === 0) {
-        throw new ApiError('Exception not found', 404);
+        throw new ApiError(404, 'Exception not found');
       }
 
       const updated = result.rows[0];
@@ -978,7 +978,7 @@ export class AvailabilityPatternService {
       const getResult = await client.query(getQuery, [exceptionId]);
 
       if (getResult.rows.length === 0) {
-        throw new ApiError('Exception not found', 404);
+        throw new ApiError(404, 'Exception not found');
       }
 
       const employeeId = getResult.rows[0].employee_id;
@@ -1072,7 +1072,7 @@ export class AvailabilityPatternService {
       const result = await client.query(updateQuery, updateValues);
 
       if (result.rows.length === 0) {
-        throw new ApiError('Holiday not found', 404);
+        throw new ApiError(404, 'Holiday not found');
       }
 
       const updated = result.rows[0];
@@ -1112,7 +1112,7 @@ export class AvailabilityPatternService {
       const result = await client.query(deleteQuery, [holidayId]);
 
       if (result.rows.length === 0) {
-        throw new ApiError('Holiday not found', 404);
+        throw new ApiError(404, 'Holiday not found');
       }
 
       await client.query('COMMIT');

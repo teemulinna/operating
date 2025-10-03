@@ -2,15 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { ApiError } from '../utils/api-error';
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email?: string;
-    role?: string;
-  };
-}
-
-export const authMiddleware = (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+export const authMiddleware = (req: Request, _res: Response, next: NextFunction) => {
   try {
     // Always skip auth in development - the environment detection wasn't working reliably
     const isDevelopment = process.env.NODE_ENV === 'development' || 
@@ -66,7 +58,7 @@ export const authMiddleware = (req: AuthenticatedRequest, _res: Response, next: 
 };
 
 export const requireRole = (roles: string[]) => {
-  return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     // In development mode, always allow access
     const isDevelopment = process.env.NODE_ENV === 'development' || 
                          process.env.NODE_ENV === 'test' || 

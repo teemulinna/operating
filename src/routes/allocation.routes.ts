@@ -3,6 +3,8 @@ import { body, param, query, validationResult } from 'express-validator';
 import { AllocationService } from '../services/allocation.service';
 import { asyncHandler } from '../middleware/async-handler';
 import { ResourceAllocationFilters, CreateResourceAllocationInput, UpdateResourceAllocationInput } from '../types';
+import { RequestWithServices } from '../middleware/service-injection.middleware';
+import { ApiError } from '../utils/api-error';
 
 const router = Router();
 
@@ -300,6 +302,87 @@ router.get('/utilization',
         data: summary
       });
     }
+  })
+);
+
+// GET /api/allocations/calendar - Get calendar view data (allocations, employees, projects)
+router.get('/calendar',
+  query('startDate').isISO8601().withMessage('Start date must be valid ISO 8601').toDate(),
+  query('endDate').isISO8601().withMessage('End date must be valid ISO 8601').toDate(),
+  query('employeeId').optional().isString(),
+  query('projectId').optional().isString(),
+  query('status').optional().isString(),
+  asyncHandler(async (req: Request, res: Response): Promise<Response> => {
+    const validationError = checkValidationErrors(req, res);
+    if (validationError) return validationError;
+
+    const services = (req as RequestWithServices).services;
+    if (!services?.database) {
+      throw new ApiError(500, 'Database service not initialized');
+    }
+    const db = services.database.getPool();
+
+    const startDate = new Date(req.query.startDate as string);
+    const endDate = new Date(req.query.endDate as string);
+    const { employeeId, projectId, status } = req.query;
+
+    // Build filters
+    const filters: ResourceAllocationFilters = {
+      startDateFrom: startDate,
+      endDateTo: endDate,
+      isActive: status !== 'inactive'
+    };
+
+    // Get allocations with the filters
+    const allocationsResult = await AllocationService.getAllAllocations(filters, 1, 1000);
+
+    // Get unique employee IDs and project IDs from allocations
+    const employeeIds = [...new Set(allocationsResult.data.map((a: any) => a.employeeId))];
+    const projectIds = [...new Set(allocationsResult.data.map((a: any) => a.projectId).filter(Boolean))];
+
+    // Fetch employee and project details
+    const [employeesData, projectsData] = await Promise.all([
+      // Get employees
+      db.query(
+        `SELECT id, first_name, last_name, position
+         FROM employees
+         WHERE id = ANY($1) AND is_active = true
+         ORDER BY last_name, first_name`,
+        [employeeIds]
+      ),
+      // Get projects
+      db.query(
+        `SELECT id, name, client_name, status
+         FROM projects
+         WHERE id = ANY($1)
+         ORDER BY name`,
+        [projectIds.map(String)]
+      )
+    ]);
+
+    // Format employee data
+    const employees = employeesData.rows.map((emp: any) => ({
+      id: emp.id,
+      name: `${emp.first_name} ${emp.last_name}`,
+      position: emp.position
+    }));
+
+    // Format project data
+    const projects = projectsData.rows.map((proj: any) => ({
+      id: String(proj.id),
+      name: proj.name,
+      clientName: proj.client_name || '',
+      status: proj.status
+    }));
+
+    return res.json({
+      success: true,
+      data: {
+        allocations: allocationsResult.data,
+        employees,
+        projects
+      }
+    });
   })
 );
 

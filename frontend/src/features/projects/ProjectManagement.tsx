@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useToastManager, ToastNotification } from '@/hooks/useToastManager';

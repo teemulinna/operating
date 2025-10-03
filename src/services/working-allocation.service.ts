@@ -49,7 +49,7 @@ export class WorkingAllocationService {
 
     // Validate that employee and project exist
     await this.validateEmployeeExists(input.employeeId);
-    await this.validateProjectExists(input.projectId);
+    await this.validateProjectExists(String(input.projectId));
 
     // Check business rules
     await this.validateBusinessRules(input);
@@ -387,9 +387,9 @@ export class WorkingAllocationService {
 
   private static async validateBusinessRules(input: CreateResourceAllocationInput): Promise<void> {
     await this.db.connect();
-    
+
     // Check if project dates are valid
-    const projectResult = await this.db.query('SELECT start_date, end_date FROM projects WHERE id = $1', [parseInt(input.projectId)]);
+    const projectResult = await this.db.query('SELECT start_date, end_date FROM projects WHERE id = $1', [parseInt(String(input.projectId))]);
     if (projectResult.rows.length > 0) {
       const project = projectResult.rows[0];
       if (input.startDate < project.start_date) {

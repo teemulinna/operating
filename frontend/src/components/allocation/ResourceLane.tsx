@@ -6,23 +6,318 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Progress } from '../ui/progress';
-import { 
-  User, 
-  AlertTriangle, 
-  Plus, 
+import {
+  AlertTriangle,
+  Plus,
   Calendar,
-  Clock,
   TrendingUp,
   TrendingDown
 } from 'lucide-react';
 import { AllocationCard } from './AllocationCard';
 import { format } from 'date-fns';
 import {
-  ResourceLane as ResourceLaneType,
   AllocationConflict,
-  TimeSlot,
   DragDropAllocation,
 } from '../../types/allocation';
-import { Project } from '../../types/api';
+import { Project, Employee } from '../../types/api';
 
-interface ResourceLaneProps {\n  lane: ResourceLaneType;\n  projects: Project[];\n  timeSlots: TimeSlot[];\n  conflicts: AllocationConflict[];\n  selectedAllocations: Set<number>;\n  onAllocationSelect: (allocationIds: number[], mode?: 'single' | 'multiple') => void;\n  onAllocationDelete: (allocationId: number) => void;\n  onAllocationCreate: (\n    employeeId: string,\n    projectId: number,\n    startDate: string,\n    endDate: string,\n    hours: number\n  ) => void;\n  readOnly?: boolean;\n}\n\nexport const ResourceLane: React.FC<ResourceLaneProps> = ({\n  lane,\n  projects,\n  timeSlots,\n  conflicts,\n  selectedAllocations,\n  onAllocationSelect,\n  onAllocationDelete,\n  onAllocationCreate,\n  readOnly = false,\n}) => {\n  const { setNodeRef, isOver } = useDroppable({\n    id: `lane-${lane.id}`,\n    data: {\n      type: 'lane',\n      employeeId: lane.id,\n    },\n  });\n\n  // Calculate utilization metrics\n  const utilizationMetrics = useMemo(() => {\n    const utilizationRate = (lane.utilization / lane.capacity) * 100;\n    const isOverAllocated = lane.utilization > lane.capacity;\n    const availableHours = Math.max(0, lane.capacity - lane.utilization);\n    \n    return {\n      utilizationRate,\n      isOverAllocated,\n      availableHours,\n      status: isOverAllocated ? 'overallocated' : \n               utilizationRate > 90 ? 'critical' :\n               utilizationRate > 75 ? 'high' : 'normal'\n    };\n  }, [lane.utilization, lane.capacity]);\n\n  // Get status color\n  const getStatusColor = (status: string) => {\n    switch (status) {\n      case 'overallocated': return 'text-red-600 bg-red-100';\n      case 'critical': return 'text-orange-600 bg-orange-100';\n      case 'high': return 'text-yellow-600 bg-yellow-100';\n      default: return 'text-green-600 bg-green-100';\n    }\n  };\n\n  // Handle allocation selection\n  const handleAllocationClick = useCallback((allocation: DragDropAllocation, event: React.MouseEvent) => {\n    event.preventDefault();\n    event.stopPropagation();\n    \n    if (event.metaKey || event.ctrlKey) {\n      // Multi-select mode\n      const currentSelection = Array.from(selectedAllocations);\n      const isSelected = selectedAllocations.has(allocation.id);\n      \n      if (isSelected) {\n        onAllocationSelect(currentSelection.filter(id => id !== allocation.id), 'multiple');\n      } else {\n        onAllocationSelect([...currentSelection, allocation.id], 'multiple');\n      }\n    } else {\n      // Single select mode\n      onAllocationSelect([allocation.id], 'single');\n    }\n  }, [selectedAllocations, onAllocationSelect]);\n\n  // Handle quick allocation creation\n  const handleQuickCreate = useCallback(() => {\n    if (readOnly) return;\n    \n    // For now, create a default allocation - in a real app this would open a modal\n    const today = new Date();\n    const tomorrow = new Date(today);\n    tomorrow.setDate(tomorrow.getDate() + 1);\n    \n    // Use the first available project as default\n    const defaultProject = projects[0];\n    if (defaultProject) {\n      onAllocationCreate(\n        lane.id,\n        defaultProject.id,\n        format(today, 'yyyy-MM-dd'),\n        format(tomorrow, 'yyyy-MM-dd'),\n        8 // Default 8 hours\n      );\n    }\n  }, [lane.id, projects, onAllocationCreate, readOnly]);\n\n  // Sort allocations by start date\n  const sortedAllocations = useMemo(() => {\n    return [...lane.allocations].sort((a, b) => \n      new Date(a.startDate).getTime() - new Date(b.startDate).getTime()\n    );\n  }, [lane.allocations]);\n\n  return (\n    <Card\n      ref={setNodeRef}\n      className={cn(\n        'p-4 transition-all duration-200',\n        isOver && 'ring-2 ring-primary ring-opacity-50 bg-primary/5',\n        conflicts.length > 0 && 'border-orange-200 bg-orange-50/50'\n      )}\n    >\n      {/* Employee header */}\n      <div className=\"flex items-center justify-between mb-4\">\n        <div className=\"flex items-center space-x-3\">\n          <Avatar className=\"h-10 w-10\">\n            <AvatarImage src={`/avatars/${lane.employee.id}.png`} />\n            <AvatarFallback>\n              {lane.employee.firstName?.[0]}{lane.employee.lastName?.[0]}\n            </AvatarFallback>\n          </Avatar>\n          \n          <div className=\"flex-1\">\n            <h3 className=\"font-semibold text-sm\">{lane.employee.name}</h3>\n            <p className=\"text-xs text-muted-foreground\">\n              {lane.employee.position} • {lane.employee.department}\n            </p>\n          </div>\n        </div>\n\n        <div className=\"flex items-center space-x-2\">\n          {/* Capacity indicator */}\n          <div className=\"text-right\">\n            <div className=\"text-xs font-medium\">\n              {lane.utilization}h / {lane.capacity}h\n            </div>\n            <div className=\"text-xs text-muted-foreground\">\n              {utilizationMetrics.availableHours}h available\n            </div>\n          </div>\n          \n          {/* Status badge */}\n          <Badge \n            variant=\"outline\" \n            className={cn('text-xs', getStatusColor(utilizationMetrics.status))}\n          >\n            {Math.round(utilizationMetrics.utilizationRate)}%\n          </Badge>\n        </div>\n      </div>\n\n      {/* Capacity progress bar */}\n      <div className=\"mb-4\">\n        <Progress \n          value={utilizationMetrics.utilizationRate} \n          className=\"h-2\"\n          indicatorClassName={cn(\n            utilizationMetrics.isOverAllocated ? 'bg-red-500' :\n            utilizationMetrics.status === 'critical' ? 'bg-orange-500' :\n            utilizationMetrics.status === 'high' ? 'bg-yellow-500' : 'bg-green-500'\n          )}\n        />\n      </div>\n\n      {/* Skills */}\n      {lane.employee.skills && lane.employee.skills.length > 0 && (\n        <div className=\"mb-4\">\n          <div className=\"flex flex-wrap gap-1\">\n            {lane.employee.skills.slice(0, 5).map(skill => (\n              <Badge key={skill} variant=\"secondary\" className=\"text-xs px-2 py-1\">\n                {skill}\n              </Badge>\n            ))}\n            {lane.employee.skills.length > 5 && (\n              <Badge variant=\"outline\" className=\"text-xs px-2 py-1\">\n                +{lane.employee.skills.length - 5} more\n              </Badge>\n            )}\n          </div>\n        </div>\n      )}\n\n      {/* Conflicts */}\n      {conflicts.length > 0 && (\n        <div className=\"mb-4 space-y-1\">\n          {conflicts.map(conflict => (\n            <div\n              key={conflict.id}\n              className={cn(\n                'text-xs p-2 rounded flex items-center space-x-1',\n                conflict.severity === 'error' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'\n              )}\n            >\n              <AlertTriangle className=\"h-3 w-3\" />\n              <span>{conflict.message}</span>\n            </div>\n          ))}\n        </div>\n      )}\n\n      {/* Allocations */}\n      <div className=\"space-y-2\">\n        {sortedAllocations.length > 0 ? (\n          <div className=\"space-y-2\">\n            {sortedAllocations.map(allocation => {\n              const project = projects.find(p => p.id === allocation.projectId);\n              const allocationConflicts = conflicts.filter(c => \n                c.affectedAllocations.includes(allocation.id)\n              );\n              \n              return (\n                <AllocationCard\n                  key={allocation.id}\n                  allocation={allocation}\n                  project={project}\n                  conflicts={allocationConflicts}\n                  isSelected={selectedAllocations.has(allocation.id)}\n                  onClick={(e) => handleAllocationClick(allocation, e)}\n                  onDelete={() => onAllocationDelete(allocation.id)}\n                  readOnly={readOnly}\n                />\n              );\n            })}\n          </div>\n        ) : (\n          <div className=\"text-center py-8 text-muted-foreground\">\n            <Calendar className=\"h-8 w-8 mx-auto mb-2 opacity-50\" />\n            <p className=\"text-sm\">No allocations</p>\n          </div>\n        )}\n      </div>\n\n      {/* Quick actions */}\n      {!readOnly && (\n        <div className=\"mt-4 pt-4 border-t border-border\">\n          <div className=\"flex items-center justify-between\">\n            <div className=\"text-xs text-muted-foreground\">\n              {utilizationMetrics.isOverAllocated && (\n                <div className=\"flex items-center space-x-1 text-red-600\">\n                  <TrendingDown className=\"h-3 w-3\" />\n                  <span>Over-allocated</span>\n                </div>\n              )}\n              {!utilizationMetrics.isOverAllocated && utilizationMetrics.availableHours > 0 && (\n                <div className=\"flex items-center space-x-1 text-green-600\">\n                  <TrendingUp className=\"h-3 w-3\" />\n                  <span>{utilizationMetrics.availableHours}h available</span>\n                </div>\n              )}\n            </div>\n            \n            <Button\n              variant=\"outline\"\n              size=\"sm\"\n              onClick={handleQuickCreate}\n              className=\"h-8 px-3 text-xs\"\n              disabled={projects.length === 0}\n            >\n              <Plus className=\"h-3 w-3 mr-1\" />\n              Add Allocation\n            </Button>\n          </div>\n        </div>\n      )}\n    </Card>\n  );\n};\n\nexport default ResourceLane;"
+// TimeSlot interface for timeline grid
+export interface TimeSlot {
+  date: Date;
+  isWeekend: boolean;
+  isToday: boolean;
+}
+
+// ResourceLane interface matching the expected structure
+export interface ResourceLaneType {
+  id: string;
+  employeeId: string;
+  employee: Employee;
+  capacity: number;
+  utilization: number;
+  allocations: DragDropAllocation[];
+}
+
+interface ResourceLaneProps {
+  lane: ResourceLaneType;
+  projects: Project[];
+  conflicts: AllocationConflict[];
+  selectedAllocations: Set<string>;
+  onAllocationSelect: (allocationIds: string[], mode?: 'single' | 'multiple') => void;
+  onAllocationDelete: (allocationId: string) => void;
+  onAllocationCreate: (
+    employeeId: string,
+    projectId: string,
+    startDate: string,
+    endDate: string,
+    hours: number
+  ) => void;
+  readOnly?: boolean;
+}
+
+export const ResourceLane: React.FC<ResourceLaneProps> = ({
+  lane,
+  projects,
+  conflicts,
+  selectedAllocations,
+  onAllocationSelect,
+  onAllocationDelete,
+  onAllocationCreate,
+  readOnly = false,
+}) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `lane-${lane.id}`,
+    data: {
+      type: 'lane',
+      employeeId: lane.id,
+    },
+  });
+
+  // Calculate utilization metrics
+  const utilizationMetrics = useMemo(() => {
+    const utilizationRate = (lane.utilization / lane.capacity) * 100;
+    const isOverAllocated = lane.utilization > lane.capacity;
+    const availableHours = Math.max(0, lane.capacity - lane.utilization);
+
+    return {
+      utilizationRate,
+      isOverAllocated,
+      availableHours,
+      status:
+        isOverAllocated ? 'overallocated' :
+        utilizationRate > 90 ? 'critical' :
+        utilizationRate > 75 ? 'high' : 'normal'
+    };
+  }, [lane.utilization, lane.capacity]);
+
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'overallocated': return 'text-red-600 bg-red-100';
+      case 'critical': return 'text-orange-600 bg-orange-100';
+      case 'high': return 'text-yellow-600 bg-yellow-100';
+      default: return 'text-green-600 bg-green-100';
+    }
+  };
+
+  // Handle allocation selection
+  const handleAllocationClick = useCallback((allocation: DragDropAllocation, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.metaKey || event.ctrlKey) {
+      // Multi-select mode
+      const currentSelection = Array.from(selectedAllocations);
+      const isSelected = selectedAllocations.has(allocation.id);
+
+      if (isSelected) {
+        onAllocationSelect(currentSelection.filter(id => id !== allocation.id), 'multiple');
+      } else {
+        onAllocationSelect([...currentSelection, allocation.id], 'multiple');
+      }
+    } else {
+      // Single select mode
+      onAllocationSelect([allocation.id], 'single');
+    }
+  }, [selectedAllocations, onAllocationSelect]);
+
+  // Handle quick allocation creation
+  const handleQuickCreate = useCallback(() => {
+    if (readOnly) return;
+
+    // For now, create a default allocation - in a real app this would open a modal
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Use the first available project as default
+    const defaultProject = projects[0];
+    if (defaultProject) {
+      onAllocationCreate(
+        lane.id,
+        defaultProject.id,
+        format(today, 'yyyy-MM-dd'),
+        format(tomorrow, 'yyyy-MM-dd'),
+        8 // Default 8 hours
+      );
+    }
+  }, [lane.id, projects, onAllocationCreate, readOnly]);
+
+  // Sort allocations by start date
+  const sortedAllocations = useMemo(() => {
+    return [...lane.allocations].sort((a, b) =>
+      new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    );
+  }, [lane.allocations]);
+
+  // Get employee display name
+  const employeeName = `${lane.employee.firstName} ${lane.employee.lastName}`;
+
+  return (
+    <Card
+      ref={setNodeRef}
+      className={cn(
+        'p-4 transition-all duration-200',
+        isOver && 'ring-2 ring-primary ring-opacity-50 bg-primary/5',
+        conflicts.length > 0 && 'border-orange-200 bg-orange-50/50'
+      )}
+    >
+      {/* Employee header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={`/avatars/${lane.employee.id}.png`} />
+            <AvatarFallback>
+              {lane.employee.firstName?.[0]}{lane.employee.lastName?.[0]}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="flex-1">
+            <h3 className="font-semibold text-sm">{employeeName}</h3>
+            <p className="text-xs text-muted-foreground">
+              {lane.employee.role} • {lane.employee.department}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          {/* Capacity indicator */}
+          <div className="text-right">
+            <div className="text-xs font-medium">
+              {lane.utilization}h / {lane.capacity}h
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {utilizationMetrics.availableHours}h available
+            </div>
+          </div>
+
+          {/* Status badge */}
+          <Badge
+            variant="outline"
+            className={cn('text-xs', getStatusColor(utilizationMetrics.status))}
+          >
+            {Math.round(utilizationMetrics.utilizationRate)}%
+          </Badge>
+        </div>
+      </div>
+
+      {/* Capacity progress bar */}
+      <div className="mb-4">
+        <Progress
+          value={utilizationMetrics.utilizationRate}
+          className="h-2"
+          indicatorClassName={cn(
+            utilizationMetrics.isOverAllocated ? 'bg-red-500' :
+            utilizationMetrics.status === 'critical' ? 'bg-orange-500' :
+            utilizationMetrics.status === 'high' ? 'bg-yellow-500' : 'bg-green-500'
+          )}
+        />
+      </div>
+
+      {/* Skills */}
+      {lane.employee.skills && lane.employee.skills.length > 0 && (
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-1">
+            {lane.employee.skills.slice(0, 5).map(skill => (
+              <Badge key={skill} variant="secondary" className="text-xs px-2 py-1">
+                {skill}
+              </Badge>
+            ))}
+            {lane.employee.skills.length > 5 && (
+              <Badge variant="outline" className="text-xs px-2 py-1">
+                +{lane.employee.skills.length - 5} more
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Conflicts */}
+      {conflicts.length > 0 && (
+        <div className="mb-4 space-y-1">
+          {conflicts.map(conflict => (
+            <div
+              key={conflict.id}
+              className={cn(
+                'text-xs p-2 rounded flex items-center space-x-1',
+                conflict.severity === 'critical' || conflict.severity === 'high'
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              )}
+            >
+              <AlertTriangle className="h-3 w-3" />
+              <span>{conflict.message || conflict.description}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Allocations */}
+      <div className="space-y-2">
+        {sortedAllocations.length > 0 ? (
+          <div className="space-y-2">
+            {sortedAllocations.map(allocation => {
+              const project = projects.find(p => p.id === allocation.projectId);
+              const allocationConflicts = conflicts.filter(c =>
+                c.affectedAllocations.includes(allocation.id)
+              );
+
+              return (
+                <AllocationCard
+                  key={allocation.id}
+                  allocation={allocation}
+                  project={project}
+                  conflicts={allocationConflicts}
+                  isSelected={selectedAllocations.has(allocation.id)}
+                  onClick={(e) => handleAllocationClick(allocation, e)}
+                  onDelete={() => onAllocationDelete(allocation.id)}
+                  readOnly={readOnly}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No allocations</p>
+          </div>
+        )}
+      </div>
+
+      {/* Quick actions */}
+      {!readOnly && (
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-muted-foreground">
+              {utilizationMetrics.isOverAllocated && (
+                <div className="flex items-center space-x-1 text-red-600">
+                  <TrendingDown className="h-3 w-3" />
+                  <span>Over-allocated</span>
+                </div>
+              )}
+              {!utilizationMetrics.isOverAllocated && utilizationMetrics.availableHours > 0 && (
+                <div className="flex items-center space-x-1 text-green-600">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>{utilizationMetrics.availableHours}h available</span>
+                </div>
+              )}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleQuickCreate}
+              className="h-8 px-3 text-xs"
+              disabled={projects.length === 0}
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Allocation
+            </Button>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+};
+
+export default ResourceLane;

@@ -6,7 +6,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '../../lib/utils';
 import { Dialog } from './dialog';
-import { designTokens } from '../../styles/design-tokens';
 
 export interface CommandPaletteAction {
   id: string;
@@ -161,7 +160,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                         {category}
                       </div>
-                      {categoryActions.map((action, actionIndex) => {
+                      {categoryActions.map((action) => {
                         const globalIndex = filteredActions.indexOf(action);
                         const isSelected = globalIndex === selectedIndex;
 

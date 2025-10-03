@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle, Users } from 'lucide-react';
 import { Badge } from '../ui/badge';
 

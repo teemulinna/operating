@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle, Clock, TrendingUp, AlertCircle } from 'lucide-react';
 import { Badge } from './badge';
 

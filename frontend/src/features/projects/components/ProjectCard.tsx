@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '../../../components/ui/button';
 import { Project, PROJECT_STATUS_COLORS, PROJECT_PRIORITY_COLORS } from '../../../types/project';
 import { PencilIcon, TrashIcon, CalendarIcon, UserIcon } from '@heroicons/react/24/outline';

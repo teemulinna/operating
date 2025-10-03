@@ -13,6 +13,45 @@ interface ProjectFormModalProps {
   error?: string;
 }
 
+const DEFAULT_FORM_VALUES: CreateProjectRequest = {
+  name: '',
+  description: '',
+  client_name: '',
+  start_date: '',
+  end_date: '',
+  budget: undefined,
+  hourly_rate: undefined,
+  estimated_hours: undefined,
+  status: 'planning',
+  priority: 'medium',
+};
+
+const normalizeDateForInput = (value?: string | null): string => {
+  if (!value) {
+    return '';
+  }
+
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) {
+    const [day, month, year] = value.split('.');
+    return `${year}-${month}-${day}`;
+  }
+
+  const normalizedInput = value.includes('T') ? value : value.replace(' ', 'T');
+  const date = new Date(normalizedInput);
+
+  if (Number.isNaN(date.getTime())) {
+    const [year, month, day] = value.split(/[^\d]/).filter(Boolean);
+    if (year && month && day) {
+      return `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return '';
+  }
+
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  const localDate = new Date(date.getTime() - tzOffset);
+  return localDate.toISOString().slice(0, 10);
+};
+
 export function ProjectFormModal({
   isOpen,
   onClose,
@@ -23,18 +62,7 @@ export function ProjectFormModal({
   isLoading = false,
   error,
 }: ProjectFormModalProps) {
-  const [formData, setFormData] = useState<CreateProjectRequest>({
-    name: '',
-    description: '',
-    client_name: '',
-    start_date: '',
-    end_date: '',
-    budget: undefined,
-    hourly_rate: undefined,
-    estimated_hours: undefined,
-    status: 'planning',
-    priority: 'medium',
-  });
+  const [formData, setFormData] = useState<CreateProjectRequest>({ ...DEFAULT_FORM_VALUES });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -42,20 +70,16 @@ export function ProjectFormModal({
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
-        setFormData(initialData);
-      } else {
         setFormData({
-          name: '',
-          description: '',
-          client_name: '',
-          start_date: '',
-          end_date: '',
-          budget: undefined,
-          hourly_rate: undefined,
-          estimated_hours: undefined,
-          status: 'planning',
-          priority: 'medium',
+          ...DEFAULT_FORM_VALUES,
+          ...initialData,
+          start_date: normalizeDateForInput(initialData.start_date),
+          end_date: normalizeDateForInput(initialData.end_date),
+          description: initialData.description ?? '',
+          client_name: initialData.client_name ?? '',
         });
+      } else {
+        setFormData({ ...DEFAULT_FORM_VALUES });
       }
       setErrors({});
     }
@@ -203,7 +227,7 @@ export function ProjectFormModal({
               <textarea
                 id="description"
                 name="description"
-                value={formData.description}
+                value={formData.description ?? ''}
                 onChange={handleInputChange}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -220,7 +244,7 @@ export function ProjectFormModal({
                 type="text"
                 id="client_name"
                 name="client_name"
-                value={formData.client_name}
+                value={formData.client_name ?? ''}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="Enter client name"

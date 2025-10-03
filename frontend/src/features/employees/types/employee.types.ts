@@ -4,9 +4,6 @@ export interface ValidationError {
   message: string;
 }
 
-// Also import from UI if it exists for compatibility
-type UIValidationError = { field: string; message: string; };
-
 export interface Employee {
   id: string;
   firstName: string;

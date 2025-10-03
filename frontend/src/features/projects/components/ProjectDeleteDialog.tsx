@@ -1,4 +1,3 @@
-import React from 'react';
 import { Project } from '../hooks/useProjectOperations';
 
 export interface ProjectDeleteDialogProps {

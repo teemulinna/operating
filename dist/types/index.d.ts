@@ -314,7 +314,7 @@ export interface OverAllocationWarning {
     employeeName: string;
     weekStartDate: Date;
     weekEndDate: Date;
-    defaultHours: number;
+    weeklyCapacity: number;
     allocatedHours: number;
     overAllocationHours: number;
     utilizationRate: number;

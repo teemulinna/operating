@@ -6,12 +6,10 @@ import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  AlertTriangle, 
-  X, 
+import {
+  Calendar,
+  Clock,
+  AlertTriangle,
   Edit2,
   MoreVertical,
   Copy,
@@ -34,9 +32,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { 
-  DragDropAllocation, 
-  AllocationConflict 
+import {
+  DragDropAllocation,
+  AllocationConflict
 } from '../../types/allocation';
 import { Project } from '../../types/api';
 
@@ -68,7 +66,7 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
   className,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
+
   const {
     attributes,
     listeners,
@@ -91,9 +89,9 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
   // Calculate duration and dates
   const startDate = allocation.startDate ? parseISO(allocation.startDate) : null;
   const endDate = allocation.endDate ? parseISO(allocation.endDate) : null;
-  
-  const duration = startDate && endDate && isValid(startDate) && isValid(endDate) 
-    ? differenceInDays(endDate, startDate) + 1 
+
+  const duration = startDate && endDate && isValid(startDate) && isValid(endDate)
+    ? differenceInDays(endDate, startDate) + 1
     : allocation.duration || 1;
 
   // Get priority color
@@ -152,8 +150,8 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
   }, []);
 
   const hasConflicts = conflicts.length > 0;
-  const hasErrors = conflicts.some(c => c.severity === 'error');
-  const hasWarnings = conflicts.some(c => c.severity === 'warning');
+  const hasErrors = conflicts.some(c => c.severity === 'critical');
+  const hasWarnings = conflicts.some(c => c.severity === 'high' || c.severity === 'medium');
 
   return (
     <>
@@ -176,7 +174,7 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
         onClick={handleCardClick}
       >
         {/* Priority indicator */}
-        <div 
+        <div
           className={cn(
             'absolute left-0 top-0 bottom-0 w-1 rounded-l',
             getPriorityColor(project?.priority || 'medium')
@@ -250,7 +248,7 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
                   )}
                   {(onEdit || onDuplicate) && onDelete && <DropdownMenuSeparator />}
                   {onDelete && (
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={handleDeleteClick}
                       className="text-red-600 focus:text-red-600"
                     >
@@ -273,13 +271,13 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
                 <Clock className="h-3 w-3 text-muted-foreground" />
                 <span>{allocation.hours}h</span>
               </div>
-              
+
               <div className="flex items-center space-x-1">
                 <Calendar className="h-3 w-3 text-muted-foreground" />
                 <span>{duration} day{duration !== 1 ? 's' : ''}</span>
               </div>
             </div>
-            
+
             {allocation.billableRate && (
               <div className="text-xs text-muted-foreground">
                 ${allocation.billableRate}/h
@@ -307,11 +305,11 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
           <div className="mt-2 pt-2 border-t border-border space-y-1">
             {conflicts.slice(0, 2).map(conflict => (
               <div key={conflict.id} className="text-xs flex items-center space-x-1">
-                <AlertTriangle 
+                <AlertTriangle
                   className={cn(
                     'h-3 w-3',
-                    conflict.severity === 'error' ? 'text-red-500' : 'text-yellow-500'
-                  )} 
+                    conflict.severity === 'critical' ? 'text-red-500' : 'text-yellow-500'
+                  )}
                 />
                 <span className="truncate" title={conflict.message}>
                   {conflict.message}
@@ -344,7 +342,7 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700"
             >
@@ -357,4 +355,4 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
   );
 };
 
-export default AllocationCard;"
+export default AllocationCard;

@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   format,
   startOfWeek,
   endOfWeek,
   startOfMonth,
   endOfMonth,
-  addDays,
   addWeeks,
-  addMonths,
-  isWeekend,
-  isSameDay
+  addMonths
 } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, DownloadIcon, RefreshCwIcon } from 'lucide-react';
 import { HeatMapCell } from './HeatMapCell';
 import { HeatMapLegend } from './HeatMapLegend';
@@ -281,7 +277,7 @@ export const HeatMap: React.FC<HeatMapProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Select value={granularity} onValueChange={(val) => setGranularity(val as HeatmapGranularity)}>
+          <Select value={granularity} onChange={(e) => setGranularity(e.target.value as HeatmapGranularity)}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -367,7 +363,7 @@ export const HeatMap: React.FC<HeatMapProps> = ({
 
           {/* Employee Rows */}
           {gridData.employees.map(employeeKey => {
-            const [employeeId, employeeName] = employeeKey.split('-');
+            const [, employeeName] = employeeKey.split('-');
             return (
               <div
                 key={employeeKey}

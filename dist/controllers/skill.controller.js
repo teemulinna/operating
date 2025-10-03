@@ -103,10 +103,11 @@ class SkillController {
             try {
                 const employeeId = req.params.employeeId;
                 const limit = parseInt(req.query.limit) || 5;
-                const recommendations = await this.skillService.getSkillRecommendations(employeeId, limit);
+                const recommendations = await this.skillService.getSkillRecommendations(employeeId);
+                const limitedRecommendations = recommendations.slice(0, limit);
                 return res.status(200).json({
-                    data: recommendations,
-                    count: recommendations.length
+                    data: limitedRecommendations,
+                    count: limitedRecommendations.length
                 });
             }
             catch (error) {

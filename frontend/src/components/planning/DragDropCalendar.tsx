@@ -6,21 +6,17 @@ import {
   useDroppable,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
-  pointerWithin,
   rectIntersection,
 } from '@dnd-kit/core';
-import { format, addDays, startOfWeek, endOfWeek, isSameDay, parseISO } from 'date-fns';
+import { format, addDays, parseISO } from 'date-fns';
 import { AllocationService } from '../../services/allocationService';
 import { useToastManager, ToastNotification } from '../../hooks/useToastManager';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { cn } from '../../lib/utils';
 import type { Allocation, AllocationConflict, CreateAllocationRequest } from '../../types/allocation';
-import type { Employee, Project } from '../../services/api';
 
 interface CalendarData {
   allocations: Allocation[];
@@ -119,15 +115,14 @@ const DraggableAllocation = ({ allocation }: { allocation: Allocation }) => {
 };
 
 // Droppable Calendar Cell Component
-const DroppableCalendarCell = ({ 
-  date, 
-  employeeId, 
-  allocations, 
-  employee,
-  onHover 
-}: { 
-  date: string; 
-  employeeId?: string; 
+const DroppableCalendarCell = ({
+  date,
+  employeeId,
+  allocations,
+  onHover
+}: {
+  date: string;
+  employeeId?: string;
   allocations: Allocation[];
   employee?: { id: string; name: string };
   onHover?: (allocation: Allocation | null) => void;

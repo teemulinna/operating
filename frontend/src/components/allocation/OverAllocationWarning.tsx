@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle, Clock, Users, TrendingUp } from 'lucide-react';
 
 interface Project {

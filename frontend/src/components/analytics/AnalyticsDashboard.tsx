@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiService } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,12 +75,12 @@ export function AnalyticsDashboard() {
   const totalProjects = projects.length;
   const activeAllocations = allocations.filter(a => a.status === 'active').length;
   
-  const averageCapacity = employees.length > 0 
-    ? Math.round(employees.reduce((sum, emp) => sum + emp.capacity, 0) / employees.length)
+  const averageCapacity = employees.length > 0
+    ? Math.round(employees.reduce((sum, emp) => sum + (emp.capacity ?? 0), 0) / employees.length)
     : 0;
-  
-  const overutilizedEmployees = employees.filter(emp => emp.capacity > 80).length;
-  const availableEmployees = employees.filter(emp => emp.capacity < 60).length;
+
+  const overutilizedEmployees = employees.filter(emp => (emp.capacity ?? 0) > 80).length;
+  const availableEmployees = employees.filter(emp => (emp.capacity ?? 0) < 60).length;
   
   const projectsByStatus = projects.reduce((acc, project) => {
     acc[project.status] = (acc[project.status] || 0) + 1;

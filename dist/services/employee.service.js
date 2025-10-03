@@ -266,7 +266,14 @@ class EmployeeService {
             }
             const employee = employeeCheck.rows[0];
             const dependencyChecks = await Promise.all([
-                this.db.query('SELECT COUNT(*) as count FROM allocation_templates WHERE created_by = $1', [id]),
+                this.db.query(`
+          SELECT COUNT(*) as count
+          FROM allocation_templates
+          WHERE EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'allocation_templates' AND column_name = 'created_by'
+          ) AND created_by = $1
+        `, [id]).catch(() => ({ rows: [{ count: '0' }] })),
                 this.db.query(`
           SELECT COUNT(*) as count
           FROM allocations a
@@ -318,7 +325,14 @@ class EmployeeService {
             }
             const employee = employeeCheck.rows[0];
             const dependencyChecks = await Promise.all([
-                client.query('SELECT COUNT(*) as count FROM allocation_templates WHERE created_by = $1', [id]),
+                client.query(`
+          SELECT COUNT(*) as count
+          FROM allocation_templates
+          WHERE EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'allocation_templates' AND column_name = 'created_by'
+          ) AND created_by = $1
+        `, [id]).catch(() => ({ rows: [{ count: '0' }] })),
                 client.query(`
           SELECT COUNT(*) as count
           FROM allocations a
@@ -355,11 +369,23 @@ class EmployeeService {
                     name: 'capacity history'
                 },
                 {
-                    query: 'UPDATE allocations SET created_by = NULL WHERE created_by = $1',
+                    query: `
+            UPDATE allocations SET created_by = NULL
+            WHERE EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'allocations' AND column_name = 'created_by'
+            ) AND created_by = $1
+          `,
                     name: 'allocation creator references'
                 },
                 {
-                    query: 'UPDATE resource_allocations SET created_by = NULL WHERE created_by = $1',
+                    query: `
+            UPDATE resource_allocations SET created_by = NULL
+            WHERE EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'resource_allocations' AND column_name = 'created_by'
+            ) AND created_by = $1
+          `,
                     name: 'resource allocation creator references'
                 },
                 {

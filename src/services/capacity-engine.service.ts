@@ -305,10 +305,10 @@ export class CapacityEngineService {
   private async identifyPotentialConflicts(recommendations: ResourceRecommendation[]): Promise<ResourceConflict[]> {
     // Check if recommended allocations create conflicts
     const conflicts: ResourceConflict[] = [];
-    
+
     // Simple conflict detection based on total hours per employee
-    const employeeHours = new Map<number, number>();
-    
+    const employeeHours = new Map<string, number>();
+
     recommendations.forEach(rec => {
       const current = employeeHours.get(rec.employeeId) || 0;
       employeeHours.set(rec.employeeId, current + rec.allocatedHours);

@@ -48,6 +48,12 @@ const skill_service_1 = require("../services/skill.service");
 const allocation_service_wrapper_1 = require("../services/allocation-service-wrapper");
 const dependency_service_1 = require("../services/dependency.service");
 const schedule_management_service_1 = require("../services/schedule-management.service");
+const cache_service_1 = require("../services/cache.service");
+const websocket_service_1 = require("../websocket/websocket.service");
+const availability_pattern_service_1 = require("../services/availability-pattern.service");
+const scenario_planner_service_1 = require("../services/scenario-planner.service");
+const resource_analytics_service_1 = require("../services/resource-analytics.service");
+const heat_map_service_1 = require("../services/heat-map.service");
 const exportController_1 = require("../controllers/exportController");
 const models_1 = require("../models");
 exports.SERVICE_NAMES = {
@@ -58,6 +64,12 @@ exports.SERVICE_NAMES = {
     ALLOCATION: 'AllocationService',
     DEPENDENCY: 'DependencyService',
     SCHEDULE_MANAGEMENT: 'ScheduleManagementService',
+    CACHE: 'CacheService',
+    WEBSOCKET: 'WebSocketService',
+    AVAILABILITY_PATTERN: 'AvailabilityPatternService',
+    SCENARIO_PLANNER: 'ScenarioPlanner',
+    RESOURCE_ANALYTICS: 'ResourceAnalyticsService',
+    HEAT_MAP: 'HeatMapService',
 };
 function configureServices() {
     service_container_1.registerService.instance(exports.SERVICE_NAMES.DATABASE, database_service_1.DatabaseService.getInstance());
@@ -81,6 +93,38 @@ function configureServices() {
     service_container_1.registerService.singleton(exports.SERVICE_NAMES.SCHEDULE_MANAGEMENT, () => {
         return new schedule_management_service_1.ScheduleManagementService();
     });
+    service_container_1.registerService.singleton(exports.SERVICE_NAMES.CACHE, () => {
+        return cache_service_1.CacheService.getInstance({
+            maxSize: 1000,
+            defaultTTL: 3600,
+            evictionPolicy: 'LRU',
+            cleanupIntervalMs: 60000
+        });
+    });
+    service_container_1.registerService.singleton(exports.SERVICE_NAMES.WEBSOCKET, () => {
+        return websocket_service_1.WebSocketService.getInstance();
+    });
+    service_container_1.registerService.singleton(exports.SERVICE_NAMES.RESOURCE_ANALYTICS, () => {
+        const db = service_container_1.container.resolve(exports.SERVICE_NAMES.DATABASE);
+        return new resource_analytics_service_1.ResourceAnalyticsService(db.getPool());
+    });
+    service_container_1.registerService.singleton(exports.SERVICE_NAMES.AVAILABILITY_PATTERN, () => {
+        const db = service_container_1.container.resolve(exports.SERVICE_NAMES.DATABASE);
+        const cache = service_container_1.container.resolve(exports.SERVICE_NAMES.CACHE);
+        const ws = service_container_1.container.resolve(exports.SERVICE_NAMES.WEBSOCKET);
+        return new availability_pattern_service_1.AvailabilityPatternService(db.getPool(), cache, ws);
+    });
+    service_container_1.registerService.singleton(exports.SERVICE_NAMES.SCENARIO_PLANNER, () => {
+        const db = service_container_1.container.resolve(exports.SERVICE_NAMES.DATABASE);
+        const cache = service_container_1.container.resolve(exports.SERVICE_NAMES.CACHE);
+        const ws = service_container_1.container.resolve(exports.SERVICE_NAMES.WEBSOCKET);
+        const availability = service_container_1.container.resolve(exports.SERVICE_NAMES.AVAILABILITY_PATTERN);
+        const analytics = service_container_1.container.resolve(exports.SERVICE_NAMES.RESOURCE_ANALYTICS);
+        return new scenario_planner_service_1.ScenarioPlanner(db.getPool(), cache, ws, availability, analytics);
+    });
+    service_container_1.registerService.singleton(exports.SERVICE_NAMES.HEAT_MAP, () => {
+        return new heat_map_service_1.HeatMapService();
+    });
 }
 exports.Services = {
     database: () => service_container_1.container.resolve(exports.SERVICE_NAMES.DATABASE),
@@ -90,6 +134,12 @@ exports.Services = {
     allocation: () => service_container_1.container.resolve(exports.SERVICE_NAMES.ALLOCATION),
     dependency: () => service_container_1.container.resolve(exports.SERVICE_NAMES.DEPENDENCY),
     scheduleManagement: () => service_container_1.container.resolve(exports.SERVICE_NAMES.SCHEDULE_MANAGEMENT),
+    cache: () => service_container_1.container.resolve(exports.SERVICE_NAMES.CACHE),
+    websocket: () => service_container_1.container.resolve(exports.SERVICE_NAMES.WEBSOCKET),
+    availabilityPattern: () => service_container_1.container.resolve(exports.SERVICE_NAMES.AVAILABILITY_PATTERN),
+    scenarioPlanner: () => service_container_1.container.resolve(exports.SERVICE_NAMES.SCENARIO_PLANNER),
+    resourceAnalytics: () => service_container_1.container.resolve(exports.SERVICE_NAMES.RESOURCE_ANALYTICS),
+    heatMap: () => service_container_1.container.resolve(exports.SERVICE_NAMES.HEAT_MAP),
 };
 async function initializeServices() {
     try {

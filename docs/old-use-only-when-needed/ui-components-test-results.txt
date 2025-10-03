@@ -1,0 +1,224 @@
+
+> resourceforge-frontend@0.0.0 test:e2e
+> playwright test ui-components.spec.ts --reporter=list
+
+
+Running 23 tests using 4 workers
+
+  ✓   3 [chromium] › tests/e2e/specs/ui-components.spec.ts:15:3 › US-UI2: Loading States › should display skeleton loaders on initial page load (844ms)
+  ✓   4 [chromium] › tests/e2e/specs/ui-components.spec.ts:52:3 › US-UI2: Loading States › should have proper loading fallback for lazy routes (962ms)
+  ✓   2 [chromium] › tests/e2e/specs/ui-components.spec.ts:28:3 › US-UI2: Loading States › should show loading text during data fetch (1.1s)
+  ✘   1 [chromium] › tests/e2e/specs/ui-components.spec.ts:40:3 › US-UI2: Loading States › should show spinning indicator in loading fallback (1.1s)
+  ✓   6 [chromium] › tests/e2e/specs/ui-components.spec.ts:89:3 › US-UI3: Error Handling › should have error boundary to prevent crashes (922ms)
+  ✓   7 [chromium] › tests/e2e/specs/ui-components.spec.ts:106:3 › US-UI3: Error Handling › should keep application functional after errors (895ms)
+  ✓   5 [chromium] › tests/e2e/specs/ui-components.spec.ts:67:3 › US-UI3: Error Handling › should display user-friendly error messages (1.2s)
+  ✓   8 [chromium] › tests/e2e/specs/ui-components.spec.ts:123:3 › US-UI4: Accessibility › should have HTML lang attribute (666ms)
+  ✓   9 [chromium] › tests/e2e/specs/ui-components.spec.ts:130:3 › US-UI4: Accessibility › should have page title (688ms)
+  ✓  10 [chromium] › tests/e2e/specs/ui-components.spec.ts:138:3 › US-UI4: Accessibility › should have main landmark (656ms)
+  ✓  11 [chromium] › tests/e2e/specs/ui-components.spec.ts:145:3 › US-UI4: Accessibility › should have navigation landmark (690ms)
+  ✓  12 [chromium] › tests/e2e/specs/ui-components.spec.ts:152:3 › US-UI4: Accessibility › should support keyboard navigation (1.2s)
+  ✓  15 [chromium] › tests/e2e/specs/ui-components.spec.ts:193:3 › US-UI4: Accessibility › should have proper test IDs for navigation (728ms)
+  ✓  13 [chromium] › tests/e2e/specs/ui-components.spec.ts:168:3 › US-UI4: Accessibility › should have visible focus indicators (1.5s)
+  ✘  14 [chromium] › tests/e2e/specs/ui-components.spec.ts:40:3 › US-UI2: Loading States › should show spinning indicator in loading fallback (retry #1) (1.5s)
+  ✓  16 [chromium] › tests/e2e/specs/ui-components.spec.ts:212:3 › US-UI4: Accessibility › should have role="alert" for error messages (1.6s)
+  ✓  18 [chromium] › tests/e2e/specs/ui-components.spec.ts:249:3 › US-UI5: Empty States › should suggest actions in empty states (1.3s)
+  ✘  17 [chromium] › tests/e2e/specs/ui-components.spec.ts:229:3 › US-UI5: Empty States › should display empty state with descriptive text (1.5s)
+  ✓  20 [chromium] › tests/e2e/specs/ui-components.spec.ts:287:3 › US-UI1: Toast Notifications › should have toast close buttons with aria-label (776ms)
+  ✓  19 [chromium] › tests/e2e/specs/ui-components.spec.ts:275:3 › US-UI1: Toast Notifications › should have toast container in correct position (1.2s)
+  ✓  22 [chromium] › tests/e2e/specs/ui-components.spec.ts:263:3 › US-UI5: Empty States › should have navigation links as action buttons (724ms)
+  ✓  21 [chromium] › tests/e2e/specs/ui-components.spec.ts:300:3 › Accessibility Audit › should pass basic WCAG checks (1.2s)
+  ✓  23 [chromium] › tests/e2e/specs/ui-components.spec.ts:326:3 › Accessibility Audit › should have consistent color scheme (1.3s)
+  ✘  25 [chromium] › tests/e2e/specs/ui-components.spec.ts:345:3 › Component Integration › should have all expected pages accessible (1.2s)
+  ✘  24 [chromium] › tests/e2e/specs/ui-components.spec.ts:229:3 › US-UI5: Empty States › should display empty state with descriptive text (retry #1) (1.4s)
+  ✘  26 [chromium] › tests/e2e/specs/ui-components.spec.ts:345:3 › Component Integration › should have all expected pages accessible (retry #1) (1.5s)
+
+
+  1) [chromium] › tests/e2e/specs/ui-components.spec.ts:40:3 › US-UI2: Loading States › should show spinning indicator in loading fallback 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      47 |     const hasContent = await page.locator('[data-testid="projects-page"]').isVisible({ timeout: 3000 }).catch(() => false);
+      48 |
+    > 49 |     expect(hasSpinner || hasContent).toBeTruthy();
+         |                                      ^
+      50 |   });
+      51 |
+      52 |   test('should have proper loading fallback for lazy routes', async ({ page }) => {
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/ui-components.spec.ts:49:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI2-077e0-dicator-in-loading-fallback-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI2-077e0-dicator-in-loading-fallback-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-ui-components-US-UI2-077e0-dicator-in-loading-fallback-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      47 |     const hasContent = await page.locator('[data-testid="projects-page"]').isVisible({ timeout: 3000 }).catch(() => false);
+      48 |
+    > 49 |     expect(hasSpinner || hasContent).toBeTruthy();
+         |                                      ^
+      50 |   });
+      51 |
+      52 |   test('should have proper loading fallback for lazy routes', async ({ page }) => {
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/ui-components.spec.ts:49:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI2-077e0-dicator-in-loading-fallback-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI2-077e0-dicator-in-loading-fallback-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-ui-components-US-UI2-077e0-dicator-in-loading-fallback-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI2-077e0-dicator-in-loading-fallback-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-ui-components-US-UI2-077e0-dicator-in-loading-fallback-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › tests/e2e/specs/ui-components.spec.ts:229:3 › US-UI5: Empty States › should display empty state with descriptive text 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      239 |
+      240 |     // Either shows empty state or has data
+    > 241 |     expect(hasEmptyState || hasStats).toBeTruthy();
+          |                                       ^
+      242 |
+      243 |     if (hasEmptyState) {
+      244 |       const text = await emptyStateText.textContent();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/ui-components.spec.ts:241:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI5-a32cd-state-with-descriptive-text-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI5-a32cd-state-with-descriptive-text-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-ui-components-US-UI5-a32cd-state-with-descriptive-text-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      239 |
+      240 |     // Either shows empty state or has data
+    > 241 |     expect(hasEmptyState || hasStats).toBeTruthy();
+          |                                       ^
+      242 |
+      243 |     if (hasEmptyState) {
+      244 |       const text = await emptyStateText.textContent();
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/ui-components.spec.ts:241:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI5-a32cd-state-with-descriptive-text-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI5-a32cd-state-with-descriptive-text-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-ui-components-US-UI5-a32cd-state-with-descriptive-text-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-ui-components-US-UI5-a32cd-state-with-descriptive-text-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-ui-components-US-UI5-a32cd-state-with-descriptive-text-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › tests/e2e/specs/ui-components.spec.ts:345:3 › Component Integration › should have all expected pages accessible 
+
+    Error: expect.toBeVisible: Error: strict mode violation: locator('main, body') resolved to 2 elements:
+        1) <body>…</body> aka locator('body')
+        2) <main data-testid="main-content">…</main> aka getByTestId('main-content')
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('main, body')[22m
+
+
+      365 |       // Verify page loads
+      366 |       const content = page.locator('main, body');
+    > 367 |       await expect(content).toBeVisible();
+          |                             ^
+      368 |     }
+      369 |   });
+      370 | });
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/ui-components.spec.ts:367:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-ui-components-Compon-f7d8e-l-expected-pages-accessible-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-ui-components-Compon-f7d8e-l-expected-pages-accessible-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-ui-components-Compon-f7d8e-l-expected-pages-accessible-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect.toBeVisible: Error: strict mode violation: locator('main, body') resolved to 2 elements:
+        1) <body>…</body> aka locator('body')
+        2) <main data-testid="main-content">…</main> aka getByTestId('main-content')
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('main, body')[22m
+
+
+      365 |       // Verify page loads
+      366 |       const content = page.locator('main, body');
+    > 367 |       await expect(content).toBeVisible();
+          |                             ^
+      368 |     }
+      369 |   });
+      370 | });
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/ui-components.spec.ts:367:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/specs-ui-components-Compon-f7d8e-l-expected-pages-accessible-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/specs-ui-components-Compon-f7d8e-l-expected-pages-accessible-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/specs-ui-components-Compon-f7d8e-l-expected-pages-accessible-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-ui-components-Compon-f7d8e-l-expected-pages-accessible-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-ui-components-Compon-f7d8e-l-expected-pages-accessible-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium] › tests/e2e/specs/ui-components.spec.ts:40:3 › US-UI2: Loading States › should show spinning indicator in loading fallback 
+    [chromium] › tests/e2e/specs/ui-components.spec.ts:229:3 › US-UI5: Empty States › should display empty state with descriptive text 
+    [chromium] › tests/e2e/specs/ui-components.spec.ts:345:3 › Component Integration › should have all expected pages accessible 
+  20 passed (13.5s)

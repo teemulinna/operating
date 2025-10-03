@@ -5,7 +5,7 @@ import { Card } from '../ui/card';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { useNotifications } from '../../hooks/useNotifications';
-import { NotificationType, NotificationPriority } from '../../types/notifications';
+import { NotificationType } from '../../types/notifications';
 
 export interface NotificationSettingsProps {
   className?: string;
@@ -126,7 +126,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ className =
         {hasChanges && (
           <Button
             onClick={handleSave}
-            disabled={updatePreferencesMutation.isLoading}
+            disabled={updatePreferencesMutation.isPending}
             className="flex items-center space-x-2"
           >
             <Save size={16} />
@@ -298,7 +298,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ className =
         <div className="md:hidden">
           <Button
             onClick={handleSave}
-            disabled={updatePreferencesMutation.isLoading}
+            disabled={updatePreferencesMutation.isPending}
             className="w-full flex items-center justify-center space-x-2"
           >
             <Save size={16} />

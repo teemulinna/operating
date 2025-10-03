@@ -23,9 +23,7 @@ export const GanttPage: React.FC = () => {
     resourceUtilization,
     isLoading,
     error,
-    filteredTasks,
     updateTask,
-    createTask,
     deleteTask,
     updateProject,
     refresh,
@@ -108,13 +106,6 @@ export const GanttPage: React.FC = () => {
     }
   };
 
-  const handleTaskCreate = async (task: Partial<GanttTask>) => {
-    try {
-      await createTask(task);
-    } catch (error) {
-      console.error('Failed to create task:', error);
-    }
-  };
 
   const handleTaskDelete = async (taskId: string) => {
     try {
@@ -221,7 +212,6 @@ export const GanttPage: React.FC = () => {
             <GanttChart
               project={project}
               onTaskUpdate={handleTaskUpdate}
-              onTaskCreate={handleTaskCreate}
               onTaskDelete={handleTaskDelete}
               onProjectUpdate={handleProjectUpdate}
               showToolbar={true}

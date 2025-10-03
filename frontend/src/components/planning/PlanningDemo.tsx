@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { DragDropCalendar } from './DragDropCalendar';
 import { GanttChart } from './GanttChart';
 import { ResourceTimeline } from './ResourceTimeline';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { Project, Employee } from '@/services/api';
 
 // Mock data for demonstration
 const mockEmployees = [
@@ -126,7 +126,7 @@ export const PlanningDemo: React.FC = () => {
                   resource allocation bars, zoom controls, and progress indicators.
                 </div>
                 <GanttChart
-                  projects={mockProjects}
+                  projects={mockProjects as Project[]}
                   showResourceBars={true}
                   showDependencies={true}
                   showOverallocationWarnings={true}
@@ -144,7 +144,7 @@ export const PlanningDemo: React.FC = () => {
                   project blocks with allocation percentages, and drag to adjust duration.
                 </div>
                 <ResourceTimeline
-                  employees={mockEmployees}
+                  employees={mockEmployees as unknown as Employee[]}
                   startDate={startDate}
                   endDate={endDate}
                   showUtilizationBars={true}

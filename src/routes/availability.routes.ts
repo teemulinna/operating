@@ -17,14 +17,15 @@ const controller = new AvailabilityController();
 router.use(serviceInjectionMiddleware);
 
 // Validation middleware
-const validateRequest = (req: Request, res: Response, next: NextFunction) => {
+const validateRequest = (req: Request, res: Response, next: NextFunction): void => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: 'Validation failed',
       errors: errors.array()
     });
+    return;
   }
   next();
 };
@@ -622,7 +623,7 @@ router.use((error: Error, req: Request, res: Response, next: NextFunction) => {
     return res.status(error.statusCode).json({
       success: false,
       message: error.message,
-      errors: error.errors
+      details: error.details
     });
   }
 

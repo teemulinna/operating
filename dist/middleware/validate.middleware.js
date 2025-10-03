@@ -60,10 +60,10 @@ exports.validateCreateEmployee = [
     (0, express_validator_1.body)('salary')
         .isFloat({ min: 0, max: 10000000 })
         .withMessage('Salary must be a positive number less than 10,000,000'),
-    (0, express_validator_1.body)('defaultHoursPerWeek')
+    (0, express_validator_1.body)('weeklyCapacity')
         .optional()
         .isInt({ min: 1, max: 100 })
-        .withMessage('Default hours per week must be between 1 and 100'),
+        .withMessage('Weekly capacity must be between 1 and 100'),
     (0, express_validator_1.body)('skills')
         .optional()
         .isArray()

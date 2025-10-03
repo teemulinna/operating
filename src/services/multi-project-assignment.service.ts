@@ -47,6 +47,24 @@ export interface MultiProjectAssignment {
   updatedAt: string;
 }
 
+export interface AssignmentOptions {
+  employees: Array<{ id: string; skills: string[]; availability: number; }>;
+  projects: Array<{ id: number; requiredSkills: string[]; duration: number; }>;
+  constraints: { minSkillMatch: number; maxUtilization: number; maxProjectsPerEmployee?: number; };
+}
+
+export interface Assignment {
+  employeeId: string;
+  projectId: number;
+  allocationPercentage: number;
+}
+
+export interface AssignmentResult {
+  assignments: Assignment[];
+  totalUtilization: number;
+  conflicts: any[];
+}
+
 export interface EmployeeUtilization {
   employeeId: string;
   employeeName: string;
@@ -433,7 +451,7 @@ export class MultiProjectAssignmentService {
     status?: string;
     startDate?: string;
     endDate?: string;
-    employeeId: string;
+    employeeId?: string;
     projectId?: number;
   } = {}): Promise<MultiProjectAssignment[]> {
     try {
@@ -692,8 +710,9 @@ export class MultiProjectAssignmentService {
 
       for (const employee of suitableEmployees.slice(0, Math.min(3, suitableEmployees.length))) {
         const currentAssignments = assignments.filter(a => a.employeeId === employee.id);
+        const maxProjects = constraints.maxProjectsPerEmployee || 3;
 
-        if (currentAssignments.length < constraints.maxProjectsPerEmployee) {
+        if (currentAssignments.length < maxProjects) {
           const allocation = Math.min(
             employee.availability * 100 / (currentAssignments.length + 1),
             80 // Max 80% per project
@@ -702,8 +721,7 @@ export class MultiProjectAssignmentService {
           assignments.push({
             employeeId: employee.id,
             projectId: project.id,
-            allocation,
-            skillMatch: this.calculateSkillMatch(employee.skills, project.requiredSkills)
+            allocationPercentage: allocation
           });
         }
       }
@@ -713,7 +731,7 @@ export class MultiProjectAssignmentService {
     const employeeUtilization = new Map<string, number>();
     assignments.forEach(assignment => {
       const current = employeeUtilization.get(assignment.employeeId) || 0;
-      employeeUtilization.set(assignment.employeeId, current + assignment.allocation);
+      employeeUtilization.set(assignment.employeeId, current + assignment.allocationPercentage);
     });
 
     const totalUtilization = Array.from(employeeUtilization.values())
@@ -721,7 +739,8 @@ export class MultiProjectAssignmentService {
 
     return {
       assignments,
-      totalUtilization: totalUtilization / 100
+      totalUtilization: totalUtilization / 100,
+      conflicts: []
     };
   }
 

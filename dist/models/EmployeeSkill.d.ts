@@ -40,7 +40,7 @@ export declare class EmployeeSkillModel {
         count: number;
         averageExperience: number;
     }>>;
-    static getTopSkillsForEmployee(employeeId?: string): Promise<Array<{
+    static getTopSkillsForEmployee(employeeId: string, limit?: number): Promise<Array<{
         skill: Skill;
         proficiencyLevel: ProficiencyLevel;
         yearsOfExperience: number;

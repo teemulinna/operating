@@ -326,9 +326,9 @@ export class TeamAnalyticsService {
     const employeeRisks = employeeData.rows.map(emp => {
       const riskScore = Math.min(100, parseFloat(emp.risk_score) || 0);
       const riskLevel = this.getRiskLevel(riskScore);
-      
+
       return {
-        employeeId: parseInt(emp.id),
+        employeeId: String(emp.id),
         name: emp.name,
         department: emp.department,
         riskScore,
@@ -519,7 +519,7 @@ export class TeamAnalyticsService {
         trend: row.trend as 'up' | 'down' | 'stable'
       })),
       byEmployee: empResult.rows.map(row => ({
-        employeeId: parseInt(row.employee_id),
+        employeeId: String(row.employee_id),
         name: row.name,
         utilization: Math.round((parseFloat(row.utilization) || 0) * 100),
         productivity: Math.round(parseFloat(row.completed_projects) / Math.max(1, parseFloat(row.total_projects)) * 100),

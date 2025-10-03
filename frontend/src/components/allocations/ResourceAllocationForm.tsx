@@ -68,22 +68,22 @@ const ResourceAllocationForm: React.FC<ResourceAllocationFormProps> = ({
 
   // Watch form values for real-time validation
   const watchedValues = watch();
-  const { hours, percentage, startDate, endDate, employeeId } = watchedValues;
+  const { hours, percentage } = watchedValues;
 
   // Fetch employees
-  const { data: employees = [], isLoading: employeesLoading } = useQuery({
+  const { data: employees = [], isLoading: employeesLoading } = useQuery<Employee[]>({
     queryKey: ['employees'],
     queryFn: apiService.getEmployees,
   });
 
   // Fetch projects
-  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+  const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ['projects'],
     queryFn: apiService.getProjects,
   });
 
   // Fetch existing allocations for capacity calculation
-  const { data: allocations = [] } = useQuery({
+  const { data: allocations = [] } = useQuery<Allocation[]>({
     queryKey: ['allocations'],
     queryFn: apiService.getAllocations,
   });
@@ -94,14 +94,14 @@ const ResourceAllocationForm: React.FC<ResourceAllocationFormProps> = ({
       const employee = employees.find((emp) => emp.id === selectedEmployeeId.toString());
       if (employee) {
         const employeeAllocations = allocations.filter(
-          (alloc) => alloc.employeeId === selectedEmployeeId && alloc.status === 'active'
+          (alloc) => alloc.employeeId === selectedEmployeeId.toString() && alloc.status === 'active'
         );
-        
+
         const currentAllocations = employeeAllocations.reduce(
           (total, alloc) => total + alloc.hours,
           0
         );
-        
+
         const totalCapacity = employee.capacity || 40; // Default 40 hours per week
         const availableCapacity = totalCapacity - currentAllocations;
         const isOverAllocated = currentAllocations + (hours || 0) > totalCapacity;
@@ -145,7 +145,7 @@ const ResourceAllocationForm: React.FC<ResourceAllocationFormProps> = ({
     },
     onError: (error: any) => {
       console.error('Allocation creation failed:', error);
-      
+
       if (error.code === 'OVER_ALLOCATION') {
         showToast(
           `Over-allocation detected. Available: ${error.details?.availableHours || 0} hours`,
@@ -181,7 +181,7 @@ const ResourceAllocationForm: React.FC<ResourceAllocationFormProps> = ({
 
     // Create allocation
     createAllocationMutation.mutate({
-      employeeId: data.employeeId,
+      employeeId: data.employeeId.toString(),
       projectId: data.projectId,
       hours: data.hours,
       date: data.startDate,
@@ -190,7 +190,8 @@ const ResourceAllocationForm: React.FC<ResourceAllocationFormProps> = ({
     });
   };
 
-  const handleEmployeeChange = (employeeId: string) => {
+  const handleEmployeeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const employeeId = e.target.value;
     const id = parseInt(employeeId);
     setSelectedEmployeeId(id);
     setValue('employeeId', id);
@@ -215,7 +216,7 @@ const ResourceAllocationForm: React.FC<ResourceAllocationFormProps> = ({
                   aria-label="Employee"
                   disabled={employeesLoading || disabled}
                   value={selectedEmployeeId?.toString() || ''}
-                  onChange={(e) => handleEmployeeChange(e.target.value)}
+                  onChange={handleEmployeeChange}
                 >
                   <option value="">Select Employee</option>
                   {employees.map((employee) => (
@@ -287,7 +288,7 @@ const ResourceAllocationForm: React.FC<ResourceAllocationFormProps> = ({
                     </Badge>
                   </div>
                 </div>
-                
+
                 {capacityInfo.isOverAllocated && (
                   <OverAllocationWarning
                     employeeName={

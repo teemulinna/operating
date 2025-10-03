@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { ServiceFactory } from '../../services/api';
@@ -12,13 +12,6 @@ interface TeamDashboardProps {
   className?: string;
 }
 
-interface DashboardData {
-  capacityData: any;
-  utilizationData: any;
-  conflictsData: any;
-  stats: any;
-}
-
 export const TeamDashboard: React.FC<TeamDashboardProps> = ({ className = '' }) => {
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -27,7 +20,6 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({ className = '' }) 
     data: capacityData,
     isLoading: capacityLoading,
     error: capacityError,
-    refetch: refetchCapacity,
   } = useQuery({
     queryKey: ['capacity-analysis', refreshKey],
     queryFn: async () => {
@@ -57,7 +49,6 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({ className = '' }) 
     data: conflictsData,
     isLoading: conflictsLoading,
     error: conflictsError,
-    refetch: refetchConflicts,
   } = useQuery({
     queryKey: ['allocation-conflicts', refreshKey],
     queryFn: async () => {
@@ -68,7 +59,7 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({ className = '' }) 
       const conflicts: any[] = [];
       const employeeHours: { [key: string]: number } = {};
       
-      allAllocations.data.forEach(allocation => {
+      (allAllocations.data as any[]).forEach(allocation => {
         const employeeId = allocation.employeeId.toString();
         employeeHours[employeeId] = (employeeHours[employeeId] || 0) + allocation.hours;
       });
@@ -281,7 +272,6 @@ export const TeamDashboard: React.FC<TeamDashboardProps> = ({ className = '' }) 
                   employees: [], // This would come from a proper API call
                   trends: [],
                 }}
-                type="bar"
                 loading={capacityLoading}
               />
             </CardContent>

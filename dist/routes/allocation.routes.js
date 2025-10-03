@@ -4,6 +4,7 @@ const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const allocation_service_1 = require("../services/allocation.service");
 const async_handler_1 = require("../middleware/async-handler");
+const api_error_1 = require("../utils/api-error");
 const router = (0, express_1.Router)();
 const validateAllocationCreation = [
     (0, express_validator_1.body)('employeeId')
@@ -228,6 +229,56 @@ router.get('/utilization', (0, express_validator_1.query)('employeeId').optional
             data: summary
         });
     }
+}));
+router.get('/calendar', (0, express_validator_1.query)('startDate').isISO8601().withMessage('Start date must be valid ISO 8601').toDate(), (0, express_validator_1.query)('endDate').isISO8601().withMessage('End date must be valid ISO 8601').toDate(), (0, express_validator_1.query)('employeeId').optional().isString(), (0, express_validator_1.query)('projectId').optional().isString(), (0, express_validator_1.query)('status').optional().isString(), (0, async_handler_1.asyncHandler)(async (req, res) => {
+    const validationError = checkValidationErrors(req, res);
+    if (validationError)
+        return validationError;
+    const services = req.services;
+    if (!services?.database) {
+        throw new api_error_1.ApiError(500, 'Database service not initialized');
+    }
+    const db = services.database.getPool();
+    const startDate = new Date(req.query.startDate);
+    const endDate = new Date(req.query.endDate);
+    const { employeeId, projectId, status } = req.query;
+    const filters = {
+        startDate,
+        endDate,
+        isActive: status !== 'inactive'
+    };
+    const allocationsResult = await allocation_service_1.AllocationService.getAllAllocations(filters, 1, 1000);
+    const employeeIds = [...new Set(allocationsResult.data.map((a) => a.employeeId))];
+    const projectIds = [...new Set(allocationsResult.data.map((a) => a.projectId).filter(Boolean))];
+    const [employeesData, projectsData] = await Promise.all([
+        db.query(`SELECT id, first_name, last_name, position
+         FROM employees
+         WHERE id = ANY($1) AND is_active = true
+         ORDER BY last_name, first_name`, [employeeIds]),
+        db.query(`SELECT id, name, client_name, status
+         FROM projects
+         WHERE id = ANY($1)
+         ORDER BY name`, [projectIds.map(String)])
+    ]);
+    const employees = employeesData.rows.map((emp) => ({
+        id: emp.id,
+        name: `${emp.first_name} ${emp.last_name}`,
+        position: emp.position
+    }));
+    const projects = projectsData.rows.map((proj) => ({
+        id: String(proj.id),
+        name: proj.name,
+        clientName: proj.client_name || '',
+        status: proj.status
+    }));
+    return res.json({
+        success: true,
+        data: {
+            allocations: allocationsResult.data,
+            employees,
+            projects
+        }
+    });
 }));
 router.get('/:id', validateId, (0, express_validator_1.query)('includeDetails').optional().isBoolean().toBoolean(), (0, async_handler_1.asyncHandler)(async (req, res) => {
     const validationError = checkValidationErrors(req, res);

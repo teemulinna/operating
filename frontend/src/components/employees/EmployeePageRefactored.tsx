@@ -81,11 +81,11 @@ function EmployeePageRefactored() {
   // All CRUD functionality in one hook call!
   const {
     state: { items: employees, loading, operationLoading },
-    modal: { 
+    modal: {
       state: { isFormModalOpen, isDeleteDialogOpen, editingItem, deletingItem }
     },
     validation: { state: { errors: validationErrors } },
-    toast: { toast, showSuccess, showError, hideToast },
+    toast: { toast, hideToast },
     openCreateForm,
     openEditForm,
     openDeleteConfirmation,
@@ -137,7 +137,7 @@ function EmployeePageRefactored() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-testid="employees-page">
       {/* Toast notifications - single component */}
-      {toast.isVisible && (
+      {toast && toast.isVisible && (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg ${
           toast.type === 'success' ? 'bg-green-100 text-green-800' :
           toast.type === 'error' ? 'bg-red-100 text-red-800' :

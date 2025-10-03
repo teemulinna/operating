@@ -5,7 +5,6 @@
 
 import React from 'react';
 import { cn } from '../../lib/utils';
-import { designTokens } from '../../styles/design-tokens';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'outlined' | 'filled' | 'glass';

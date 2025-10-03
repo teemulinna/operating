@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ProjectFormModal } from './ProjectFormModal';
@@ -6,6 +6,32 @@ import { ProjectCard } from './ProjectCard';
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { Project, CreateProjectRequest, transformApiProject } from '@/types/project';
 import { PlusIcon } from '@heroicons/react/24/outline';
+
+const normalizeDateForInput = (value?: string | null): string => {
+  if (!value) {
+    return '';
+  }
+
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) {
+    const [day, month, year] = value.split('.');
+    return `${year}-${month}-${day}`;
+  }
+
+  const normalizedInput = value.includes('T') ? value : value.replace(' ', 'T');
+  const date = new Date(normalizedInput);
+
+  if (Number.isNaN(date.getTime())) {
+    const [year, month, day] = value.split(/[^\d]/).filter(Boolean);
+    if (year && month && day) {
+      return `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return '';
+  }
+
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  const localDate = new Date(date.getTime() - tzOffset);
+  return localDate.toISOString().slice(0, 10);
+};
 
 export function ProjectsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -131,6 +157,9 @@ export function ProjectsPage() {
   };
 
   const handleEditClick = (project: Project) => {
+    console.log('Editing project:', project);
+    console.log('Start date:', project.startDate);
+    console.log('End date:', project.endDate);
     setEditingProject(project);
   };
 
@@ -206,8 +235,8 @@ export function ProjectsPage() {
             name: editingProject.name,
             description: editingProject.description,
             client_name: editingProject.clientName,
-            start_date: editingProject.startDate,
-            end_date: editingProject.endDate,
+            start_date: normalizeDateForInput(editingProject.startDate),
+            end_date: normalizeDateForInput(editingProject.endDate),
             budget: editingProject.budget,
             hourly_rate: editingProject.hourlyRate,
             estimated_hours: editingProject.estimatedHours,

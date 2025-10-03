@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Allocation } from '../types/allocation';
-import { 
+import {
   overAllocationCalculationService,
   OverAllocationSummary,
   WeeklyAllocation,
@@ -28,21 +28,21 @@ interface UseRealTimeOverAllocationOptions {
 interface UseRealTimeOverAllocationReturn {
   // Summary data
   overAllocationSummaries: OverAllocationSummary[];
-  
+
   // Loading states
   loading: boolean;
   error: Error | null;
-  
+
   // Actions
   refetch: () => Promise<void>;
-  
+
   // Helper functions
   getEmployeeOverAllocation: (employeeId: string) => OverAllocationSummary | null;
   getWeeklyOverAllocation: (employeeId: string, weekStart: Date) => WeeklyAllocation | null;
   isEmployeeOverAllocated: (employeeId: string) => boolean;
-  getEmployeeUtilizationRate: (employeeId: string;
+  getEmployeeUtilizationRate: (employeeId: string) => number;
   getEmployeeWarningLevel: (employeeId: string) => 'none' | 'medium' | 'high' | 'critical';
-  
+
   // Statistics
   overAllocatedEmployeeCount: number;
   totalOverAllocationHours: number;
@@ -129,7 +129,7 @@ export function useRealTimeOverAllocation(
   }, [getEmployeeOverAllocation]);
 
   // Helper function to get employee utilization rate
-  const getEmployeeUtilizationRate = useCallback((employeeId: string => {
+  const getEmployeeUtilizationRate = useCallback((employeeId: string): number => {
     const summary = getEmployeeOverAllocation(employeeId);
     return summary?.maxUtilizationRate || 0;
   }, [getEmployeeOverAllocation]);
@@ -185,21 +185,21 @@ export function useRealTimeOverAllocation(
   return {
     // Summary data
     overAllocationSummaries,
-    
+
     // Loading states
     loading,
     error,
-    
+
     // Actions
     refetch,
-    
+
     // Helper functions
     getEmployeeOverAllocation,
     getWeeklyOverAllocation,
     isEmployeeOverAllocated,
     getEmployeeUtilizationRate,
     getEmployeeWarningLevel,
-    
+
     // Statistics
     ...statistics
   };

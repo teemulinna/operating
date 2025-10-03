@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "frontend",
+    "src/components",
+    "src/services/forecasting/**/*",
+    "src/routes/forecasting.routes.ts",
+    "src/services/ml-recommendation-engine.service.ts",
+    "src/services/optimization-engine.service.ts",
+    "src/scripts/run-integration-validation.ts",
+    "src/test-*.ts",
+    "tests/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.test.js",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.spec.js"
+  ]
+}

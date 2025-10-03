@@ -154,7 +154,8 @@ router.get(
       const weekStart = new Date(weekStartDate as string);
       const weekEnd = new Date(weekEndDate as string);
 
-      const warning = await OverAllocationWarningService.checkWeeklyOverAllocation(
+      const warningService = new OverAllocationWarningService();
+      const warning = await warningService.checkWeeklyOverAllocation(
         employeeId,
         weekStart,
         weekEnd

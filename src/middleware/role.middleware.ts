@@ -2,20 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/api-error';
 import { logger } from '../utils/logger';
 
-// Extend Request interface to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        role: string;
-        permissions?: string[];
-      };
-    }
-  }
-}
-
 /**
  * Role-based access control middleware
  * @param allowedRoles Array of roles that are allowed to access the route

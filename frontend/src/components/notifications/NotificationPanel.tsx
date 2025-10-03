@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircle2, 
-  AlertTriangle, 
-  Calendar, 
-  UserPlus, 
-  Settings, 
+import React, { useState } from 'react';
+import {
+  AlertTriangle,
+  Calendar,
+  UserPlus,
+  Settings,
   Bell,
   Trash2,
   Eye,
   EyeOff,
-  Filter,
-  MoreVertical
+  Filter
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -166,7 +164,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 };
 
 export const NotificationPanel: React.FC<NotificationPanelProps> = ({
-  onClose,
   maxHeight = '400px',
   className = ''
 }) => {
@@ -252,7 +249,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
               variant="outline"
               size="sm"
               onClick={handleMarkAllAsRead}
-              disabled={markAllAsReadMutation.isLoading}
+              disabled={markAllAsReadMutation.isPending}
             >
               Mark All Read
             </Button>

@@ -1,15 +1,13 @@
-import React from 'react';
 import { OverAllocationWarningProps } from '../types';
 
 /**
  * OverAllocationWarning component - displays warnings for over-allocated employees
  * Shows conflicts and suggests resolutions
  */
-export function OverAllocationWarning({ 
-  employeeId, 
-  conflictingAllocations, 
-  totalHours, 
-  maxHours = 40 
+export function OverAllocationWarning({
+  conflictingAllocations,
+  totalHours,
+  maxHours = 40
 }: OverAllocationWarningProps) {
   if (conflictingAllocations.length === 0 || totalHours <= maxHours) {
     return null;

@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useMemo } from 'react';
 import type { Allocation, Employee, Project } from '../hooks/useAllocationOperations';
 import type { OverAllocationWarning } from '../hooks/useOverAllocationCheck';
 
@@ -21,7 +21,7 @@ interface CalendarDay {
   totalHours: number;
 }
 
-export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
+export const AllocationCalendar = ({
   allocations,
   employees,
   projects,
@@ -29,14 +29,14 @@ export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
   onDateSelect,
   onAllocationClick,
   selectedDate
-}) => {
-  const [currentDate, setCurrentDate] = React.useState(selectedDate || new Date());
+}: AllocationCalendarProps) => {
+  const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
   
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   // Generate calendar days for the current month
-  const generateCalendarDays = React.useMemo((): CalendarDay[] => {
+  const generateCalendarDays = useMemo((): CalendarDay[] => {
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
     
@@ -172,7 +172,7 @@ export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
 
         {/* Calendar Days */}
         <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-b-lg overflow-hidden">
-          {generateCalendarDays.map((day, index) => (
+          {generateCalendarDays.map((day) => (
             <div
               key={day.date.getTime()}
               className={`
@@ -201,7 +201,7 @@ export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
 
               {/* Allocations for this day */}
               <div className="space-y-1">
-                {day.allocations.slice(0, 3).map((allocation, idx) => (
+                {day.allocations.slice(0, 3).map((allocation) => (
                   <div
                     key={allocation.id}
                     className="text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded truncate cursor-pointer hover:bg-blue-200"

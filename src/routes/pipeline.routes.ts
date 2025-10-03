@@ -201,10 +201,10 @@ router.put(
   handleValidationErrors,
   async (req: Request, res: Response) => {
     try {
-      const project = await pipelineService.updatePipelineProject({
-        id: req.params.id,
-        ...req.body
-      });
+      const project = await pipelineService.updatePipelineProject(
+        req.params.id,
+        req.body
+      );
       res.json({
         success: true,
         data: project,

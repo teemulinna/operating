@@ -11,13 +11,15 @@ const ProjectManagement = React.lazy(() => import('./features/projects').then(m 
 const AllocationManagement = React.lazy(() => import('./features/allocations').then(m => ({ default: m.AllocationManagement })));
 
 // Import page components with lazy loading
-const AllocationsPage = React.lazy(() => import('./components/pages/AllocationsPage').then(m => ({ default: m.AllocationsPage })));
 const ReportsPage = React.lazy(() => import('./components/pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const PlanningPage = React.lazy(() => import('./components/pages/PlanningPage').then(m => ({ default: m.PlanningPage })));
 const TeamDashboard = React.lazy(() => import('./components/pages/TeamDashboard').then(m => ({ default: m.TeamDashboard })));
 const WeeklyScheduleGrid = React.lazy(() => import('./components/schedule/WeeklyScheduleGrid'));
 const EnhancedSchedulePage = React.lazy(() => import('./pages/EnhancedSchedulePage'));
 const ResourceAllocationForm = React.lazy(() => import('./components/allocations/ResourceAllocationForm'));
+const HeatMapPage = React.lazy(() => import('./features/heat-map/HeatMapPage').then(m => ({ default: m.HeatMapPage })));
+const AvailabilityPatterns = React.lazy(() => import('./components/availability/AvailabilityPatterns').then(m => ({ default: m.AvailabilityPatterns })));
+const WhatIfScenarios = React.lazy(() => import('./components/scenarios/WhatIfScenarios').then(m => ({ default: m.WhatIfScenarios })));
 
 // Loading component for lazy loaded routes
 const LoadingFallback = () => (
@@ -49,6 +51,9 @@ function Navigation() {
       <Link to="/enhanced-schedule" data-testid="nav-enhanced-schedule" style={{ marginRight: '10px' }}>Enhanced Schedule</Link>
       <Link to="/reports" data-testid="nav-reports" style={{ marginRight: '10px' }}>Reports</Link>
       <Link to="/planning" data-testid="nav-planning" style={{ marginRight: '10px' }}>Planning</Link>
+      <Link to="/heat-map" data-testid="nav-heat-map" style={{ marginRight: '10px' }}>Heat Map</Link>
+      <Link to="/availability" data-testid="nav-availability" style={{ marginRight: '10px' }}>Availability</Link>
+      <Link to="/scenarios" data-testid="nav-scenarios" style={{ marginRight: '10px' }}>What-If</Link>
       <Link to="/team-dashboard" data-testid="nav-team-dashboard">Team</Link>
     </nav>
   );
@@ -116,21 +121,21 @@ function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '20px' }}>
         <div style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Employees</h3>
-          <p style={{ fontSize: '2em', color: '#2563eb', fontWeight: 'bold' }}>
+          <p data-testid="employee-count-value" style={{ fontSize: '2em', color: '#2563eb', fontWeight: 'bold' }}>
             {stats.employeeCount}
           </p>
           <p style={{ color: '#666' }}>Total team members</p>
         </div>
         <div style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Projects</h3>
-          <p style={{ fontSize: '2em', color: '#16a34a', fontWeight: 'bold' }}>
+          <p data-testid="project-count-value" style={{ fontSize: '2em', color: '#16a34a', fontWeight: 'bold' }}>
             {stats.projectCount}
           </p>
           <p style={{ color: '#666' }}>Active projects</p>
         </div>
         <div style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Utilization</h3>
-          <p style={{ fontSize: '2em', color: '#ea580c', fontWeight: 'bold' }}>
+          <p data-testid="utilization-rate-value" style={{ fontSize: '2em', color: '#ea580c', fontWeight: 'bold' }}>
             {`${stats.utilizationRate}%`}
           </p>
           <p style={{ color: '#666' }}>Team capacity</p>
@@ -219,6 +224,21 @@ function App() {
                   <Route path="/team-dashboard" element={
                     <React.Suspense fallback={<LoadingFallback />}>
                       <TeamDashboard />
+                    </React.Suspense>
+                  } />
+                  <Route path="/heat-map" element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <HeatMapPage />
+                    </React.Suspense>
+                  } />
+                  <Route path="/availability" element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <AvailabilityPatterns />
+                    </React.Suspense>
+                  } />
+                  <Route path="/scenarios" element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <WhatIfScenarios />
                     </React.Suspense>
                   } />
                   <Route path="/allocations/new" element={

@@ -3,7 +3,7 @@
  * Reusable chart components using recharts with consistent styling
  */
 
-import React from 'react';
+import * as React from 'react';
 import {
   AreaChart,
   Area,
@@ -19,8 +19,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  TooltipProps
+  ResponsiveContainer
 } from 'recharts';
 import { designTokens } from '../../styles/design-tokens';
 import { cn } from '../../lib/utils';
@@ -49,21 +48,31 @@ const colorPalette = [
 ];
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name?: string;
+    value?: number | string;
+    color?: string;
+  }>;
+  label?: string;
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-32">
         <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
         {payload.map((entry, index) => (
           <div key={index} className="flex items-center space-x-2 text-xs">
-            <div 
+            <div
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-gray-600">{entry.name}:</span>
             <span className="font-medium text-gray-900">
-              {typeof entry.value === 'number' 
-                ? entry.value.toLocaleString() 
+              {typeof entry.value === 'number'
+                ? entry.value.toLocaleString()
                 : entry.value}
             </span>
           </div>
@@ -362,12 +371,12 @@ export const PieChartComponent: React.FC<PieChartProps> = ({
             outerRadius={80}
             fill="#8884d8"
             dataKey="value"
-            label={showLabels ? ({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%` : false}
+            label={showLabels ? ({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%` : false}
           >
-            {data.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={colors[index % colors.length]} 
+            {data.map((_, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={colors[index % colors.length]}
               />
             ))}
           </Pie>

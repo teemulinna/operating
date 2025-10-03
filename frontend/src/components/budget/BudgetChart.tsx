@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
-  PieChart, 
-  Pie, 
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
   Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
-  Area,
-  AreaChart
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from 'recharts';
 import { TrendingUp, PieChart as PieChartIcon, BarChart3, Activity } from 'lucide-react';
 
@@ -188,7 +185,7 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
           <Activity className="h-5 w-5" />
           <h2 className="text-lg font-semibold">Budget Visualization</h2>
         </div>
-        <Select value={selectedChart} onValueChange={setSelectedChart}>
+        <Select value={selectedChart} onChange={(e) => setSelectedChart(e.target.value)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select chart type" />
           </SelectTrigger>
@@ -221,7 +218,7 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis tickFormatter={formatShortCurrency} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Tooltip formatter={(value: any) => formatCurrency(Number(value))} />
                   <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -251,7 +248,7 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {pieChartData.map((entry, index) => (
+                      {pieChartData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -270,8 +267,8 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
                   {pieChartData.map((item, index) => (
                     <div key={item.name} className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-4 h-4 rounded-full" 
+                        <div
+                          className="w-4 h-4 rounded-full"
                           style={{ backgroundColor: COLORS[index % COLORS.length] }}
                         ></div>
                         <span className="capitalize font-medium">{item.name}</span>
@@ -334,18 +331,18 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
                   <YAxis tickFormatter={formatShortCurrency} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="forecasted" 
-                    stroke="#3B82F6" 
+                  <Line
+                    type="monotone"
+                    dataKey="forecasted"
+                    stroke="#3B82F6"
                     strokeWidth={2}
                     name="Forecasted"
                     dot={{ fill: '#3B82F6' }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="actual" 
-                    stroke="#10B981" 
+                  <Line
+                    type="monotone"
+                    dataKey="actual"
+                    stroke="#10B981"
                     strokeWidth={2}
                     name="Actual"
                     dot={{ fill: '#10B981' }}
@@ -380,8 +377,8 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
                       <Cell fill="#3B82F6" />
                       <Cell fill="#E5E7EB" />
                     </Pie>
-                    <Tooltip 
-                      formatter={(value: number) => `${value.toFixed(1)}%`}
+                    <Tooltip
+                      formatter={(value: any) => `${Number(value).toFixed(1)}%`}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -409,7 +406,7 @@ export const BudgetChart: React.FC<BudgetChartProps> = ({
                     </div>
                     <div className="text-sm text-gray-500">per day</div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Weekly burn rate:</span>

@@ -54,7 +54,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     if (toast.duration !== 0) {
       setTimeout(() => {
         removeToast(id);
-      }, toast.duration || 4000);
+      }, toast.duration || 6000);
     }
 
     return id;

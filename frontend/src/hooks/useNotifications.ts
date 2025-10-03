@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../services/api';
+import { apiClient } from '../services/api';
 import { NotificationType, NotificationPriority } from '../types/notifications';
 
 export interface Notification {
@@ -57,46 +57,46 @@ const notificationApi = {
   // Get notifications
   getNotifications: async (params: NotificationListParams = {}): Promise<NotificationListResponse> => {
     const searchParams = new URLSearchParams();
-    
+
     if (params.limit) searchParams.append('limit', params.limit.toString());
     if (params.offset) searchParams.append('offset', params.offset.toString());
     if (params.unreadOnly) searchParams.append('unreadOnly', 'true');
     if (params.type) searchParams.append('type', params.type);
 
-    const response = await api.get(`/api/notifications?${searchParams.toString()}`);
+    const response = await apiClient.get(`/api/notifications?${searchParams.toString()}`);
     return response.data.data;
   },
 
   // Get notification statistics
   getStats: async (): Promise<NotificationStats> => {
-    const response = await api.get('/api/notifications/stats');
+    const response = await apiClient.get('/api/notifications/stats');
     return response.data.data;
   },
 
   // Mark notification as read
   markAsRead: async (id: number): Promise<void> => {
-    await api.patch(`/api/notifications/${id}/read`);
+    await apiClient.patch(`/api/notifications/${id}/read`);
   },
 
   // Mark all notifications as read
   markAllAsRead: async (): Promise<void> => {
-    await api.patch('/api/notifications/read-all');
+    await apiClient.patch('/api/notifications/read-all');
   },
 
   // Delete notification
   deleteNotification: async (id: number): Promise<void> => {
-    await api.delete(`/api/notifications/${id}`);
+    await apiClient.delete(`/api/notifications/${id}`);
   },
 
   // Get user preferences
   getPreferences: async (): Promise<NotificationPreferences> => {
-    const response = await api.get('/api/notifications/preferences');
+    const response = await apiClient.get('/api/notifications/preferences');
     return response.data.data;
   },
 
   // Update user preferences
   updatePreferences: async (updates: Partial<NotificationPreferences>): Promise<NotificationPreferences> => {
-    const response = await api.put('/api/notifications/preferences', updates);
+    const response = await apiClient.put('/api/notifications/preferences', updates);
     return response.data.data;
   }
 };
@@ -242,11 +242,11 @@ export const useNotificationActions = () => {
     markAsRead: (id: number) => markAsReadMutation.mutateAsync(id),
     markAllAsRead: () => markAllAsReadMutation.mutateAsync(),
     deleteNotification: (id: number) => deleteMutation.mutateAsync(id),
-    
+
     // Loading states
-    isMarkingAsRead: markAsReadMutation.isLoading,
-    isMarkingAllAsRead: markAllAsReadMutation.isLoading,
-    isDeleting: deleteMutation.isLoading,
+    isMarkingAsRead: markAsReadMutation.isPending,
+    isMarkingAllAsRead: markAllAsReadMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 };
 

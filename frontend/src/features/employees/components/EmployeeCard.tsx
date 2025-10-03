@@ -1,4 +1,3 @@
-import React from 'react';
 import { EmployeeCardProps } from '../types/employee.types';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';

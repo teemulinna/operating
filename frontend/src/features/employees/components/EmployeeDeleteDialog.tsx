@@ -1,4 +1,3 @@
-import React from 'react';
 import { EmployeeDeleteDialogProps } from '../types/employee.types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';

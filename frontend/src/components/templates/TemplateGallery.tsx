@@ -52,14 +52,14 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      
+
       const filters: TemplateSearchFilters = {};
       if (selectedCategory) filters.category = selectedCategory;
       if (selectedComplexity) filters.complexity = selectedComplexity;
       if (selectedMethodology) filters.methodology = selectedMethodology;
       if (minRating > 0) filters.minRating = minRating;
       if (showBuiltInOnly) filters.isPublic = true;
-      
+
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -70,16 +70,16 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
           }
         }
       });
-      
+
       if (searchTerm) {
         queryParams.append('search', searchTerm);
       }
       queryParams.append('limit', ITEMS_PER_PAGE.toString());
       queryParams.append('offset', ((currentPage - 1) * ITEMS_PER_PAGE).toString());
 
-      const endpoint = showUserTemplates 
+      const endpoint = showUserTemplates
         ? '/api/templates/user/templates'
-        : showBuiltInOnly 
+        : showBuiltInOnly
         ? '/api/templates/built-in'
         : '/api/templates/search';
 
@@ -220,7 +220,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
             Choose from pre-built templates to kickstart your projects
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -283,8 +283,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
             <div>
               <Select
                 value={selectedCategory}
-                onChange={(value) => setSelectedCategory(value)}
-                placeholder="All Categories"
+                onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="">All Categories</option>
                 {categories.map((category) => (
@@ -298,8 +297,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
             <div>
               <Select
                 value={selectedComplexity}
-                onChange={(value) => setSelectedComplexity(value)}
-                placeholder="Any Complexity"
+                onChange={(e) => setSelectedComplexity(e.target.value)}
               >
                 <option value="">Any Complexity</option>
                 <option value="simple">Simple</option>
@@ -312,8 +310,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
             <div>
               <Select
                 value={selectedMethodology}
-                onChange={(value) => setSelectedMethodology(value)}
-                placeholder="Any Methodology"
+                onChange={(e) => setSelectedMethodology(e.target.value)}
               >
                 <option value="">Any Methodology</option>
                 <option value="agile">Agile</option>
@@ -326,8 +323,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
             <div>
               <Select
                 value={minRating.toString()}
-                onChange={(value) => setMinRating(parseFloat(value))}
-                placeholder="Any Rating"
+                onChange={(e) => setMinRating(parseFloat(e.target.value))}
               >
                 <option value="0">Any Rating</option>
                 <option value="3">3+ Stars</option>
@@ -400,8 +396,8 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
       ) : (
         <>
           <div className={`grid gap-6 ${
-            viewMode === 'grid' 
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+            viewMode === 'grid'
+              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
               : 'grid-cols-1'
           }`}>
             {filteredTemplates.map((template) => (
@@ -429,12 +425,12 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
               >
                 Previous
               </Button>
-              
+
               <div className="flex gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   const page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
                   if (page > totalPages) return null;
-                  
+
                   return (
                     <Button
                       key={page}

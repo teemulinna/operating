@@ -9,6 +9,7 @@ import { skillRoutes } from './routes/skill.routes';
 import { capacityRoutes } from './routes/capacity.routes';
 import resourceRoutes from './routes/resource.routes';
 import { projectRoutes } from './routes/project.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import allocationRoutes from './routes/allocation.routes';
 import allocationDirectRoutes from './routes/allocation-direct.routes';
 import allocationCSVRoutes from './routes/allocation-csv.routes';
@@ -23,6 +24,7 @@ import forecastingRoutes from './routes/forecasting.routes';
 // Export and availability routes
 import { exportRoutes } from './routes/exportRoutes';
 import availabilityRoutes from './routes/availability.routes';
+import createAvailabilityPatternsRouter from './routes/availability-patterns.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import reportingRoutes from './routes/reporting.routes';
 import allocationTemplatesRoutes from './routes/allocation-templates.routes';
@@ -186,6 +188,7 @@ app.get('/api', (_req, res) => {
 console.log('🔓 Authentication disabled for development environment');
 
 // API routes
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/skills', skillRoutes);

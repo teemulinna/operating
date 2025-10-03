@@ -276,16 +276,16 @@ export class AvailabilityController {
         throw new ApiError(404, 'Source pattern not found');
       }
 
-      // Create cloned pattern
+      // Create cloned pattern with proper camelCase properties
       const clonedPattern = await this.availabilityService.createPattern({
-        ...sourcePattern,
-        id: undefined,
         employeeId,
-        name: name || `${sourcePattern.name} (Copy)`,
+        patternType: sourcePattern.patternType,
+        configuration: sourcePattern.configuration,
+        effectiveFrom: sourcePattern.effectiveFrom,
+        effectiveTo: sourcePattern.effectiveTo,
         isActive: false,
-        createdAt: undefined,
-        updatedAt: undefined
-      });
+        notes: name ? `Cloned: ${name}` : `Cloned from ${sourcePattern.id}`
+      } as any);
 
       return res.status(201).json({
         success: true,
@@ -315,17 +315,28 @@ export class AvailabilityController {
         limit = 20
       } = req.query;
 
-      const exceptions = await this.availabilityService.getExceptions({
-        employeeId: employeeId as string,
-        exceptionType: exceptionType as any,
-        status: status as any,
-        startDate: startDate ? parseISO(startDate as string) : undefined,
-        endDate: endDate ? parseISO(endDate as string) : undefined
-      });
+      // Get exceptions with date range
+      const parsedStartDate = startDate ? parseISO(startDate as string) : undefined;
+      const parsedEndDate = endDate ? parseISO(endDate as string) : undefined;
+
+      const exceptions = await this.availabilityService.getExceptions(
+        employeeId as string,
+        parsedStartDate,
+        parsedEndDate
+      );
+
+      // Filter by exception type and status if provided
+      let filteredExceptions = exceptions;
+      if (exceptionType) {
+        filteredExceptions = filteredExceptions.filter(e => e.exceptionType === exceptionType);
+      }
+      if (status) {
+        filteredExceptions = filteredExceptions.filter(e => (e as any).status === status);
+      }
 
       // Apply pagination
       const offset = (Number(page) - 1) * Number(limit);
-      const paginatedExceptions = exceptions.slice(offset, offset + Number(limit));
+      const paginatedExceptions = filteredExceptions.slice(offset, offset + Number(limit));
 
       return res.json({
         success: true,
@@ -538,12 +549,13 @@ export class AvailabilityController {
   async getHolidays(req: Request, res: Response) {
     try {
       const { year, country, region, includeOptional } = req.query;
-      const holidays = await this.availabilityService.getHolidays({
-        year: year ? Number(year) : undefined,
-        country: country as string,
-        region: region as string,
-        includeOptional: includeOptional === 'true'
-      });
+
+      // Build date range from year parameter
+      const targetYear = year ? Number(year) : new Date().getFullYear();
+      const startDate = new Date(targetYear, 0, 1); // January 1st
+      const endDate = new Date(targetYear, 11, 31); // December 31st
+
+      const holidays = await this.availabilityService.getHolidays(startDate, endDate);
 
       return res.json({
         success: true,
@@ -1297,7 +1309,7 @@ export class AvailabilityController {
   async exportAvailability(req: Request, res: Response) {
     try {
       const {
-        format,
+        format: exportFormat,
         startDate,
         endDate,
         departmentId,
@@ -1352,7 +1364,7 @@ export class AvailabilityController {
       }
 
       // Format based on requested format
-      switch (format) {
+      switch (exportFormat) {
         case 'csv':
           const csvData = csv.stringify(exportData, { header: true });
           res.setHeader('Content-Type', 'text/csv');

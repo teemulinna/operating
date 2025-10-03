@@ -102,9 +102,9 @@ export const AllocationList: React.FC<AllocationListProps> = ({
                           </span>
                         </div>
                         
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(allocation.status)}`} 
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(allocation.status || 'pending')}`}
                               data-testid={`allocation-status-${allocation.id}`}>
-                          {allocation.status.charAt(0).toUpperCase() + allocation.status.slice(1)}
+                          {allocation.status ? (allocation.status.charAt(0).toUpperCase() + allocation.status.slice(1)) : 'Pending'}
                         </span>
                       </div>
 

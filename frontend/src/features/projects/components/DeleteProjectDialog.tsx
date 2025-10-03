@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Project } from '@/types/project';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';

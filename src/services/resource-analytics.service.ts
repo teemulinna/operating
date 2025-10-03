@@ -418,7 +418,7 @@ export class ResourceAnalyticsService {
         const overAllocation = allocatedHours - weeklyCapacity;
         suggestions.push({
           type: 'capacity_adjustment',
-          employeeId: parseInt(allocation.employee_id),
+          employeeId: String(allocation.employee_id),
           adjustment: -overAllocation,
           reason: `Over-allocated by ${overAllocation.toFixed(1)} hours (${(utilization * 100).toFixed(1)}% utilization)`,
           expectedImprovement: (utilization - 1.0) * 100,
@@ -432,7 +432,7 @@ export class ResourceAnalyticsService {
         const underAllocation = weeklyCapacity * 0.8 - allocatedHours;
         suggestions.push({
           type: 'capacity_adjustment',
-          employeeId: parseInt(allocation.employee_id),
+          employeeId: String(allocation.employee_id),
           adjustment: underAllocation,
           reason: `Under-allocated by ${underAllocation.toFixed(1)} hours (${(utilization * 100).toFixed(1)}% utilization)`,
           expectedImprovement: (0.8 - utilization) * 100,
@@ -446,11 +446,11 @@ export class ResourceAnalyticsService {
         const employeeSkills = allocation.employee_skills.split(', ');
         const requiredSkills = allocation.required_skills.split(', ');
         const skillMatch = this.calculateSkillMatchScore(employeeSkills, requiredSkills);
-        
+
         if (skillMatch < 0.7) {
           suggestions.push({
             type: 'reassignment',
-            employeeId: parseInt(allocation.employee_id),
+            employeeId: String(allocation.employee_id),
             fromProjectId: parseInt(allocation.project_id),
             reason: `Skill mismatch: ${(skillMatch * 100).toFixed(0)}% match with project requirements`,
             expectedImprovement: (0.8 - skillMatch) * 100,
@@ -504,7 +504,7 @@ export class ResourceAnalyticsService {
       const efficiency = totalActual > 0 ? totalAllocated / totalActual : 1;
 
       result.push({
-        employeeId,
+        employeeId: String(employeeId),
         employeeName: assignments[0].employee_name || `Employee ${employeeId}`,
         totalCapacity: weeklyCapacity,
         allocatedHours: totalAllocated,
@@ -664,7 +664,7 @@ export class ResourceAnalyticsService {
       if (skillsToTrain.length > 0) {
         const priority = skillsToTrain.length + (parseFloat(employee.avg_proficiency) || 0);
         trainingNeeds.push({
-          employeeId: parseInt(employee.id),
+          employeeId: String(employee.id),
           employeeName: employee.name,
           skillsToTrain: skillsToTrain.slice(0, 3), // Limit to 3 skills
           priority: Math.round(priority),

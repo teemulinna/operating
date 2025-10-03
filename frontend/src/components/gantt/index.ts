@@ -14,4 +14,4 @@ export * from './utils/ganttExport';
 export * from './hooks/useGanttData';
 
 // Page Components
-export { default as GanttPage } from '../../../pages/GanttPage';
+export { default as GanttPage } from '../../pages/GanttPage';

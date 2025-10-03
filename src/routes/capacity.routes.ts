@@ -1,8 +1,12 @@
 import express from 'express';
 import { body, param, query } from 'express-validator';
 import { CapacityController } from '../controllers/capacity.controller';
+import heatMapRoutes from './heat-map.routes';
 
 const router = express.Router();
+
+// Mount heat map routes
+router.use('/', heatMapRoutes);
 
 // Validation middleware
 const validateCapacityCreation = [

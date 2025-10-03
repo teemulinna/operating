@@ -84,93 +84,34 @@ This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Co
 - **Clean Architecture**: Separate concerns
 - **Documentation**: Keep updated
 
-## 🚀 Available Agents (67 Total)
+## 🚀 Available Agents (54 Total)
 
-### Core Development Agents (5)
-- `coder` - Implementation specialist for writing clean, efficient code
-- `reviewer` - Code review and quality assurance specialist  
-- `tester` - Comprehensive testing and quality assurance specialist
-- `planner` - Strategic planning and task orchestration agent
-- `researcher` - Deep research and information gathering specialist
+### Core Development
+`coder`, `reviewer`, `tester`, `planner`, `researcher`
 
-### SPARC Methodology Agents (4) 
-- `specification` - Requirements analysis and acceptance criteria specialist
-- `pseudocode` - Algorithm design and logic flow specialist  
-- `architecture` - System design and component architecture specialist
-- `refinement` - Iterative improvement and TDD specialist
+### Swarm Coordination
+`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
 
-### Swarm Coordination Agents (3)
-- `hierarchical-coordinator` - Queen-led hierarchical swarm with specialized worker delegation
-- `mesh-coordinator` - Peer-to-peer mesh network with distributed decision making
-- `adaptive-coordinator` - Dynamic topology switching with self-organizing patterns
+### Consensus & Distributed
+`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
 
-### Consensus & Distributed Agents (7)
-- `byzantine-coordinator` - Byzantine fault-tolerant consensus with malicious actor detection
-- `raft-manager` - Raft consensus algorithm with leader election and log replication
-- `gossip-coordinator` - Gossip protocol coordination specialist
-- `crdt-synchronizer` - Conflict-free replicated data type synchronization
-- `quorum-manager` - Distributed quorum management and coordination
-- `security-manager` - Security protocol management and enforcement
-- `performance-benchmarker` - Performance analysis and benchmarking specialist
+### Performance & Optimization
+`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
 
-### GitHub & Repository Agents (11)
-- `pr-manager` - Comprehensive pull request management with swarm coordination
-- `issue-tracker` - Intelligent issue management and project coordination
-- `code-review-swarm` - Multi-agent code review coordination
-- `release-manager` - Release coordination and deployment management
-- `workflow-automation` - GitHub Actions and CI/CD workflow automation
-- `project-board-sync` - Project board synchronization and management
-- `repo-architect` - Repository architecture and structure specialist
-- `multi-repo-swarm` - Cross-repository coordination and management
-- `release-swarm` - Release management with swarm coordination
-- `swarm-issue` - Swarm-coordinated issue management
-- `swarm-pr` - Swarm-coordinated pull request management
+### GitHub & Repository
+`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
 
-### Specialized Development Agents (8)
-- `backend-dev` - Backend API development specialist (REST, GraphQL)
-- `mobile-dev` - React Native cross-platform mobile development
-- `ml-developer` - Machine learning and AI development specialist
-- `cicd-engineer` - CI/CD pipeline and DevOps automation specialist
-- `api-docs` - API documentation and OpenAPI specification specialist
-- `system-architect` - High-level system design and architectural decisions
-- `code-analyzer` - Advanced code quality analysis and improvement suggestions
-- `base-template-generator` - Foundational templates and boilerplate code generation
+### SPARC Methodology
+`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
 
-### Analysis & Architecture Agents (3)
-- `analyze-code-quality` - Code quality assessment and metrics analysis
-- `arch-system-design` - System architecture design and planning
-- `data-ml-model` - Machine learning model development and optimization
+### Specialized Development
+`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
 
-### Testing & Validation Agents (3) 
-- `tdd-london-swarm` - TDD London School specialist with mock-driven development
-- `production-validator` - Production environment validation and testing
-- `test-unit` - Unit testing specialist
+### Testing & Validation
+`tdd-london-swarm`, `production-validator`
 
-### Templates & Coordination Agents (10)
-- `memory-coordinator` - Persistent memory management and cross-agent sharing
-- `task-orchestrator` - Advanced task orchestration and workflow management
-- `performance-analyzer` - System performance analysis and optimization
-- `sparc-coordinator` - SPARC methodology coordination specialist
-- `smart-agent` - Intelligent automation and decision-making agent
-- `github-pr-manager` - GitHub PR management template
-- `migration-planner` - System migration planning and execution
-- `swarm-init` - Swarm initialization and configuration specialist
-- `coordinator-swarm-init` - Swarm coordination initialization template
-- `implementer-sparc-coder` - SPARC implementation specialist
-
-### Optimization & Performance Agents (5)
-- `benchmark-suite` - Comprehensive performance benchmarking
-- `load-balancer` - Dynamic load balancing and resource allocation  
-- `performance-monitor` - Real-time performance monitoring and alerting
-- `resource-allocator` - Intelligent resource allocation and management
-- `topology-optimizer` - Network topology optimization specialist
-
-### Development Infrastructure Agents (8)
-- `ops-cicd-github` - GitHub-based CI/CD operations specialist
-- `docs-api-openapi` - OpenAPI documentation generation and maintenance
-- `sync-coordinator` - Cross-system synchronization coordinator
-- `dev-backend-api` - Backend API development specialist
-- `spec-mobile-react-native` - React Native mobile app specification specialist
+### Migration & Planning
+`migration-planner`, `swarm-init`
 
 ## 🎯 Claude Code vs MCP Tools
 
@@ -200,8 +141,10 @@ This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Co
 ## 🚀 Quick Setup
 
 ```bash
-# Add Claude Flow MCP server
+# Add MCP servers (Claude Flow required, others optional)
 claude mcp add claude-flow npx claude-flow@alpha mcp start
+claude mcp add ruv-swarm npx ruv-swarm mcp start  # Optional: Enhanced coordination
+claude mcp add flow-nexus npx flow-nexus@latest mcp start  # Optional: Cloud features
 ```
 
 ## MCP Tool Categories
@@ -220,6 +163,23 @@ claude mcp add claude-flow npx claude-flow@alpha mcp start
 
 ### System
 `benchmark_run`, `features_detect`, `swarm_monitor`
+
+### Flow-Nexus MCP Tools (Optional Advanced Features)
+Flow-Nexus extends MCP capabilities with 70+ cloud-based orchestration tools:
+
+**Key MCP Tool Categories:**
+- **Swarm & Agents**: `swarm_init`, `swarm_scale`, `agent_spawn`, `task_orchestrate`
+- **Sandboxes**: `sandbox_create`, `sandbox_execute`, `sandbox_upload` (cloud execution)
+- **Templates**: `template_list`, `template_deploy` (pre-built project templates)
+- **Neural AI**: `neural_train`, `neural_patterns`, `seraphina_chat` (AI assistant)
+- **GitHub**: `github_repo_analyze`, `github_pr_manage` (repository management)
+- **Real-time**: `execution_stream_subscribe`, `realtime_subscribe` (live monitoring)
+- **Storage**: `storage_upload`, `storage_list` (cloud file management)
+
+**Authentication Required:**
+- Register: `mcp__flow-nexus__user_register` or `npx flow-nexus@latest register`
+- Login: `mcp__flow-nexus__user_login` or `npx flow-nexus@latest login`
+- Access 70+ specialized MCP tools for advanced orchestration
 
 ## 🚀 Agent Execution Flow with Claude Code
 
@@ -378,6 +338,7 @@ Message 4: Write "file.js"
 
 - Documentation: https://github.com/ruvnet/claude-flow
 - Issues: https://github.com/ruvnet/claude-flow/issues
+- Flow-Nexus Platform: https://flow-nexus.ruv.io (registration required for cloud features)
 
 ---
 

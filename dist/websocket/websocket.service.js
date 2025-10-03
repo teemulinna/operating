@@ -257,6 +257,9 @@ class WebSocketService {
             console.log(`👤 User ${presence.userName} disconnected`);
         }
     }
+    broadcast(event, data) {
+        this.io?.emit(event, data);
+    }
     broadcastResourceUpdate(data) {
         this.io?.to('resource-allocation').emit('resource-allocation-updated', data);
     }
@@ -278,6 +281,17 @@ class WebSocketService {
     }
     getUserCount() {
         return this.userSockets.size;
+    }
+    on(event, callback) {
+        this.io?.on(event, callback);
+    }
+    off(event, callback) {
+        if (callback) {
+            this.io?.off(event, callback);
+        }
+        else {
+            this.io?.removeAllListeners(event);
+        }
     }
 }
 exports.WebSocketService = WebSocketService;

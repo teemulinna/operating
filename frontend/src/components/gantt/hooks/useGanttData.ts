@@ -1,22 +1,22 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  GanttTask, 
-  GanttProject, 
-  GanttResource, 
+import {
+  GanttTask,
+  GanttProject,
+  GanttResource,
   CriticalPathAnalysis,
   ResourceConflict,
-  GanttFilterOptions 
+  GanttFilterOptions
 } from '../types';
-import { 
+import {
   transformApiProjectToGanttProject,
   calculateCriticalPath,
   detectResourceConflicts,
   calculateResourceUtilization,
   autoScheduleTasks,
 } from '../utils/ganttUtils';
-import { useToast } from '@/components/ui/toast';
-import { api } from '@/services/api';
+import { useToast } from '@/components/ui/use-toast';
+import { apiClient } from '@/services/api';
 
 interface UseGanttDataOptions {
   projectId: string;
@@ -24,37 +24,45 @@ interface UseGanttDataOptions {
   refreshInterval?: number;
 }
 
+// Extended GanttTask with additional properties for internal use
+interface ExtendedGanttTask extends GanttTask {
+  description?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  notes?: string;
+}
+
 interface UseGanttDataReturn {
   // Data
   project: GanttProject | null;
   tasks: GanttTask[];
   resources: GanttResource[];
-  
+
   // Analysis
   criticalPath: CriticalPathAnalysis | null;
   resourceConflicts: ResourceConflict[];
   resourceUtilization: any[];
-  
+
   // State
   isLoading: boolean;
   error: Error | null;
-  
+
   // Filters
   filters: GanttFilterOptions;
   setFilters: (filters: GanttFilterOptions) => void;
   filteredTasks: GanttTask[];
-  
+
   // Actions
   updateTask: (task: GanttTask) => Promise<void>;
   createTask: (task: Partial<GanttTask>) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   updateProject: (project: Partial<GanttProject>) => Promise<void>;
   refresh: () => Promise<void>;
-  
+
   // Advanced features
   autoSchedule: () => Promise<void>;
   optimizeResourceAllocation: () => Promise<void>;
-  
+
   // Export
   exportData: (format: string) => Promise<any>;
 }
@@ -63,7 +71,7 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   const { projectId, autoRefresh = false, refreshInterval = 30000 } = options;
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [filters, setFilters] = useState<GanttFilterOptions>({
     showCompleted: true,
     showOnHold: true,
@@ -82,7 +90,7 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   } = useQuery({
     queryKey: ['project', projectId],
     queryFn: async () => {
-      const response = await api.get(`/projects/${projectId}`);
+      const response = await apiClient.get(`/projects/${projectId}`);
       return response.data;
     },
     enabled: !!projectId,
@@ -99,7 +107,7 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   } = useQuery({
     queryKey: ['allocations', projectId],
     queryFn: async () => {
-      const response = await api.get(`/allocations?projectId=${projectId}`);
+      const response = await apiClient.get(`/allocations?projectId=${projectId}`);
       return response.data;
     },
     enabled: !!projectId,
@@ -116,7 +124,7 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   } = useQuery({
     queryKey: ['employees'],
     queryFn: async () => {
-      const response = await api.get('/employees');
+      const response = await apiClient.get('/employees');
       return response.data;
     },
     refetchInterval: autoRefresh ? refreshInterval : undefined,
@@ -126,7 +134,7 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   // Transform data to Gantt format
   const project = useMemo(() => {
     if (!projectData || !allocationsData || !employeesData) return null;
-    
+
     return transformApiProjectToGanttProject(
       projectData,
       allocationsData,
@@ -141,49 +149,51 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   // Apply filters
   const filteredTasks = useMemo(() => {
     if (!tasks.length) return [];
-    
+
     return tasks.filter(task => {
+      const extendedTask = task as ExtendedGanttTask;
+
       // Status filter
       if (!filters.showCompleted && task.status === 'completed') return false;
       if (!filters.showOnHold && task.status === 'on-hold') return false;
       if (!filters.showCancelled && task.status === 'cancelled') return false;
-      
+
       // Resource filter
       if (filters.resourceIds && filters.resourceIds.length > 0) {
-        const hasMatchingResource = task.resources?.some(resourceId => 
+        const hasMatchingResource = task.resources?.some(resourceId =>
           filters.resourceIds?.includes(resourceId)
         );
         if (!hasMatchingResource) return false;
       }
-      
+
       // Date range filters
       if (filters.startDateRange) {
         if (filters.startDateRange.start && task.start < filters.startDateRange.start) return false;
         if (filters.startDateRange.end && task.start > filters.startDateRange.end) return false;
       }
-      
+
       if (filters.endDateRange) {
         if (filters.endDateRange.start && task.end < filters.endDateRange.start) return false;
         if (filters.endDateRange.end && task.end > filters.endDateRange.end) return false;
       }
-      
+
       // Priority filter
       if (filters.priorities && !filters.priorities.includes(task.priority)) return false;
-      
+
       // Progress filter
       if (filters.progressRange) {
         if (task.progress < filters.progressRange.min || task.progress > filters.progressRange.max) {
           return false;
         }
       }
-      
+
       // Search filter
       if (filters.searchText) {
         const searchLower = filters.searchText.toLowerCase();
         return task.name.toLowerCase().includes(searchLower) ||
-               task.description?.toLowerCase().includes(searchLower);
+               extendedTask.description?.toLowerCase().includes(searchLower);
       }
-      
+
       return true;
     });
   }, [tasks, filters]);
@@ -191,7 +201,7 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   // Calculate critical path
   const criticalPath = useMemo(() => {
     if (!filteredTasks.length) return null;
-    
+
     try {
       return calculateCriticalPath(filteredTasks);
     } catch (error) {
@@ -203,14 +213,14 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   // Detect resource conflicts
   const resourceConflicts = useMemo(() => {
     if (!filteredTasks.length || !resources.length) return [];
-    
+
     return detectResourceConflicts(filteredTasks, resources);
   }, [filteredTasks, resources]);
 
   // Calculate resource utilization
   const resourceUtilization = useMemo(() => {
     if (!filteredTasks.length || !resources.length || !project) return [];
-    
+
     return calculateResourceUtilization(
       filteredTasks,
       resources,
@@ -222,17 +232,19 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   // Update task mutation
   const updateTaskMutation = useMutation({
     mutationFn: async (task: GanttTask) => {
+      const extendedTask = task as ExtendedGanttTask;
+
       // Convert Gantt task back to allocation format
       const allocationData = {
-        allocated_hours: task.estimatedHours,
-        actual_hours: task.actualHours,
+        allocated_hours: extendedTask.estimatedHours || 0,
+        actual_hours: extendedTask.actualHours || 0,
         role_on_project: task.name,
         start_date: task.start.toISOString(),
         end_date: task.end.toISOString(),
-        notes: (task as any).notes || '',
+        notes: extendedTask.notes || '',
       };
-      
-      const response = await api.put(`/allocations/${task.id}`, allocationData);
+
+      const response = await apiClient.put(`/allocations/${task.id}`, allocationData);
       return response.data;
     },
     onSuccess: () => {
@@ -254,17 +266,19 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   // Create task mutation
   const createTaskMutation = useMutation({
     mutationFn: async (task: Partial<GanttTask>) => {
+      const extendedTask = task as Partial<ExtendedGanttTask>;
+
       const allocationData = {
         project_id: projectId,
         employee_id: task.resources?.[0] || null,
-        allocated_hours: task.estimatedHours || 0,
+        allocated_hours: extendedTask.estimatedHours || 0,
         role_on_project: task.name || 'New Task',
         start_date: task.start?.toISOString() || new Date().toISOString(),
         end_date: task.end?.toISOString() || new Date().toISOString(),
-        notes: (task as any).notes || '',
+        notes: extendedTask.notes || '',
       };
-      
-      const response = await api.post('/allocations', allocationData);
+
+      const response = await apiClient.post('/allocations', allocationData);
       return response.data;
     },
     onSuccess: () => {
@@ -286,7 +300,7 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   // Delete task mutation
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: string) => {
-      const response = await api.delete(`/allocations/${taskId}`);
+      const response = await apiClient.delete(`/allocations/${taskId}`);
       return response.data;
     },
     onSuccess: () => {
@@ -317,8 +331,8 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
         priority: updates.priority,
         budget: updates.budget,
       };
-      
-      const response = await api.put(`/projects/${projectId}`, projectData);
+
+      const response = await apiClient.put(`/projects/${projectId}`, projectData);
       return response.data;
     },
     onSuccess: () => {
@@ -341,18 +355,18 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
   const autoScheduleMutation = useMutation({
     mutationFn: async () => {
       if (!project) throw new Error('No project data available');
-      
+
       const scheduledTasks = autoScheduleTasks(
         filteredTasks,
         resources,
         project.startDate
       );
-      
+
       // Update all tasks with new dates
-      const updatePromises = scheduledTasks.map(task => 
+      const updatePromises = scheduledTasks.map(task =>
         updateTaskMutation.mutateAsync(task)
       );
-      
+
       await Promise.all(updatePromises);
       return scheduledTasks;
     },
@@ -410,7 +424,7 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
 
   const exportData = useCallback(async (format: string) => {
     if (!project) return null;
-    
+
     switch (format) {
       case 'json':
         return {
@@ -420,20 +434,24 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
           criticalPath,
           resourceConflicts,
         };
-      
-      case 'csv':
-        return filteredTasks.map(task => ({
-          id: task.id,
-          name: task.name,
-          start: task.start.toISOString(),
-          end: task.end.toISOString(),
-          progress: task.progress,
-          status: task.status,
-          priority: task.priority,
-          estimatedHours: task.estimatedHours,
-          actualHours: task.actualHours,
-        }));
-      
+
+      case 'csv': {
+        return filteredTasks.map(task => {
+          const extendedTask = task as ExtendedGanttTask;
+          return {
+            id: task.id,
+            name: task.name,
+            start: task.start.toISOString(),
+            end: task.end.toISOString(),
+            progress: task.progress,
+            status: task.status,
+            priority: task.priority,
+            estimatedHours: extendedTask.estimatedHours || 0,
+            actualHours: extendedTask.actualHours || 0,
+          };
+        });
+      }
+
       default:
         throw new Error(`Unsupported export format: ${format}`);
     }
@@ -448,32 +466,32 @@ export const useGanttData = (options: UseGanttDataOptions): UseGanttDataReturn =
     project,
     tasks,
     resources,
-    
+
     // Analysis
     criticalPath,
     resourceConflicts,
     resourceUtilization,
-    
+
     // State
     isLoading,
     error: error as Error | null,
-    
+
     // Filters
     filters,
     setFilters,
     filteredTasks,
-    
+
     // Actions
     updateTask,
     createTask,
     deleteTask,
     updateProject,
     refresh,
-    
+
     // Advanced features
     autoSchedule,
     optimizeResourceAllocation,
-    
+
     // Export
     exportData,
   };

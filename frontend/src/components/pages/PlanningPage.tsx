@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
 import { DragDropCalendar } from '../planning/DragDropCalendar';
 import { GanttChart } from '../planning/GanttChart';
 import { ResourceTimeline } from '../planning/ResourceTimeline';
-import { ServiceFactory, type Project } from '../../services/api';
+import { ServiceFactory, type Employee, DataTransformer } from '../../services/api';
 import { addDays, format } from 'date-fns';
-
-interface PlanningPageState {
-  projects: Project[];
-  employees: any[];
-  startDate: string;
-  endDate: string;
-}
 
 export const PlanningPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'calendar' | 'gantt' | 'timeline'>('calendar');
@@ -28,7 +21,7 @@ export const PlanningPage: React.FC = () => {
     queryFn: async () => {
       const service = ServiceFactory.getProjectService();
       const response = await service.getAll({ status: 'active' });
-      return response.data;
+      return response.data.map(DataTransformer.toProject);
     },
   });
 
@@ -106,7 +99,7 @@ export const PlanningPage: React.FC = () => {
       case 'timeline':
         return (
           <ResourceTimeline
-            employees={employees}
+            employees={employees as Employee[]}
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}
             showUtilizationBars={true}

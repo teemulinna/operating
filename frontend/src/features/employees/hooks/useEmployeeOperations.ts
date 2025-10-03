@@ -11,12 +11,12 @@ export function useEmployeeOperations(): EmployeeOperationsHook {
   const [loading, setLoading] = React.useState(true);
   const [operationLoading, setOperationLoading] = React.useState(false);
   const [validationErrors, setValidationErrors] = React.useState<ValidationError[]>([]);
-  
+
   const { addToast } = useToast();
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  const showToast = React.useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
     addToast({ message, type });
-  };
+  }, [addToast]);
 
   // Fetch employees and departments from real backend
   React.useEffect(() => {
@@ -28,12 +28,12 @@ export function useEmployeeOperations(): EmployeeOperationsHook {
           fetch(`${API_BASE_URL}/employees`),
           fetch(`${API_BASE_URL}/departments`)
         ]);
-        
+
         const [employeesData, departmentsData] = await Promise.all([
           employeesResponse.json(),
           departmentsResponse.json()
         ]);
-        
+
         setEmployees(employeesData.data || []);
         setDepartments(departmentsData.data || []);
       } catch (err) {
@@ -43,7 +43,7 @@ export function useEmployeeOperations(): EmployeeOperationsHook {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [showToast]);
 
@@ -68,13 +68,14 @@ export function useEmployeeOperations(): EmployeeOperationsHook {
         ...result.data,
         departmentName: departments.find(d => d.id === result.data.departmentId)?.name || ''
       };
-      
+
       setEmployees(prev => [...prev, newEmployee]);
       showToast('Employee created successfully', 'success');
       setValidationErrors([]);
     } catch (error) {
       console.error('Error creating employee:', error);
-      showToast(error.message || 'Failed to create employee', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create employee';
+      showToast(errorMessage, 'error');
       throw error;
     } finally {
       setOperationLoading(false);
@@ -98,15 +99,16 @@ export function useEmployeeOperations(): EmployeeOperationsHook {
       }
 
       const result = await response.json();
-      
-      setEmployees(prev => prev.map(emp => 
+
+      setEmployees(prev => prev.map(emp =>
         emp.id === id ? { ...emp, ...result.data } : emp
       ));
       showToast('Employee updated successfully', 'success');
       setValidationErrors([]);
     } catch (error) {
       console.error('Error updating employee:', error);
-      showToast(error.message || 'Failed to update employee', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update employee';
+      showToast(errorMessage, 'error');
       throw error;
     } finally {
       setOperationLoading(false);
@@ -129,7 +131,8 @@ export function useEmployeeOperations(): EmployeeOperationsHook {
       showToast('Employee deleted successfully', 'success');
     } catch (error) {
       console.error('Error deleting employee:', error);
-      showToast(error.message || 'Failed to delete employee', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete employee';
+      showToast(errorMessage, 'error');
       throw error;
     } finally {
       setOperationLoading(false);

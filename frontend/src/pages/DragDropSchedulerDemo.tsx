@@ -1,1 +1,636 @@
-import React, { useState, useEffect } from 'react';\nimport { DragDropScheduler } from '../components/allocation/DragDropScheduler';\nimport { useDragDropScheduler } from '../hooks/useDragDropScheduler';\nimport { Card } from '../components/ui/card';\nimport { Button } from '../components/ui/button';\nimport { Badge } from '../components/ui/badge';\nimport { Separator } from '../components/ui/separator';\nimport { \n  Calendar, \n  Users, \n  Briefcase, \n  AlertTriangle,\n  Download,\n  Upload,\n  RotateCcw,\n  Settings,\n  Zap\n} from 'lucide-react';\nimport { Employee, Project } from '../types/api';\nimport { DragDropAllocation, AllocationConflict } from '../types/allocation';\nimport { apiService } from '../services/api';\nimport { toast } from '../components/ui/toast';\n\n// Mock data for demonstration\nconst mockEmployees: Employee[] = [\n  {\n    id: '1',\n    name: 'Alice Johnson',\n    firstName: 'Alice',\n    lastName: 'Johnson',\n    email: 'alice@company.com',\n    position: 'Senior Developer',\n    role: 'Senior Developer',\n    department: 'Engineering',\n    departmentId: 'eng-1',\n    salary: 120000,\n    skills: ['React', 'TypeScript', 'Node.js', 'GraphQL'],\n    capacity: 40,\n    status: 'active',\n  },\n  {\n    id: '2',\n    name: 'Bob Smith',\n    firstName: 'Bob',\n    lastName: 'Smith',\n    email: 'bob@company.com',\n    position: 'Full-Stack Developer',\n    role: 'Full-Stack Developer',\n    department: 'Engineering',\n    departmentId: 'eng-1',\n    salary: 100000,\n    skills: ['Vue.js', 'Python', 'PostgreSQL', 'Docker'],\n    capacity: 40,\n    status: 'active',\n  },\n  {\n    id: '3',\n    name: 'Carol Wilson',\n    firstName: 'Carol',\n    lastName: 'Wilson',\n    email: 'carol@company.com',\n    position: 'UI/UX Designer',\n    role: 'UI/UX Designer',\n    department: 'Design',\n    departmentId: 'des-1',\n    salary: 90000,\n    skills: ['Figma', 'Sketch', 'Adobe XD', 'User Research'],\n    capacity: 35,\n    status: 'active',\n  },\n  {\n    id: '4',\n    name: 'David Brown',\n    firstName: 'David',\n    lastName: 'Brown',\n    email: 'david@company.com',\n    position: 'DevOps Engineer',\n    role: 'DevOps Engineer',\n    department: 'Engineering',\n    departmentId: 'eng-1',\n    salary: 115000,\n    skills: ['AWS', 'Kubernetes', 'Terraform', 'Jenkins'],\n    capacity: 40,\n    status: 'active',\n  },\n];\n\nconst mockProjects: Project[] = [\n  {\n    id: 1,\n    name: 'E-commerce Platform v2.0',\n    description: 'Complete overhaul of the existing e-commerce platform',\n    status: 'active',\n    startDate: '2024-01-01',\n    endDate: '2024-06-30',\n    budget: 250000,\n    priority: 'high',\n    clientName: 'TechCorp Inc.',\n    estimatedHours: 2000,\n    actualHours: 800,\n  },\n  {\n    id: 2,\n    name: 'Mobile App Development',\n    description: 'Cross-platform mobile app using React Native',\n    status: 'active',\n    startDate: '2024-02-01',\n    endDate: '2024-08-31',\n    budget: 180000,\n    priority: 'medium',\n    clientName: 'StartupXYZ',\n    estimatedHours: 1500,\n    actualHours: 300,\n  },\n  {\n    id: 3,\n    name: 'Data Analytics Dashboard',\n    description: 'Real-time analytics dashboard for business intelligence',\n    status: 'planning',\n    startDate: '2024-03-01',\n    endDate: '2024-09-30',\n    budget: 150000,\n    priority: 'medium',\n    clientName: 'DataCorp',\n    estimatedHours: 1200,\n    actualHours: 0,\n  },\n  {\n    id: 4,\n    name: 'Security Audit & Improvements',\n    description: 'Comprehensive security review and implementation',\n    status: 'active',\n    startDate: '2024-01-15',\n    endDate: '2024-04-15',\n    budget: 80000,\n    priority: 'critical',\n    clientName: 'SecureTech',\n    estimatedHours: 600,\n    actualHours: 150,\n  },\n];\n\nconst mockAllocations: DragDropAllocation[] = [\n  {\n    id: 1,\n    employeeId: 1,\n    projectId: 1,\n    hours: 32,\n    date: '2024-01-15',\n    startDate: '2024-01-15',\n    endDate: '2024-01-19',\n    duration: 5,\n    status: 'active',\n    position: { x: 0, y: 0 },\n    dimensions: { width: 200, height: 60 },\n    notes: 'Working on frontend components',\n  },\n  {\n    id: 2,\n    employeeId: 1,\n    projectId: 4,\n    hours: 16,\n    date: '2024-01-15',\n    startDate: '2024-01-15',\n    endDate: '2024-01-17',\n    duration: 3,\n    status: 'active',\n    position: { x: 0, y: 0 },\n    dimensions: { width: 200, height: 60 },\n    notes: 'Security code review',\n  },\n  {\n    id: 3,\n    employeeId: 2,\n    projectId: 2,\n    hours: 40,\n    date: '2024-01-15',\n    startDate: '2024-01-15',\n    endDate: '2024-01-19',\n    duration: 5,\n    status: 'active',\n    position: { x: 0, y: 0 },\n    dimensions: { width: 200, height: 60 },\n    notes: 'Backend API development',\n  },\n  {\n    id: 4,\n    employeeId: 3,\n    projectId: 1,\n    hours: 28,\n    date: '2024-01-15',\n    startDate: '2024-01-15',\n    endDate: '2024-01-18',\n    duration: 4,\n    status: 'active',\n    position: { x: 0, y: 0 },\n    dimensions: { width: 200, height: 60 },\n    notes: 'UI/UX design for checkout flow',\n  },\n  {\n    id: 5,\n    employeeId: 4,\n    projectId: 4,\n    hours: 35,\n    date: '2024-01-15',\n    startDate: '2024-01-15',\n    endDate: '2024-01-19',\n    duration: 5,\n    status: 'active',\n    position: { x: 0, y: 0 },\n    dimensions: { width: 200, height: 60 },\n    notes: 'Infrastructure security improvements',\n  },\n];\n\nconst DragDropSchedulerDemo: React.FC = () => {\n  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);\n  const [projects, setProjects] = useState<Project[]>(mockProjects);\n  const [viewMode, setViewMode] = useState<'week' | 'month' | 'quarter'>('week');\n  const [selectedDate, setSelectedDate] = useState(new Date());\n  const [showDemo, setShowDemo] = useState(true);\n  \n  const {\n    allocations,\n    resourceLanes,\n    conflicts,\n    timeSlots,\n    selectionState,\n    isLoading,\n    handleAllocationMove,\n    handleAllocationCreate,\n    handleAllocationUpdate,\n    handleAllocationDelete,\n    handleSelectionChange,\n    clearSelection,\n    selectAll,\n    canUndo,\n    canRedo,\n    handleUndo,\n    handleRedo,\n    refreshData,\n    exportData,\n  } = useDragDropScheduler({\n    employees,\n    projects,\n    initialAllocations: mockAllocations,\n    viewMode,\n    selectedDate,\n    onAllocationChange: (newAllocations) => {\n      console.log('Allocations changed:', newAllocations);\n    },\n    onConflictDetected: (newConflicts) => {\n      console.log('Conflicts detected:', newConflicts);\n    },\n  });\n\n  // Load real data if available\n  const loadRealData = async () => {\n    try {\n      const [employeesData, projectsData, allocationsData] = await Promise.all([\n        apiService.getEmployees(),\n        apiService.getProjects(),\n        apiService.getAllocations(),\n      ]);\n      \n      setEmployees(employeesData);\n      setProjects(projectsData);\n      setShowDemo(false);\n      \n      toast({\n        title: 'Data Loaded',\n        description: 'Successfully loaded real data from the API',\n      });\n    } catch (error) {\n      console.log('Using demo data - API not available');\n      toast({\n        title: 'Using Demo Data',\n        description: 'API not available, showing demo data instead',\n        variant: 'default',\n      });\n    }\n  };\n\n  // Initialize with real or demo data\n  useEffect(() => {\n    loadRealData();\n  }, []);\n\n  const handleExport = (format: 'json' | 'csv') => {\n    const data = exportData(format);\n    const blob = new Blob([data], { \n      type: format === 'json' ? 'application/json' : 'text/csv' \n    });\n    const url = URL.createObjectURL(blob);\n    const a = document.createElement('a');\n    a.href = url;\n    a.download = `resource-allocation-${Date.now()}.${format}`;\n    document.body.appendChild(a);\n    a.click();\n    document.body.removeChild(a);\n    URL.revokeObjectURL(url);\n    \n    toast({\n      title: 'Export Successful',\n      description: `Data exported as ${format.toUpperCase()}`,\n    });\n  };\n\n  const generateDemoConflicts = (): AllocationConflict[] => {\n    return [\n      {\n        id: 'demo-conflict-1',\n        type: 'capacity_exceeded',\n        message: 'Alice Johnson is over-allocated (48h/40h capacity)',\n        severity: 'error',\n        affectedAllocations: [1, 2],\n      },\n      {\n        id: 'demo-conflict-2',\n        type: 'overlap',\n        message: 'Overlapping project timelines for Bob Smith',\n        severity: 'warning',\n        affectedAllocations: [3],\n      },\n    ];\n  };\n\n  const statsData = {\n    totalEmployees: employees.length,\n    totalProjects: projects.length,\n    totalAllocations: allocations.length,\n    totalConflicts: conflicts.length,\n    averageUtilization: Math.round(\n      resourceLanes.reduce((sum, lane) => sum + (lane.utilization / lane.capacity) * 100, 0) / resourceLanes.length\n    ),\n  };\n\n  return (\n    <div className=\"min-h-screen bg-gray-50 p-6\">\n      <div className=\"max-w-7xl mx-auto space-y-6\">\n        {/* Header */}\n        <div className=\"bg-white rounded-lg shadow-sm p-6\">\n          <div className=\"flex items-center justify-between mb-4\">\n            <div>\n              <h1 className=\"text-3xl font-bold text-gray-900 flex items-center space-x-2\">\n                <Zap className=\"h-8 w-8 text-primary\" />\n                <span>Drag & Drop Resource Scheduler</span>\n              </h1>\n              <p className=\"text-gray-600 mt-1\">\n                Interactive resource allocation with visual conflict detection\n              </p>\n            </div>\n            \n            {showDemo && (\n              <Badge variant=\"outline\" className=\"bg-blue-50 text-blue-700\">\n                Demo Mode\n              </Badge>\n            )}\n          </div>\n\n          {/* Stats */}\n          <div className=\"grid grid-cols-2 md:grid-cols-5 gap-4\">\n            <Card className=\"p-4\">\n              <div className=\"flex items-center space-x-2\">\n                <Users className=\"h-5 w-5 text-blue-500\" />\n                <div>\n                  <div className=\"text-2xl font-bold\">{statsData.totalEmployees}</div>\n                  <div className=\"text-sm text-gray-500\">Employees</div>\n                </div>\n              </div>\n            </Card>\n            \n            <Card className=\"p-4\">\n              <div className=\"flex items-center space-x-2\">\n                <Briefcase className=\"h-5 w-5 text-green-500\" />\n                <div>\n                  <div className=\"text-2xl font-bold\">{statsData.totalProjects}</div>\n                  <div className=\"text-sm text-gray-500\">Projects</div>\n                </div>\n              </div>\n            </Card>\n            \n            <Card className=\"p-4\">\n              <div className=\"flex items-center space-x-2\">\n                <Calendar className=\"h-5 w-5 text-purple-500\" />\n                <div>\n                  <div className=\"text-2xl font-bold\">{statsData.totalAllocations}</div>\n                  <div className=\"text-sm text-gray-500\">Allocations</div>\n                </div>\n              </div>\n            </Card>\n            \n            <Card className=\"p-4\">\n              <div className=\"flex items-center space-x-2\">\n                <AlertTriangle className={`h-5 w-5 ${\n                  statsData.totalConflicts > 0 ? 'text-red-500' : 'text-gray-400'\n                }`} />\n                <div>\n                  <div className=\"text-2xl font-bold\">{statsData.totalConflicts}</div>\n                  <div className=\"text-sm text-gray-500\">Conflicts</div>\n                </div>\n              </div>\n            </Card>\n            \n            <Card className=\"p-4\">\n              <div className=\"flex items-center space-x-2\">\n                <Settings className=\"h-5 w-5 text-orange-500\" />\n                <div>\n                  <div className=\"text-2xl font-bold\">{statsData.averageUtilization}%</div>\n                  <div className=\"text-sm text-gray-500\">Avg. Utilization</div>\n                </div>\n              </div>\n            </Card>\n          </div>\n        </div>\n\n        {/* Action bar */}\n        <div className=\"bg-white rounded-lg shadow-sm p-4\">\n          <div className=\"flex items-center justify-between\">\n            <div className=\"flex items-center space-x-4\">\n              <div className=\"flex items-center space-x-2\">\n                <Button \n                  variant=\"outline\" \n                  size=\"sm\" \n                  onClick={handleUndo}\n                  disabled={!canUndo || isLoading}\n                >\n                  <RotateCcw className=\"h-4 w-4 mr-1\" />\n                  Undo\n                </Button>\n                \n                <Button \n                  variant=\"outline\" \n                  size=\"sm\" \n                  onClick={handleRedo}\n                  disabled={!canRedo || isLoading}\n                >\n                  Redo\n                </Button>\n              </div>\n              \n              <Separator orientation=\"vertical\" className=\"h-6\" />\n              \n              <div className=\"flex items-center space-x-2\">\n                <Button \n                  variant=\"outline\" \n                  size=\"sm\" \n                  onClick={clearSelection}\n                  disabled={selectionState.selectedAllocations.size === 0}\n                >\n                  Clear Selection\n                </Button>\n                \n                <Button \n                  variant=\"outline\" \n                  size=\"sm\" \n                  onClick={selectAll}\n                  disabled={allocations.length === 0}\n                >\n                  Select All\n                </Button>\n              </div>\n            </div>\n            \n            <div className=\"flex items-center space-x-2\">\n              <Button variant=\"outline\" size=\"sm\" onClick={() => handleExport('csv')}>\n                <Download className=\"h-4 w-4 mr-1\" />\n                Export CSV\n              </Button>\n              \n              <Button variant=\"outline\" size=\"sm\" onClick={() => handleExport('json')}>\n                <Download className=\"h-4 w-4 mr-1\" />\n                Export JSON\n              </Button>\n              \n              <Button variant=\"outline\" size=\"sm\" onClick={refreshData}>\n                <Upload className=\"h-4 w-4 mr-1\" />\n                Refresh\n              </Button>\n            </div>\n          </div>\n        </div>\n\n        {/* Selection info */}\n        {selectionState.selectedAllocations.size > 0 && (\n          <Card className=\"p-4 bg-blue-50 border-blue-200\">\n            <div className=\"flex items-center justify-between\">\n              <div className=\"text-sm text-blue-700\">\n                <strong>{selectionState.selectedAllocations.size}</strong> allocations selected\n              </div>\n              <div className=\"flex items-center space-x-2\">\n                <Button size=\"sm\" variant=\"outline\" onClick={clearSelection}>\n                  Clear\n                </Button>\n                <Button \n                  size=\"sm\" \n                  variant=\"destructive\"\n                  onClick={() => {\n                    // Handle bulk delete\n                    Array.from(selectionState.selectedAllocations).forEach(id => {\n                      handleAllocationDelete(id);\n                    });\n                    clearSelection();\n                  }}\n                >\n                  Delete Selected\n                </Button>\n              </div>\n            </div>\n          </Card>\n        )}\n\n        {/* Main scheduler */}\n        <Card className=\"p-6 min-h-96\">\n          <DragDropScheduler\n            employees={employees}\n            projects={projects}\n            allocations={allocations}\n            onAllocationChange={(newAllocations) => {\n              console.log('Scheduler allocation change:', newAllocations);\n            }}\n            onConflictDetected={(newConflicts) => {\n              console.log('Scheduler conflict detection:', newConflicts);\n            }}\n            viewMode={viewMode}\n            selectedDate={selectedDate}\n            readOnly={false}\n          />\n        </Card>\n\n        {/* Features showcase */}\n        <Card className=\"p-6\">\n          <h2 className=\"text-xl font-semibold mb-4\">✨ Features Showcase</h2>\n          <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4\">\n            <div className=\"p-4 border rounded-lg\">\n              <h3 className=\"font-medium mb-2\">🖱️ Drag & Drop</h3>\n              <p className=\"text-sm text-gray-600\">\n                Drag allocation cards between employees and time periods with visual feedback.\n              </p>\n            </div>\n            \n            <div className=\"p-4 border rounded-lg\">\n              <h3 className=\"font-medium mb-2\">⚠️ Conflict Detection</h3>\n              <p className=\"text-sm text-gray-600\">\n                Real-time detection of over-allocations, overlaps, and skill mismatches.\n              </p>\n            </div>\n            \n            <div className=\"p-4 border rounded-lg\">\n              <h3 className=\"font-medium mb-2\">🔄 Undo/Redo</h3>\n              <p className=\"text-sm text-gray-600\">\n                Complete operation history with undo/redo support for all changes.\n              </p>\n            </div>\n            \n            <div className=\"p-4 border rounded-lg\">\n              <h3 className=\"font-medium mb-2\">📊 Capacity Tracking</h3>\n              <p className=\"text-sm text-gray-600\">\n                Visual capacity indicators with utilization percentages and warnings.\n              </p>\n            </div>\n            \n            <div className=\"p-4 border rounded-lg\">\n              <h3 className=\"font-medium mb-2\">🎯 Multi-Selection</h3>\n              <p className=\"text-sm text-gray-600\">\n                Select multiple allocations for bulk operations and management.\n              </p>\n            </div>\n            \n            <div className=\"p-4 border rounded-lg\">\n              <h3 className=\"font-medium mb-2\">📅 Flexible Views</h3>\n              <p className=\"text-sm text-gray-600\">\n                Switch between week, month, and quarter views for different planning horizons.\n              </p>\n            </div>\n          </div>\n        </Card>\n\n        {/* Instructions */}\n        <Card className=\"p-6 bg-gray-50\">\n          <h2 className=\"text-xl font-semibold mb-4\">🚀 How to Use</h2>\n          <div className=\"space-y-2 text-sm text-gray-600\">\n            <p>• <strong>Drag allocations</strong>: Click and drag allocation cards between employees</p>\n            <p>• <strong>Select multiple</strong>: Hold Ctrl/Cmd while clicking to select multiple allocations</p>\n            <p>• <strong>Create allocations</strong>: Click \"Add Allocation\" button on resource lanes</p>\n            <p>• <strong>Edit details</strong>: Click the menu (⋮) on allocation cards for options</p>\n            <p>• <strong>View conflicts</strong>: Red/yellow indicators show over-allocations and conflicts</p>\n            <p>• <strong>Export data</strong>: Use the export buttons to download allocation data</p>\n          </div>\n        </Card>\n      </div>\n    </div>\n  );\n};\n\nexport default DragDropSchedulerDemo;"
+import React, { useState, useEffect } from 'react';
+import { DragDropScheduler } from '../components/allocation/DragDropScheduler';
+import useDragDropScheduler from '../hooks/useDragDropScheduler';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Separator } from '../components/ui/separator';
+import { useToast } from '../components/ui/use-toast';
+import {
+  Calendar,
+  Users,
+  Briefcase,
+  AlertTriangle,
+  Download,
+  Upload,
+  RotateCcw,
+  Settings,
+  Zap
+} from 'lucide-react';
+import { DragDropAllocation, AllocationConflict } from '../types/allocation';
+import { apiService } from '../services/api';
+
+// Define local types matching Employee and Project for mock data
+interface MockEmployee {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  department: string;
+  departmentId: string;
+  position: string;
+  salary: number;
+  startDate: string;
+  status: 'active' | 'inactive';
+  skills: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface MockProject {
+  id: number;
+  name: string;
+  description?: string;
+  clientName?: string;
+  status: 'planning' | 'active' | 'completed' | 'on-hold' | 'cancelled';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  startDate: string;
+  endDate?: string;
+  budget?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Mock data for demonstration
+const mockEmployees: MockEmployee[] = [
+  {
+    id: '1',
+    firstName: 'Alice',
+    lastName: 'Johnson',
+    email: 'alice@company.com',
+    phone: '555-0101',
+    department: 'Engineering',
+    departmentId: 'dept-1',
+    position: 'Senior Developer',
+    salary: 120000,
+    startDate: '2022-01-15',
+    status: 'active',
+    skills: ['React', 'TypeScript', 'Node.js', 'GraphQL'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    firstName: 'Bob',
+    lastName: 'Smith',
+    email: 'bob@company.com',
+    phone: '555-0102',
+    department: 'Engineering',
+    departmentId: 'dept-1',
+    position: 'Full-Stack Developer',
+    salary: 110000,
+    startDate: '2022-03-20',
+    status: 'active',
+    skills: ['Vue.js', 'Python', 'PostgreSQL', 'Docker'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    firstName: 'Carol',
+    lastName: 'Wilson',
+    email: 'carol@company.com',
+    phone: '555-0103',
+    department: 'Design',
+    departmentId: 'dept-2',
+    position: 'UI/UX Designer',
+    salary: 95000,
+    startDate: '2021-11-10',
+    status: 'active',
+    skills: ['Figma', 'Sketch', 'Adobe XD', 'User Research'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '4',
+    firstName: 'David',
+    lastName: 'Brown',
+    email: 'david@company.com',
+    phone: '555-0104',
+    department: 'Engineering',
+    departmentId: 'dept-1',
+    position: 'DevOps Engineer',
+    salary: 115000,
+    startDate: '2022-05-01',
+    status: 'active',
+    skills: ['AWS', 'Kubernetes', 'Terraform', 'Jenkins'],
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const mockProjects: MockProject[] = [
+  {
+    id: 1,
+    name: 'E-commerce Platform v2.0',
+    description: 'Complete overhaul of the existing e-commerce platform',
+    status: 'active',
+    startDate: '2024-01-01',
+    endDate: '2024-06-30',
+    budget: 250000,
+    priority: 'high',
+    clientName: 'TechCorp Inc.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    name: 'Mobile App Development',
+    description: 'Cross-platform mobile app using React Native',
+    status: 'active',
+    startDate: '2024-02-01',
+    endDate: '2024-08-31',
+    budget: 180000,
+    priority: 'medium',
+    clientName: 'StartupXYZ',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 3,
+    name: 'Data Analytics Dashboard',
+    description: 'Real-time analytics dashboard for business intelligence',
+    status: 'planning',
+    startDate: '2024-03-01',
+    endDate: '2024-09-30',
+    budget: 150000,
+    priority: 'medium',
+    clientName: 'DataCorp',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 4,
+    name: 'Security Audit & Improvements',
+    description: 'Comprehensive security review and implementation',
+    status: 'active',
+    startDate: '2024-01-15',
+    endDate: '2024-04-15',
+    budget: 80000,
+    priority: 'critical',
+    clientName: 'SecureTech',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const mockAllocations: DragDropAllocation[] = [
+  {
+    id: '1',
+    allocationId: '1',
+    employeeId: '1',
+    projectId: '1',
+    hours: 32,
+    allocatedHours: 32,
+    startDate: '2024-01-15',
+    endDate: '2024-01-19',
+    originalStartDate: '2024-01-15',
+    originalEndDate: '2024-01-19',
+    newStartDate: '2024-01-15',
+    newEndDate: '2024-01-19',
+    status: 'active',
+    notes: 'Working on frontend components',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    allocationId: '2',
+    employeeId: '1',
+    projectId: '4',
+    hours: 16,
+    allocatedHours: 16,
+    startDate: '2024-01-15',
+    endDate: '2024-01-17',
+    originalStartDate: '2024-01-15',
+    originalEndDate: '2024-01-17',
+    newStartDate: '2024-01-15',
+    newEndDate: '2024-01-17',
+    status: 'active',
+    notes: 'Security code review',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    allocationId: '3',
+    employeeId: '2',
+    projectId: '2',
+    hours: 40,
+    allocatedHours: 40,
+    startDate: '2024-01-15',
+    endDate: '2024-01-19',
+    originalStartDate: '2024-01-15',
+    originalEndDate: '2024-01-19',
+    newStartDate: '2024-01-15',
+    newEndDate: '2024-01-19',
+    status: 'active',
+    notes: 'Backend API development',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '4',
+    allocationId: '4',
+    employeeId: '3',
+    projectId: '1',
+    hours: 28,
+    allocatedHours: 28,
+    startDate: '2024-01-15',
+    endDate: '2024-01-18',
+    originalStartDate: '2024-01-15',
+    originalEndDate: '2024-01-18',
+    newStartDate: '2024-01-15',
+    newEndDate: '2024-01-18',
+    status: 'active',
+    notes: 'UI/UX design for checkout flow',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '5',
+    allocationId: '5',
+    employeeId: '4',
+    projectId: '4',
+    hours: 35,
+    allocatedHours: 35,
+    startDate: '2024-01-15',
+    endDate: '2024-01-19',
+    originalStartDate: '2024-01-15',
+    originalEndDate: '2024-01-19',
+    newStartDate: '2024-01-15',
+    newEndDate: '2024-01-19',
+    status: 'active',
+    notes: 'Infrastructure security improvements',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const DragDropSchedulerDemo: React.FC = () => {
+  const { toast } = useToast();
+  const [employees, setEmployees] = useState<MockEmployee[]>(mockEmployees);
+  const [projects, setProjects] = useState<MockProject[]>(mockProjects);
+  const [viewMode] = useState<'week' | 'month' | 'quarter'>('week');
+  const [selectedDate] = useState(new Date());
+  const [showDemo, setShowDemo] = useState(true);
+
+  const {
+    allocations,
+    resourceLanes,
+    conflicts,
+    selectionState,
+    isLoading,
+    handleAllocationDelete,
+    clearSelection,
+    selectAll,
+    canUndo,
+    canRedo,
+    handleUndo,
+    handleRedo,
+    refreshData,
+    exportData,
+  } = useDragDropScheduler({
+    employees: employees as any,
+    projects: projects as any,
+    initialAllocations: mockAllocations,
+    viewMode,
+    selectedDate,
+    onAllocationChange: (newAllocations: DragDropAllocation[]) => {
+      console.log('Allocations changed:', newAllocations);
+    },
+    onConflictDetected: (newConflicts: AllocationConflict[]) => {
+      console.log('Conflicts detected:', newConflicts);
+    },
+  });
+
+  // Load real data if available
+  const loadRealData = async () => {
+    try {
+      const [employeesData, projectsData] = await Promise.all([
+        apiService.getEmployees(),
+        apiService.getProjects(),
+        apiService.getAllocations(),
+      ]);
+
+      setEmployees(employeesData as any);
+      setProjects(projectsData as any);
+      setShowDemo(false);
+
+      toast({
+        title: 'Data Loaded',
+        description: 'Successfully loaded real data from the API',
+      });
+    } catch (error) {
+      console.log('Using demo data - API not available');
+      toast({
+        title: 'Using Demo Data',
+        description: 'API not available, showing demo data instead',
+      });
+    }
+  };
+
+  // Initialize with real or demo data
+  useEffect(() => {
+    loadRealData();
+  }, []);
+
+  const handleExport = (format: 'json' | 'csv') => {
+    const data = exportData(format);
+    const blob = new Blob([data], {
+      type: format === 'json' ? 'application/json' : 'text/csv'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `resource-allocation-${Date.now()}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: 'Export Successful',
+      description: `Data exported as ${format.toUpperCase()}`,
+    });
+  };
+
+  const statsData = {
+    totalEmployees: employees.length,
+    totalProjects: projects.length,
+    totalAllocations: allocations.length,
+    totalConflicts: conflicts.length,
+    averageUtilization: resourceLanes.length > 0
+      ? Math.round(resourceLanes.reduce((sum: number, lane: any) => sum + lane.utilization, 0) / resourceLanes.length)
+      : 0,
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-2">
+                <Zap className="h-8 w-8 text-primary" />
+                <span>Drag & Drop Resource Scheduler</span>
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Interactive resource allocation with visual conflict detection
+              </p>
+            </div>
+
+            {showDemo && (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                Demo Mode
+              </Badge>
+            )}
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <Card className="p-4">
+              <div className="flex items-center space-x-2">
+                <Users className="h-5 w-5 text-blue-500" />
+                <div>
+                  <div className="text-2xl font-bold">{statsData.totalEmployees}</div>
+                  <div className="text-sm text-gray-500">Employees</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <div className="flex items-center space-x-2">
+                <Briefcase className="h-5 w-5 text-green-500" />
+                <div>
+                  <div className="text-2xl font-bold">{statsData.totalProjects}</div>
+                  <div className="text-sm text-gray-500">Projects</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-5 w-5 text-purple-500" />
+                <div>
+                  <div className="text-2xl font-bold">{statsData.totalAllocations}</div>
+                  <div className="text-sm text-gray-500">Allocations</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className={`h-5 w-5 ${
+                  statsData.totalConflicts > 0 ? 'text-red-500' : 'text-gray-400'
+                }`} />
+                <div>
+                  <div className="text-2xl font-bold">{statsData.totalConflicts}</div>
+                  <div className="text-sm text-gray-500">Conflicts</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <div className="flex items-center space-x-2">
+                <Settings className="h-5 w-5 text-orange-500" />
+                <div>
+                  <div className="text-2xl font-bold">{statsData.averageUtilization}%</div>
+                  <div className="text-sm text-gray-500">Avg. Utilization</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Action bar */}
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUndo}
+                  disabled={!canUndo || isLoading}
+                >
+                  <RotateCcw className="h-4 w-4 mr-1" />
+                  Undo
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRedo}
+                  disabled={!canRedo || isLoading}
+                >
+                  Redo
+                </Button>
+              </div>
+
+              <Separator orientation="vertical" className="h-6" />
+
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearSelection}
+                  disabled={selectionState.selectedAllocations.size === 0}
+                >
+                  Clear Selection
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAll}
+                  disabled={allocations.length === 0}
+                >
+                  Select All
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={() => handleExport('csv')}>
+                <Download className="h-4 w-4 mr-1" />
+                Export CSV
+              </Button>
+
+              <Button variant="outline" size="sm" onClick={() => handleExport('json')}>
+                <Download className="h-4 w-4 mr-1" />
+                Export JSON
+              </Button>
+
+              <Button variant="outline" size="sm" onClick={refreshData}>
+                <Upload className="h-4 w-4 mr-1" />
+                Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Selection info */}
+        {selectionState.selectedAllocations.size > 0 && (
+          <Card className="p-4 bg-blue-50 border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-blue-700">
+                <strong>{selectionState.selectedAllocations.size}</strong> allocations selected
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button size="sm" variant="outline" onClick={clearSelection}>
+                  Clear
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={async () => {
+                    // Handle bulk delete - pass array of indices
+                    const indicesToDelete = Array.from(selectionState.selectedAllocations);
+                    await handleAllocationDelete(indicesToDelete);
+                    clearSelection();
+                  }}
+                >
+                  Delete Selected
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Main scheduler */}
+        <Card className="p-6 min-h-96">
+          <DragDropScheduler
+            employees={employees as any}
+            projects={projects as any}
+            allocations={allocations}
+            onAllocationChange={(newAllocations) => {
+              console.log('Scheduler allocation change:', newAllocations);
+            }}
+            onConflictDetected={(newConflicts) => {
+              console.log('Scheduler conflict detection:', newConflicts);
+            }}
+            viewMode={viewMode}
+            selectedDate={selectedDate}
+            readOnly={false}
+          />
+        </Card>
+
+        {/* Features showcase */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">✨ Features Showcase</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-2">🖱️ Drag & Drop</h3>
+              <p className="text-sm text-gray-600">
+                Drag allocation cards between employees and time periods with visual feedback.
+              </p>
+            </div>
+
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-2">⚠️ Conflict Detection</h3>
+              <p className="text-sm text-gray-600">
+                Real-time detection of over-allocations, overlaps, and skill mismatches.
+              </p>
+            </div>
+
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-2">🔄 Undo/Redo</h3>
+              <p className="text-sm text-gray-600">
+                Complete operation history with undo/redo support for all changes.
+              </p>
+            </div>
+
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-2">📊 Capacity Tracking</h3>
+              <p className="text-sm text-gray-600">
+                Visual capacity indicators with utilization percentages and warnings.
+              </p>
+            </div>
+
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-2">🎯 Multi-Selection</h3>
+              <p className="text-sm text-gray-600">
+                Select multiple allocations for bulk operations and management.
+              </p>
+            </div>
+
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-medium mb-2">📅 Flexible Views</h3>
+              <p className="text-sm text-gray-600">
+                Switch between week, month, and quarter views for different planning horizons.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Instructions */}
+        <Card className="p-6 bg-gray-50">
+          <h2 className="text-xl font-semibold mb-4">🚀 How to Use</h2>
+          <div className="space-y-2 text-sm text-gray-600">
+            <p>• <strong>Drag allocations</strong>: Click and drag allocation cards between employees</p>
+            <p>• <strong>Select multiple</strong>: Hold Ctrl/Cmd while clicking to select multiple allocations</p>
+            <p>• <strong>Create allocations</strong>: Click "Add Allocation" button on resource lanes</p>
+            <p>• <strong>Edit details</strong>: Click the menu (⋮) on allocation cards for options</p>
+            <p>• <strong>View conflicts</strong>: Red/yellow indicators show over-allocations and conflicts</p>
+            <p>• <strong>Export data</strong>: Use the export buttons to download allocation data</p>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default DragDropSchedulerDemo;

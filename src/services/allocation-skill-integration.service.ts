@@ -69,9 +69,9 @@ export class AllocationSkillIntegrationService {
   }> {
     try {
       const warnings: string[] = [];
-      
+
       // Get project and role requirements
-      const projectSkillRequirements = await this.getProjectSkillRequirements(input.projectId);
+      const projectSkillRequirements = await this.getProjectSkillRequirements(String(input.projectId));
       
       if (projectSkillRequirements.length === 0 && input.requireSkillMatch) {
         warnings.push('No skill requirements defined for this project role');
@@ -84,7 +84,7 @@ export class AllocationSkillIntegrationService {
       if (projectSkillRequirements.length > 0) {
         const criteria: SkillMatchCriteria = {
           requiredSkills: projectSkillRequirements,
-          projectId: input.projectId,
+          projectId: String(input.projectId),
           roleTitle: input.roleOnProject,
           startDate: input.startDate,
           endDate: input.endDate,
@@ -182,7 +182,7 @@ export class AllocationSkillIntegrationService {
       }
 
       // Get project skill requirements
-      const projectSkillRequirements = await this.getProjectSkillRequirements(allocation.projectId);
+      const projectSkillRequirements = await this.getProjectSkillRequirements(String(allocation.projectId));
       
       if (projectSkillRequirements.length === 0) {
         // Return allocation without skill enhancement if no requirements
@@ -192,7 +192,7 @@ export class AllocationSkillIntegrationService {
       // Calculate skill match
       const criteria: SkillMatchCriteria = {
         requiredSkills: projectSkillRequirements,
-        projectId: allocation.projectId,
+        projectId: String(allocation.projectId),
         roleTitle: allocation.roleOnProject,
         startDate: allocation.startDate,
         endDate: allocation.endDate,
@@ -266,7 +266,7 @@ export class AllocationSkillIntegrationService {
       
       // Enhance each allocation with skill match data
       const enhancedAllocations = await Promise.all(
-        allocations.map(allocation => this.enhanceExistingAllocation(allocation.id))
+        allocations.map(allocation => this.enhanceExistingAllocation(String(allocation.id)))
       );
 
       // Analyze overall project skill coverage
@@ -340,11 +340,11 @@ export class AllocationSkillIntegrationService {
   private async createBasicAllocation(input: CreateResourceAllocationInput): Promise<ResourceAllocation> {
     // This would integrate with the existing AllocationService
     // For now, return a mock allocation structure
-    const allocationId = `alloc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+    const allocationId = Date.now();
+
     const allocation: ResourceAllocation = {
       id: allocationId,
-      projectId: input.projectId,
+      projectId: parseInt(String(input.projectId)),
       employeeId: input.employeeId,
       allocatedHours: input.allocatedHours,
       roleOnProject: input.roleOnProject,

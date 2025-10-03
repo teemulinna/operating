@@ -1,0 +1,556 @@
+
+> resourceforge-frontend@0.0.0 test:e2e
+> playwright test api-validation.spec.ts --reporter=list
+
+
+Running 14 tests using 4 workers
+
+  ✘   2 [chromium] › tests/e2e/specs/api-validation.spec.ts:71:5 › Server-Side API Validation › Employee API Validation › should require first name and last name (319ms)
+  ✘   3 [chromium] › tests/e2e/specs/api-validation.spec.ts:32:5 › Server-Side API Validation › Employee API Validation › should validate email uniqueness (318ms)
+  ✘   1 [chromium] › tests/e2e/specs/api-validation.spec.ts:102:5 › Server-Side API Validation › Employee API Validation › should validate salary as positive number (320ms)
+  ✘   4 [chromium] › tests/e2e/specs/api-validation.spec.ts:13:5 › Server-Side API Validation › Employee API Validation › should validate email format (319ms)
+  ✘   5 [chromium] › tests/e2e/specs/api-validation.spec.ts:13:5 › Server-Side API Validation › Employee API Validation › should validate email format (retry #1) (330ms)
+  ✘   6 [chromium] › tests/e2e/specs/api-validation.spec.ts:71:5 › Server-Side API Validation › Employee API Validation › should require first name and last name (retry #1) (329ms)
+  ✘   7 [chromium] › tests/e2e/specs/api-validation.spec.ts:102:5 › Server-Side API Validation › Employee API Validation › should validate salary as positive number (retry #1) (328ms)
+  ✘   8 [chromium] › tests/e2e/specs/api-validation.spec.ts:32:5 › Server-Side API Validation › Employee API Validation › should validate email uniqueness (retry #1) (329ms)
+  ✘   9 [chromium] › tests/e2e/specs/api-validation.spec.ts:254:5 › Server-Side API Validation › Project API Validation › should validate budget and hourly rate as positive (319ms)
+  ✘  10 [chromium] › tests/e2e/specs/api-validation.spec.ts:137:5 › Server-Side API Validation › Employee API Validation › should validate weekly capacity (0-168 hours) (319ms)
+  ✘  11 [chromium] › tests/e2e/specs/api-validation.spec.ts:218:5 › Server-Side API Validation › Project API Validation › should validate end date after start date (318ms)
+  ✘  12 [chromium] › tests/e2e/specs/api-validation.spec.ts:202:5 › Server-Side API Validation › Project API Validation › should require project name (317ms)
+  ✘  13 [chromium] › tests/e2e/specs/api-validation.spec.ts:218:5 › Server-Side API Validation › Project API Validation › should validate end date after start date (retry #1) (330ms)
+  ✘  14 [chromium] › tests/e2e/specs/api-validation.spec.ts:202:5 › Server-Side API Validation › Project API Validation › should require project name (retry #1) (329ms)
+  ✘  16 [chromium] › tests/e2e/specs/api-validation.spec.ts:254:5 › Server-Side API Validation › Project API Validation › should validate budget and hourly rate as positive (retry #1) (327ms)
+  ✘  15 [chromium] › tests/e2e/specs/api-validation.spec.ts:137:5 › Server-Side API Validation › Employee API Validation › should validate weekly capacity (0-168 hours) (retry #1) (328ms)
+  ✘  19 [chromium] › tests/e2e/specs/api-validation.spec.ts:305:5 › Server-Side API Validation › Project API Validation › should validate status enum (319ms)
+  ✘  17 [chromium] › tests/e2e/specs/api-validation.spec.ts:417:5 › Server-Side API Validation › Allocation API Validation › should validate employee and project existence (0ms)
+  ✘  18 [chromium] › tests/e2e/specs/api-validation.spec.ts:340:5 › Server-Side API Validation › Project API Validation › should validate priority enum (319ms)
+  ✘  20 [chromium] › tests/e2e/specs/api-validation.spec.ts:448:5 › Server-Side API Validation › Allocation API Validation › should validate hours as positive number (0ms)
+  ✘  21 [chromium] › tests/e2e/specs/api-validation.spec.ts:340:5 › Server-Side API Validation › Project API Validation › should validate priority enum (retry #1) (329ms)
+  ✘  24 [chromium] › tests/e2e/specs/api-validation.spec.ts:305:5 › Server-Side API Validation › Project API Validation › should validate status enum (retry #1) (329ms)
+  ✘  23 [chromium] › tests/e2e/specs/api-validation.spec.ts:448:5 › Server-Side API Validation › Allocation API Validation › should validate hours as positive number (retry #1) (0ms)
+  ✘  22 [chromium] › tests/e2e/specs/api-validation.spec.ts:417:5 › Server-Side API Validation › Allocation API Validation › should validate employee and project existence (retry #1) (0ms)
+  ✘  25 [chromium] › tests/e2e/specs/api-validation.spec.ts:505:5 › Server-Side API Validation › Allocation API Validation › should check capacity limits (warning system) (0ms)
+  ✘  26 [chromium] › tests/e2e/specs/api-validation.spec.ts:484:5 › Server-Side API Validation › Allocation API Validation › should validate end date after start date (0ms)
+  ✘  27 [chromium] › tests/e2e/specs/api-validation.spec.ts:505:5 › Server-Side API Validation › Allocation API Validation › should check capacity limits (warning system) (retry #1) (0ms)
+  ✘  28 [chromium] › tests/e2e/specs/api-validation.spec.ts:484:5 › Server-Side API Validation › Allocation API Validation › should validate end date after start date (retry #1) (0ms)
+
+
+  1) [chromium] › tests/e2e/specs/api-validation.spec.ts:13:5 › Server-Side API Validation › Employee API Validation › should validate email format 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 130[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:14:38
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 130[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:14:38
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-3353e-hould-validate-email-format-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-3353e-hould-validate-email-format-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › tests/e2e/specs/api-validation.spec.ts:32:5 › Server-Side API Validation › Employee API Validation › should validate email uniqueness 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 150[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:36:35
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 150[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:36:35
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-102f4-d-validate-email-uniqueness-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-102f4-d-validate-email-uniqueness-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › tests/e2e/specs/api-validation.spec.ts:71:5 › Server-Side API Validation › Employee API Validation › should require first name and last name 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 126[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:73:41
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 126[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:73:41
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-5bcf9-re-first-name-and-last-name-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-5bcf9-re-first-name-and-last-name-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium] › tests/e2e/specs/api-validation.spec.ts:102:5 › Server-Side API Validation › Employee API Validation › should validate salary as positive number 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 154[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:104:38
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 154[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:104:38
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-be88c-e-salary-as-positive-number-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-be88c-e-salary-as-positive-number-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium] › tests/e2e/specs/api-validation.spec.ts:137:5 › Server-Side API Validation › Employee API Validation › should validate weekly capacity (0-168 hours) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 156[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:139:38
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 156[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:139:38
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-fc4fe-eekly-capacity-0-168-hours--chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-fc4fe-eekly-capacity-0-168-hours--chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium] › tests/e2e/specs/api-validation.spec.ts:202:5 › Server-Side API Validation › Project API Validation › should require project name 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 118[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:203:38
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 118[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:203:38
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-bd069-should-require-project-name-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-bd069-should-require-project-name-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium] › tests/e2e/specs/api-validation.spec.ts:218:5 › Server-Side API Validation › Project API Validation › should validate end date after start date 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 155[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:220:37
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 155[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:220:37
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-0020e-e-end-date-after-start-date-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-0020e-e-end-date-after-start-date-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium] › tests/e2e/specs/api-validation.spec.ts:254:5 › Server-Side API Validation › Project API Validation › should validate budget and hourly rate as positive 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 158[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:256:44
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 158[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:256:44
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-24818-and-hourly-rate-as-positive-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-24818-and-hourly-rate-as-positive-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [chromium] › tests/e2e/specs/api-validation.spec.ts:305:5 › Server-Side API Validation › Project API Validation › should validate status enum 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 164[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:307:37
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 164[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:307:37
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-cdefa-should-validate-status-enum-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-cdefa-should-validate-status-enum-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [chromium] › tests/e2e/specs/api-validation.spec.ts:340:5 › Server-Side API Validation › Project API Validation › should validate priority enum 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 170[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:342:37
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 170[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:342:37
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-b4bc6-ould-validate-priority-enum-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-b4bc6-ould-validate-priority-enum-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [chromium] › tests/e2e/specs/api-validation.spec.ts:417:5 › Server-Side API Validation › Allocation API Validation › should validate employee and project existence 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 159[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:382:41
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 159[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:382:41
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-91b15-loyee-and-project-existence-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-91b15-loyee-and-project-existence-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [chromium] › tests/e2e/specs/api-validation.spec.ts:448:5 › Server-Side API Validation › Allocation API Validation › should validate hours as positive number 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 159[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:382:41
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 159[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:382:41
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-14fd1-te-hours-as-positive-number-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-14fd1-te-hours-as-positive-number-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) [chromium] › tests/e2e/specs/api-validation.spec.ts:484:5 › Server-Side API Validation › Allocation API Validation › should validate end date after start date 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 159[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:382:41
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 159[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:382:41
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-b7614-e-end-date-after-start-date-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-b7614-e-end-date-after-start-date-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) [chromium] › tests/e2e/specs/api-validation.spec.ts:505:5 › Server-Side API Validation › Allocation API Validation › should check capacity limits (warning system) 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 159[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:382:41
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+    [2m  - → POST http://localhost:3000/api/employees[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 159[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at /Users/teemulinna/code/operating/frontend/tests/e2e/specs/api-validation.spec.ts:382:41
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/specs-api-validation-Serve-906a5-city-limits-warning-system--chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/specs-api-validation-Serve-906a5-city-limits-warning-system--chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14 failed
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:13:5 › Server-Side API Validation › Employee API Validation › should validate email format 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:32:5 › Server-Side API Validation › Employee API Validation › should validate email uniqueness 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:71:5 › Server-Side API Validation › Employee API Validation › should require first name and last name 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:102:5 › Server-Side API Validation › Employee API Validation › should validate salary as positive number 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:137:5 › Server-Side API Validation › Employee API Validation › should validate weekly capacity (0-168 hours) 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:202:5 › Server-Side API Validation › Project API Validation › should require project name 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:218:5 › Server-Side API Validation › Project API Validation › should validate end date after start date 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:254:5 › Server-Side API Validation › Project API Validation › should validate budget and hourly rate as positive 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:305:5 › Server-Side API Validation › Project API Validation › should validate status enum 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:340:5 › Server-Side API Validation › Project API Validation › should validate priority enum 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:417:5 › Server-Side API Validation › Allocation API Validation › should validate employee and project existence 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:448:5 › Server-Side API Validation › Allocation API Validation › should validate hours as positive number 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:484:5 › Server-Side API Validation › Allocation API Validation › should validate end date after start date 
+    [chromium] › tests/e2e/specs/api-validation.spec.ts:505:5 › Server-Side API Validation › Allocation API Validation › should check capacity limits (warning system) 

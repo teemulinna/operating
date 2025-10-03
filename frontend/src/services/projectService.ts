@@ -1,6 +1,6 @@
 import { BaseService } from './base.service';
 import { apiClient } from './api';
-import type { 
+import type {
   Project,
   ApiProject,
   ApiProjectsResponse,
@@ -16,7 +16,6 @@ import type {
   CreateProjectRoleRequest,
   ProjectRoleAssignment,
   CreateProjectRoleAssignmentRequest,
-  ApiError
 } from '@/types/project';
 import { transformApiProject, transformToApiRequest } from '@/types/project';
 

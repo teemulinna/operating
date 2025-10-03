@@ -116,7 +116,7 @@ export declare class SkillsManagementService {
         notes?: string;
     }): Promise<EmployeeSkill>;
     getEmployeeSkills(employeeId: string): Promise<EmployeeSkill[]>;
-    updateEmployeeSkill(employeeId: string, updates: {
+    updateEmployeeSkill(employeeId: string, skillId: string, updates: {
         proficiencyLevel?: number;
         certificationLevel?: string;
         yearsOfExperience?: number;

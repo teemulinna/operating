@@ -12,7 +12,7 @@ import type { Project, Allocation } from '../../services/api';
 import 'gantt-task-react/dist/index.css';
 
 interface GanttTask extends Task {
-  project: Project;
+  projectData: Project;
   allocations: Allocation[];
   resourceBars?: {
     employeeId: string;
@@ -58,8 +58,6 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   endDate,
   viewMode = ViewMode.Month,
   showResourceBars = false,
-  showDependencies = false,
-  showCriticalPath = false,
   showOverallocationWarnings = false,
   overallocatedEmployees = [],
   onTaskClick,
@@ -85,7 +83,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         const projectsResponse = await service.getAll(
           { status: 'active' }
         );
-        setProjects(projectsResponse.data);
+        setProjects(projectsResponse.data as Project[]);
       }
 
       // Load allocations with date filters
@@ -101,7 +99,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         allocationFilters,
         { limit: 1000 }
       );
-      setAllocations(allocationsResponse.allocations);
+      setAllocations(allocationsResponse.allocations as Allocation[]);
 
     } catch (error) {
       console.error('Failed to load gantt data:', error);
@@ -128,19 +126,19 @@ export const GanttChart: React.FC<GanttChartProps> = ({
       }
 
       // Group allocations by employee for resource bars
-      const resourceBars = showResourceBars ? 
+      const resourceBars = showResourceBars ?
         Object.values(
           projectAllocations.reduce((acc, allocation) => {
             if (!acc[allocation.employeeId]) {
               acc[allocation.employeeId] = {
                 employeeId: allocation.employeeId,
-                employeeName: allocation.employeeName || 'Unknown',
-                role: allocation.role || 'Team Member',
+                employeeName: allocation.employeeId, // Use employeeId as fallback
+                role: allocation.roleOnProject || 'Team Member',
                 allocatedHours: 0,
                 utilization: 0,
               };
             }
-            acc[allocation.employeeId].allocatedHours += allocation.allocatedHours || 0;
+            acc[allocation.employeeId].allocatedHours += allocation.allocatedHours || allocation.hours || 0;
             return acc;
           }, {} as Record<string, any>)
         ) : undefined;
@@ -158,7 +156,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
           styles.backgroundColor = '#3b82f6';
           styles.progressColor = '#2563eb';
           break;
-        case 'on-hold':
+        case 'inactive':
           styles.backgroundColor = '#f59e0b';
           styles.progressColor = '#d97706';
           break;
@@ -173,12 +171,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 
       // Add overallocation warning styles
       if (showOverallocationWarnings) {
-        const hasOverallocatedEmployee = resourceBars?.some(bar => 
-          overallocatedEmployees.some(emp => 
+        const hasOverallocatedEmployee = resourceBars?.some(bar =>
+          overallocatedEmployees.some(emp =>
             emp.employeeId === bar.employeeId && emp.overallocated
           )
         );
-        
+
         if (hasOverallocatedEmployee) {
           styles.backgroundColor = '#ef4444';
           styles.progressColor = '#dc2626';
@@ -193,7 +191,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         progress,
         type,
         styles,
-        project,
+        project: project.id.toString(),
+        projectData: project,
         allocations: projectAllocations,
         resourceBars,
         hideChildren: false,
@@ -211,26 +210,26 @@ export const GanttChart: React.FC<GanttChartProps> = ({
     }
   };
 
-  const handleDateChange = (task: Task, start: Date, end: Date) => {
+  const handleDateChange = (task: Task) => {
     const ganttTask = ganttTasks.find(t => t.id === task.id);
     if (ganttTask) {
-      onDateChange?.(ganttTask, start, end);
-      
+      onDateChange?.(ganttTask, task.start, task.end);
+
       // Update project dates in the backend
       const service = new ProjectService();
-      service.update(ganttTask.project.id, {
-        startDate: start.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0],
+      service.update(ganttTask.projectData.id, {
+        startDate: task.start.toISOString().split('T')[0],
+        endDate: task.end.toISOString().split('T')[0],
       });
-      
+
       loadData(); // Reload data
     }
   };
 
-  const handleProgressChange = (task: Task, progress: number) => {
+  const handleProgressChange = (task: Task) => {
     const ganttTask = ganttTasks.find(t => t.id === task.id);
     if (ganttTask) {
-      onProgressChange?.(ganttTask, progress);
+      onProgressChange?.(ganttTask, task.progress);
     }
   };
 
@@ -287,15 +286,15 @@ export const GanttChart: React.FC<GanttChartProps> = ({
           <div className="flex items-center gap-2">
             {/* View Mode Selector */}
             <Select
-              value={currentViewMode}
-              onValueChange={(value: ViewMode) => setCurrentViewMode(value)}
+              value={currentViewMode.toString()}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCurrentViewMode(e.target.value as ViewMode)}
             >
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {VIEW_MODE_OPTIONS.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value.toString()}>
                     {option.label}
                   </SelectItem>
                 ))}
@@ -338,12 +337,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({
       <CardContent className="p-0">
         <div data-testid="gantt-chart" className="h-96">
           <Gantt
-            tasks={ganttTasks}
+            tasks={ganttTasks as Task[]}
             viewMode={currentViewMode}
             onDateChange={handleDateChange}
             onProgressChange={handleProgressChange}
             onClick={handleTaskClick}
-            columnWidth={currentViewMode === ViewMode.Day ? 50 : 
+            columnWidth={currentViewMode === ViewMode.Day ? 50 :
                         currentViewMode === ViewMode.Week ? 100 :
                         currentViewMode === ViewMode.Month ? 150 : 200}
             listCellWidth="200px"
@@ -366,7 +365,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-              <span>On Hold</span>
+              <span>Inactive</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-purple-500 rounded"></div>
@@ -395,15 +394,15 @@ export const GanttChart: React.FC<GanttChartProps> = ({
               ×
             </Button>
           </div>
-          
+
           <div className="space-y-2 text-sm">
             <div>
-              <span className="font-medium">Client:</span> {selectedTask.project.clientName}
+              <span className="font-medium">Client:</span> {selectedTask.projectData.clientName}
             </div>
             <div>
               <span className="font-medium">Status:</span>{' '}
-              <Badge variant={selectedTask.project.status === 'active' ? 'default' : 'secondary'}>
-                {selectedTask.project.status}
+              <Badge variant={selectedTask.projectData.status === 'active' ? 'default' : 'secondary'}>
+                {selectedTask.projectData.status}
               </Badge>
             </div>
             <div>
@@ -412,7 +411,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             <div>
               <span className="font-medium">Team:</span> {selectedTask.allocations.length} members
             </div>
-            
+
             {showResourceBars && selectedTask.resourceBars && (
               <div>
                 <span className="font-medium">Resource Allocation:</span>

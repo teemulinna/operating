@@ -1,4 +1,3 @@
-import React from 'react';
 import { Badge } from './badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card';
 
@@ -115,8 +114,8 @@ export const OverAllocationWarningComponent: React.FC<OverAllocationWarningProps
         <div>
           <span className="font-medium text-sm">Affected Projects:</span>
           <div className="mt-2 space-y-1">
-            {warning.affectedAllocations.map((allocation, index) => (
-              <div 
+            {warning.affectedAllocations.map((allocation) => (
+              <div
                 key={allocation.allocationId}
                 className="flex justify-between items-center p-2 bg-gray-50 rounded text-sm"
               >
@@ -215,7 +214,7 @@ export const OverAllocationWarningList: React.FC<OverAllocationWarningListProps>
             }
             return b.overAllocationHours - a.overAllocationHours;
           })
-          .map((warning, index) => (
+          .map((warning) => (
             <OverAllocationWarningComponent
               key={`${warning.employeeId}-${warning.weekStartDate.getTime()}`}
               warning={warning}

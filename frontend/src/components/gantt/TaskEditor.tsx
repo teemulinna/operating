@@ -14,8 +14,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -23,7 +21,6 @@ import { format } from 'date-fns';
 import { 
   CalendarIcon, 
   Clock, 
-  User, 
   AlertTriangle, 
   CheckCircle2, 
   Circle, 
@@ -230,8 +227,6 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     return diffDays;
   };
 
-  const getPriorityOption = (value: string) => priorityOptions.find(p => p.value === value);
-  const getStatusOption = (value: string) => statusOptions.find(s => s.value === value);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -376,9 +371,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Status</Label>
-                    <Select 
-                      value={formData.status} 
-                      onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}
+                    <Select
+                      value={formData.status}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
                       disabled={readOnly}
                     >
                       <SelectTrigger>
@@ -404,9 +399,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
                   <div>
                     <Label>Priority</Label>
-                    <Select 
-                      value={formData.priority} 
-                      onValueChange={(value: any) => setFormData(prev => ({ ...prev, priority: value }))}
+                    <Select
+                      value={formData.priority}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
                       disabled={readOnly}
                     >
                       <SelectTrigger>
